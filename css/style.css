@@ -1,8 +1,28 @@
+@font-face {
+	font-family: NexaBlack;
+	src: url("NexaBlack.otf");
+}
+
+@import url('http://fonts.googleapis.com/css?family=Lato:400,700');
+
 html, body
 {
 	/* height: 100%; */
-	background-color: rgb(226, 204, 0);
+	background-color: rgb(15, 13, 37);
 	margin: 0;
+	font-family: 'Lato', sans-serif;
+}
+
+h1
+{
+	font-family: NexaBlack;
+	font-size: 10vw;
+	color: #fff;
+}
+
+#main-page h1
+{
+	position: absolute;
 }
 
 #main-page
@@ -39,6 +59,9 @@ html, body
 	color: white;
 	border-radius: 2px;
 	background: rgba(0,0,0,0.2);
+	margin-top: 25%;
+	font-size: 20px;
+	font-weight: 700;
 }
 
 #main

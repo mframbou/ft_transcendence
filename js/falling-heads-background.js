@@ -16,8 +16,7 @@ var HeartsBackground = {
 		this.ctx.clearRect(0, 0, this.w, this.h);
 		for (var i = 0; i < this.hearts.length; i++)
 		{
-			var num = Math.floor(Math.random() * 4);
-
+			var num = Math.floor(Math.random() * 4);			
 			if(heartsOutside[i] !== "")
 				num = heartsOutside[i];
 
@@ -87,7 +86,7 @@ var HeartsBackground = {
 			});
 		}
 
-		this.update = setInterval($.proxy(this.draw, this), 25);
+		this.update = setInterval($.proxy(this.draw, this), 10);
 	}
 };
 
