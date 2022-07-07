@@ -1,4 +1,13 @@
-var imagesArray = ["sspina-transparent.png", "dsamain-transparent.png", "oronda-transparent.png", "mframbou-transparent.png"];
+var imagesArray = [
+	"sspina-transparent.png",
+	"dsamain-transparent.png",
+	"oronda-transparent.png",
+	"mframbou-transparent.png"
+].map(e => {
+	const image = new Image();
+	image.src = e;
+	return image;
+});
 
 var heartsOutside = [];
 
@@ -12,7 +21,6 @@ var HeartsBackground = {
 
 	draw: function()
 	{
-		this.setCanvasSize();
 		this.ctx.clearRect(0, 0, this.w, this.h);
 		for (var i = 0; i < this.hearts.length; i++)
 		{
@@ -22,14 +30,16 @@ var HeartsBackground = {
 
 			var heart = this.hearts[i];
 			heartsOutside[i] = num;
-			heart.image = new Image();
-			heart.image.style.height = heart.height;
+			heart.image = imagesArray[num];
+			// heart.image = new Image();
+			// heart.image.style.height = heart.height;
 			
-			heart.image.src = imagesArray[num];
+			// heart.image.src = imagesArray[num];
 			this.ctx.globalAlpha = heart.opacity;
 			this.ctx.drawImage (heart.image, heart.x, heart.y, heart.width, heart.height);
 		}
 		this.move();
+		requestAnimationFrame(this.draw.bind(this));
 	},
 
 	move: function()
@@ -46,15 +56,15 @@ var HeartsBackground = {
 	},
 	setCanvasSize: function()
 	{
-		this.canvas.width = $('#canvas').parent().width();
-		this.canvas.height = $('#canvas').parent().height();
+		this.canvas.width = this.canvas.parentElement.clientWidth;
+		this.canvas.height = this.canvas.parentElement.clientHeight;
 		this.w = this.canvas.width;
 		this.h = this.canvas.height;
 	},
 
 	initialize: function()
 	{
-		this.canvas = $('#canvas')[0];
+		this.canvas = document.querySelector('#canvas');
 
 		if(!this.canvas.getContext)
 		return;
@@ -77,7 +87,7 @@ var HeartsBackground = {
 			this.hearts.push({
 				x: Math.random() * this.w,
 				y: Math.random() * this.h,
-				ys: Math.random() + 1,
+				ys: Math.random() + 2,
 				
 				height: scale * this.heartHeight,
 				width: scale * this.heartWidth,
@@ -86,17 +96,12 @@ var HeartsBackground = {
 			});
 		}
 
-		this.update = setInterval($.proxy(this.draw, this), 10);
+		requestAnimationFrame(this.draw.bind(this));
 	}
 };
 
-$(document).ready(function() {
-	HeartsBackground.initialize();
+window.addEventListener("resize", function() {
+	HeartsBackground.setCanvasSize();
 });
 
-
-$(window).resize(function() {
-	if (HeartsBackground.update != '')
-		clearInterval(HeartsBackground.update);
-	HeartsBackground.initialize();
-});
+HeartsBackground.initialize();
