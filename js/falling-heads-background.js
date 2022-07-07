@@ -100,7 +100,11 @@ var HeartsBackground = {
 	}
 };
 
-window.addEventListener("resize", function() {
+function sleep(ms) {
+	return new Promise(res => setTimeout(res, ms));
+}
+window.addEventListener("resize", async () => {
+	// await sleep(2000);
 	HeartsBackground.setCanvasSize();
 });
 

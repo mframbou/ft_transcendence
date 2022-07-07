@@ -23,10 +23,9 @@ h1
 #main-page h1
 {
 	position: absolute;
-	/* background: linear-gradient(to right, #ff0000, #00FF00); */
-	-webkit-background-clip: text;
+	/* -webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
-	animation: RGBSHHHHEEEEEEEEEEESH .5s ease-in-out infinite alternate-reverse;
+	animation: RGBSHHHHEEEEEEEEEEESH .5s ease-in-out infinite alternate-reverse; */
 	user-select: none;
 }
 
