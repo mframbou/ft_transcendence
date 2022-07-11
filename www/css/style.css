@@ -199,8 +199,8 @@ a
 .chatbox-friends-list
 {
 	background-color: rgb(11, 6, 49);
-	display: flex;
-	flex-direction: column;
+	/* display: flex;
+	flex-direction: column; */
 	/* gap: 10px; */
 
 	width: 30%;
@@ -222,6 +222,8 @@ a
 
 	transition: background-color 250ms;
 	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow-x: hidden;
 
 
 }
