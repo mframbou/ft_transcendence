@@ -160,6 +160,7 @@ a
 
 .pushable-front:hover
 {
+	background-color: rgb(149, 140, 180);
 	transform: translateY(-6px);
 }
 
