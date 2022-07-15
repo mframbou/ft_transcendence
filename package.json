@@ -19,5 +19,8 @@
   "homepage": "https://github.com/Zekoyu/ft_transcendence_wish#readme",
   "devDependencies": {
     "@types/three": "^0.141.0"
+  },
+  "dependencies": {
+    "three": "^0.142.0"
   }
 }
