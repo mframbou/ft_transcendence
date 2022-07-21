@@ -1,111 +1,102 @@
-var imagesArray = [
+let images = [
 	"images/sspina-transparent.png",
 	"images/dsamain-transparent.png",
 	"images/oronda-transparent.png",
 	"images/mframbou-transparent.png"
-].map(e => {
-	const image = new Image();
-	image.src = e;
-	return image;
-});
+]
 
-var heartsOutside = [];
+const IMG_HEIGHT = 64;
+const IMG_WIDTH = 64;
+const MIN_SCALE = 0.4;
+const MAX_SCALE = 1.0;
+const MIN_VELOCITY = 1.5;
+const MAX_VELOCITY = 2.2;
+const POINTS_COUNT = 80;
 
-var HeartsBackground = {
-	heartHeight: 64,
-	heartWidth: 64,
-	hearts: [],
-	maxHearts: 60,
-	minScale: 0.4,
-	update: '',
+const canvas = document.querySelector(".falling-heads-background");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const ctx = canvas.getContext("2d");
 
-	draw: function()
-	{
-		this.ctx.clearRect(0, 0, this.w, this.h);
-		for (var i = 0; i < this.hearts.length; i++)
-		{
-			var num = Math.floor(Math.random() * 4);			
-			if(heartsOutside[i] !== "")
-				num = heartsOutside[i];
+const points = [];
 
-			var heart = this.hearts[i];
-			heartsOutside[i] = num;
-			heart.image = imagesArray[num];
-			// heart.image = new Image();
-			// heart.image.style.height = heart.height;
-			
-			// heart.image.src = imagesArray[num];
-			this.ctx.globalAlpha = heart.opacity;
-			this.ctx.drawImage (heart.image, heart.x, heart.y, heart.width, heart.height);
-		}
-		this.move();
-		requestAnimationFrame(this.draw.bind(this));
-	},
-
-	move: function()
-	{
-		for(var b = 0; b < this.hearts.length; b++) {
-		var heart = this.hearts[b];
-		heart.y += heart.ys;
-		if(heart.y > this.h) {
-			heart.x = Math.random() * this.w;
-			heart.y = -1 * this.heartHeight;
-			heartsOutside[b] = ""
-		}
-		}
-	},
-	setCanvasSize: function()
-	{
-		this.canvas.width = this.canvas.parentElement.clientWidth;
-		this.canvas.height = this.canvas.parentElement.clientHeight;
-		this.w = this.canvas.width;
-		this.h = this.canvas.height;
-	},
-
-	initialize: function()
-	{
-		this.canvas = document.querySelector('#canvas');
-
-		if(!this.canvas.getContext)
-		return;
-
-		this.setCanvasSize();
-		this.ctx = this.canvas.getContext('2d');
-
-		this.hearts = [];
-		heartsOutside = ["", "", "", "", "", "", "", "", "", "", 
-						 "", "", "", "", "", "", "", "", "", "", 
-						 "", "", "", "", "", "", "", "", "", "", 
-						 "", "", "", "", "", "", "", "", "", "", 
-						 "", "", "", "", "", "", "", "", "", "", 
-						 "", "", "", "", "", "", "", "", "", "",
-						 "", "", "", "", "", "", "", "", "", ""];
-
-		for(var a = 0; a < this.maxHearts; a++)
-		{
-			var scale = (Math.random() * (1 - this.minScale)) + this.minScale;
-			this.hearts.push({
-				x: Math.random() * this.w,
-				y: Math.random() * this.h,
-				ys: Math.random() + 2,
-				
-				height: scale * this.heartHeight,
-				width: scale * this.heartWidth,
-				opacity: scale,
-				image: imagesArray[Math.floor(Math.random()*imagesArray.length)]
-			});
-		}
-
-		requestAnimationFrame(this.draw.bind(this));
-	}
-};
-
-function sleep(ms) {
-	return new Promise(res => setTimeout(res, ms));
+function init_images()
+{
+	images = images.map(e => {
+		const image = new Image();
+		image.src = e;
+		return image;
+	});
 }
-window.addEventListener("resize", async () => {
-	// await sleep(2000);
-	HeartsBackground.setCanvasSize();
+
+class point
+{
+	constructor(x, y, scale)
+	{
+		this.img = images[Math.floor(Math.random() * images.length)];
+		this.x = x;
+		this.y = y;
+		this.height = IMG_HEIGHT * scale;
+		this.width = IMG_WIDTH * scale;
+		this.size = scale;
+		this.opacity = scale;
+		this.originalOpacity = this.opacity;
+		this.velocity = Math.random() * (MAX_VELOCITY - MIN_VELOCITY) + MIN_VELOCITY;
+	}
+
+	update()
+	{
+		this.y += this.velocity;
+
+		if (this.y > canvas.height + IMG_HEIGHT)
+		{
+			this.x = Math.random() * canvas.width;
+			this.img = images[Math.floor(Math.random() * images.length)];
+			this.y = -IMG_HEIGHT; // To make it appear gradually
+		}
+	}
+
+	drawImg()
+	{
+		ctx.globalAlpha = this.opacity;
+		ctx.drawImage(this.img, this.x - this.width / 2, this.y - this.height - 2, this.width, this.height);
+	}
+}
+
+function dist(x1, y1, x2, y2)
+{
+	return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+}
+
+function loop()
+{
+	i++;
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	points.forEach(p => {
+		p.update();
+		p.drawImg();
+	});
+
+	requestAnimationFrame(loop);
+}
+
+function init_points(pointsCount)
+{
+	for (i = 0; i < POINTS_COUNT; i++)
+	{
+		let scale = Math.random() * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
+		let x = Math.floor(Math.random() * canvas.width);
+		let y = Math.floor(Math.random() * canvas.height);
+		points.push(new point(x, y, scale));
+	}
+}
+
+window.addEventListener("resize", () => {
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
 });
 
-HeartsBackground.initialize();
+init_images();
+init_points();
+
+requestAnimationFrame(loop);
