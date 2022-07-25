@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap');
 
 .homepage
 {
@@ -10,12 +10,32 @@
 .title
 {
   font-family: Poppins;
-  font-size: 10vw;
+  font-size: 10.5vw;
   font-weight: 800;
   color: #fff;
+  user-select: none;
 
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.login-btn
+{
+  padding: 1em 2em;
+  border: 3px solid #fff;
+  text-decoration: none;
+  color: white;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.2);
+  margin-top: 25%;
+  font-size: 20px;
+  font-weight: 700;
+  user-select: none;
+
+  position: absolute;
+  bottom: 25%;
+  left: 50%;
+  transform: translateX(-50%);
 }
