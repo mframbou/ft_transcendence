@@ -10,6 +10,7 @@ export class HelloWorldComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    // console.log("TESTTEST")
   }
 
 }

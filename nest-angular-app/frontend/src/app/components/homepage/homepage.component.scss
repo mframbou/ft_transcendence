@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap');
+
+.homepage
+{
+  background-color: rgb(15, 13, 37);
+  height: 100%;
+  width: 100%;
+}
+
+.title
+{
+  font-family: Poppins;
+  font-size: 10vw;
+  font-weight: 800;
+  color: #fff;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

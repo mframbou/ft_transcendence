@@ -1,0 +1,133 @@
+.chatbox-wrapper
+{
+  position: fixed;
+  bottom: 0;
+  right: 0;
+
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+  width: 800px;
+  border-radius: 15px 15px 0 0;
+  overflow: hidden;
+
+  font-family: 'Lato', sans-serif;
+}
+
+.chatbox-header {
+  flex: 0 0 50px;
+  line-height: 50px;
+  text-align: center;
+  background-color: rgb(45, 37, 66);
+}
+
+.chatbox-body
+{
+  display: flex;
+  flex-direction: row;
+  height: calc(100% - 50px);
+}
+
+.chatbox-friends-list
+{
+  background-color: rgb(11, 6, 49);
+  width: 30%;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.chatbox-friends-list li
+{
+  cursor: pointer;
+  border-radius: 5rem;
+  padding: 14px;
+  margin: 7px 5px;
+  background-color: rgb(94, 66, 128);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+
+  transition: background-color 250ms;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+
+
+}
+
+.chatbox-friends-list li:hover
+{
+  background-color: rgb(109, 94, 148);
+}
+
+.chatbox-messages-history
+{
+  background-color: rgb(11, 6, 49);
+  width: 70%;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+
+  height: calc(100% - 60px);
+  overflow-y: auto;
+  border-bottom: 1px solid #fff;
+
+  font-size: 0.9rem;
+}
+
+.chatbox-messages-history .left
+{
+  text-align: left;
+  background-color: rgb(161, 38, 128);
+  max-width: 70%;
+  align-self: flex-start;
+
+  border-radius: 15px;
+  border-bottom-left-radius: 3px;
+
+  margin: 10px;
+  padding: 10px;
+}
+
+.chatbox-messages-history .right
+{
+  text-align: left;
+  background-color: rgb(44, 38, 161);
+  max-width: 70%;
+  align-self: flex-end;
+
+  border-radius: 15px;
+  border-bottom-right-radius: 3px;
+
+  margin: 10px;
+  padding: 10px;
+}
+
+.chatbox-input
+{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
+  width: calc(70% - 10px);
+  height: 40px;
+  margin: 10px 5px;
+}
+
+.chatbox-input input[type="text"]
+{
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 999px;
+  outline: none;
+}
+
+.chatbox-input input[type="text"], .chatbox-input input[type="text"]::placeholder
+{
+  background-color: rgb(96, 76, 111);
+  color: rgb(173, 158, 187);
+  font-size: 1rem;
+  font-weight: 600;
+}
