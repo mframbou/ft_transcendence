@@ -112,7 +112,9 @@ class FallingHeadsCanvas
       });
     }
 
-    requestAnimationFrame(this.loop);
+    // Use a callback instead of just this.loop because otherwise this is not passed to requestAnimationFrame but
+    // when using a callback the this passed to the function is from the called (so this instance) and not created by requestAnimationFrame
+    requestAnimationFrame(() => this.loop());
   }
 }
 
@@ -146,40 +148,3 @@ export class HomepageComponent implements OnInit {
     fallingHeads.loop();
   }
 }
-
-/*
-
-
-function loop()
-{
-	i++;
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	points.forEach(p => {
-		p.update();
-		p.drawImg();
-	});
-
-	requestAnimationFrame(loop);
-}
-
-function init_points(pointsCount)
-{
-	for (i = 0; i < POINTS_COUNT; i++)
-	{
-		let scale = Math.random() * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
-		let x = Math.floor(Math.random() * canvas.width);
-		let y = Math.floor(Math.random() * canvas.height);
-		points.push(new point(x, y, scale));
-	}
-}
-
-window.addEventListener("resize", () => {
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-});
-
-init_images();
-init_points();
-
-requestAnimationFrame(loop);
- */

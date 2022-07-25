@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap');
 
 .homepage
 {
@@ -28,7 +28,7 @@
   text-decoration: none;
   color: white;
   border-radius: 2px;
-  background: rgba(0,0,0,0.2);
+  background-color: rgba(0,0,0,0.2);
   margin-top: 25%;
   font-size: 20px;
   font-weight: 700;
@@ -38,4 +38,11 @@
   bottom: 25%;
   left: 50%;
   transform: translateX(-50%);
+  transition: background-color 200ms ease;
+}
+
+.login-btn:hover
+{
+
+  background-color: rgba(255, 255, 255, 0.1);
 }
