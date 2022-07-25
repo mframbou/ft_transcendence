@@ -73,8 +73,6 @@ class FallingHeadsCanvas
   private _points: Point[];
   private _lastUpdate: number;
 
-  private i: number = 0;
-
   constructor(canvas: HTMLCanvasElement, images: string[])
   {
     this._canvas = canvas;
@@ -110,14 +108,15 @@ class FallingHeadsCanvas
 
   }
 
-  updateCanvasSize(): void {
+  updateCanvasSize()
+  {
+    console.log('resize')
     this._canvas.width = window.innerWidth;
     this._canvas.height = window.innerHeight;
   }
 
   loop()
   {
-    // console.log(this.i++);
     if (this._context)
     {
       this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
