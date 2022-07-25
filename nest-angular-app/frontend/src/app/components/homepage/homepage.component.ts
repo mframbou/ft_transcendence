@@ -21,9 +21,11 @@ class Point
   private readonly velocity: number;
   private          x: number;
   private          y: number;
+  private          lastUpdate: number;
 
 
-  constructor(canvas: HTMLCanvasElement, x: number, y: number, scale: number, images: string[]) {
+  constructor(canvas: HTMLCanvasElement, x: number, y: number, scale: number, images: string[])
+  {
     this.canvas = canvas;
     this.context = canvas.getContext('2d');
     this.images = images;
@@ -36,10 +38,15 @@ class Point
     this.size = scale;
     this.opacity = scale;
     this.velocity = Math.random() * (MAX_VELOCITY - MIN_VELOCITY) + MIN_VELOCITY;
+    this.lastUpdate = performance.now();
   }
 
-  update() {
-    this.y += this.velocity;
+  update(elapsedTime: number)
+  {
+    let velocity = (this.velocity * elapsedTime) / 10;
+    this.lastUpdate = performance.now();
+    // locked velocity no matter the framerate
+    this.y += velocity;
 
     if (this.y > this.canvas.height + IMG_HEIGHT)
     {
@@ -49,7 +56,8 @@ class Point
     }
   }
 
-  drawImg() {
+  drawImg()
+  {
     if (this.context)
     {
       this.context.globalAlpha = this.opacity;
@@ -63,6 +71,9 @@ class FallingHeadsCanvas
   private _canvas: HTMLCanvasElement;
   private _context: CanvasRenderingContext2D | null;
   private _points: Point[];
+  private _lastUpdate: number;
+
+  private i: number = 0;
 
   constructor(canvas: HTMLCanvasElement, images: string[])
   {
@@ -74,8 +85,6 @@ class FallingHeadsCanvas
 
 
     this._context = ctx;
-
-    console.log(this._context);
 
     this.updateCanvasSize();
 
@@ -91,6 +100,14 @@ class FallingHeadsCanvas
       let y = Math.floor(Math.random() * this._canvas.height);
       this._points.push(new Point(canvas, x, y, scale, images));
     }
+
+    this._lastUpdate = performance.now();
+
+    document.addEventListener("visibilitychange", event => {
+      if (document.visibilityState === "visible")
+        this._lastUpdate = performance.now();
+    });
+
   }
 
   updateCanvasSize(): void {
@@ -100,21 +117,25 @@ class FallingHeadsCanvas
 
   loop()
   {
-    console.log(this._points);
-    console.log(this._context);
+    // console.log(this.i++);
     if (this._context)
     {
       this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
+      let deltaTime = performance.now() - this._lastUpdate;
+      this._lastUpdate = performance.now();
+
       this._points.forEach(p => {
-        p.update();
+        p.update(deltaTime);
         p.drawImg();
       });
     }
 
     // Use a callback instead of just this.loop because otherwise this is not passed to requestAnimationFrame but
     // when using a callback the this passed to the function is from the called (so this instance) and not created by requestAnimationFrame
-    requestAnimationFrame(() => this.loop());
+    requestAnimationFrame(() => {
+      this.loop()
+    });
   }
 }
 

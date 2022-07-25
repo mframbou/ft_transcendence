@@ -39,6 +39,7 @@
   left: 50%;
   transform: translateX(-50%);
   transition: background-color 200ms ease;
+  cursor: pointer;
 }
 
 .login-btn:hover
