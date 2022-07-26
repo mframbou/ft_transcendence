@@ -110,7 +110,6 @@ class FallingHeadsCanvas
 
   updateCanvasSize()
   {
-    console.log('resize')
     this._canvas.width = window.innerWidth;
     this._canvas.height = window.innerHeight;
   }
@@ -166,5 +165,10 @@ export class HomepageComponent implements OnInit {
 
     const fallingHeads = new FallingHeadsCanvas(canvas, images);
     fallingHeads.loop();
+  }
+
+  oauthLogin()
+  {
+    console.log("Test");
   }
 }
