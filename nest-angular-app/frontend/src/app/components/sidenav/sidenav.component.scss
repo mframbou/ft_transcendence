@@ -1,0 +1,55 @@
+.sidenav
+{
+	position: fixed;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	width: 200px;
+	height: 100%;
+	background-color: #82735C;
+}
+
+.pushable-back
+{
+	width: 170px;
+	border: none;
+	border-radius: 999px;
+	outline: none;
+	background: rgb(74, 67, 93);
+}
+
+.pushable-front
+{
+	font-size: 1rem;
+	display: block;
+	padding: 10px 32px;
+	cursor: pointer;
+	transition: transform 250ms;
+	transform: translateY(-5px);
+	color: white;
+	border-radius: 999px;
+	background: rgb(140, 132, 166);
+	will-change: transform;
+	// nested .hover will compile to .pushable-front :hover as nested .child will compile to .pushable-front .child
+	// to "stick them" together use & so that it becomes .pushable-front:hover or pushable-front.child
+	&:hover
+	{
+		transform: translateY(-6px);
+		background-color: rgb(149, 140, 180);
+	}
+
+	&:active
+	{
+		transform: translateY(-2px);
+	}
+}
+
+ul
+{
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	margin-top: 15px;
+	list-style: none;
+	gap: 15px;
+}

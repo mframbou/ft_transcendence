@@ -7,6 +7,8 @@ import { HelloWorldComponent } from './components/hello-world/hello-world.compon
 import { FormsModule } from '@angular/forms';
 import { ChatboxComponent } from './components/chatbox/chatbox.component';
 import { HomepageComponent } from './components/homepage/homepage.component';
+import { LoginButtonComponent } from './components/login-button/login-button.component';
+import { SidenavComponent } from './components/sidenav/sidenav.component';
 
 @NgModule({
   declarations: [
@@ -14,6 +16,8 @@ import { HomepageComponent } from './components/homepage/homepage.component';
     HelloWorldComponent,
     ChatboxComponent,
     HomepageComponent,
+    LoginButtonComponent,
+    SidenavComponent,
   ],
   imports: [
     BrowserModule,
