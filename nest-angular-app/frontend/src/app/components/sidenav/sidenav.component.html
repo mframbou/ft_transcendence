@@ -1,4 +1,6 @@
-<div class="sidenav">
+<!-- Sidenav is hidden by default on mobile -->
+<button (click)="toggleSideNav()" class="fa-solid fa-bars sidenav-toggle hidden"></button>
+<div class="sidenav hidden">
 	<ul>
 		<li>
 			<button class="pushable-back" onclick="location.href='profile.html'">
