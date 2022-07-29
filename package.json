@@ -21,6 +21,9 @@
     "@types/three": "^0.141.0"
   },
   "dependencies": {
-    "three": "^0.142.0"
+    "@nestjs/typeorm": "^9.0.0",
+    "sqlite3": "^5.0.10",
+    "three": "^0.142.0",
+    "typeorm": "^0.3.7"
   }
 }
