@@ -1,4 +1,5 @@
-$sidenav-width: 250px;
+$sidenav-mobile-width: 250px;
+$sidenav-desktop-width: 100%;
 $sidenav-transition: 0.3s ease-in-out;
 $sidenav-bg-color: #2e0014;
 $sidenav-btn-fg-color: #EADAA2;
@@ -9,12 +10,27 @@ $sidenav-btn-bg-color: #bcae7f;
 {
 	.hidden
 	{
-		transform: translateX(-$sidenav-width);
+		transform: translateX(-$sidenav-mobile-width);
 	}
 	.sidenav-toggle
 	{
 		display: block;
 		opacity: 1;
+	}
+	.pushable-back
+	{
+		width: $sidenav-mobile-width - 20px;
+	}
+	.sidenav
+	{
+		width: $sidenav-mobile-width;
+		height: 100%;
+		transition: transform $sidenav-transition;
+	}
+	ul
+	{
+		flex-direction: column;
+		margin-top: 15px;
 	}
 }
 
@@ -29,6 +45,22 @@ $sidenav-btn-bg-color: #bcae7f;
 		display: none;
 		opacity: 0;
 	}
+	.pushable-back
+	{
+		width: 200px;
+	}
+	.sidenav
+	{
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		width: 100%;
+		height: 80px;
+	}
+	ul
+	{
+		flex-direction: row;
+	}
 }
 
 .sidenav
@@ -36,9 +68,6 @@ $sidenav-btn-bg-color: #bcae7f;
 	position: fixed;
 	top: 0;
 	left: 0;
-	width: $sidenav-width;
-	height: 100%;
-	transition: transform $sidenav-transition;
 	background-color: $sidenav-bg-color;
 }
 
@@ -58,7 +87,7 @@ $sidenav-btn-bg-color: #bcae7f;
 {
 	position: fixed;
 	top: 7px;
-	left: 7px + $sidenav-width;
+	left: 7px + $sidenav-mobile-width;
 	padding: 10px 15px;
 	cursor: pointer;
 	transition: transform $sidenav-transition;
@@ -74,7 +103,6 @@ $sidenav-btn-bg-color: #bcae7f;
 
 .pushable-back
 {
-	width: $sidenav-width - 20px;
 	border: none;
 	border-radius: 999px;
 	outline: none;
@@ -111,8 +139,7 @@ ul
 {
 	display: flex;
 	align-items: center;
-	flex-direction: column;
-	margin-top: 15px;
+	justify-content: center;
 	list-style: none;
 	gap: 15px;
 }
