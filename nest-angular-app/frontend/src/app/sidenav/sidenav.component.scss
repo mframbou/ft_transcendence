@@ -1,10 +1,11 @@
 $sidenav-mobile-width: 250px;
 $sidenav-desktop-width: 100%;
 $sidenav-transition: 0.3s ease-in-out;
-$sidenav-bg-color: #2e0014;
-$sidenav-btn-fg-color: #EADAA2;
-$sidenav-btn-fg-hover-color: #e7d8a2;
-$sidenav-btn-bg-color: #bcae7f;
+
+$sidenav-bg-color: #071531;
+$sidenav-btn-fg-color: #d9911c;
+$sidenav-btn-fg-hover-color: #e59b1e;
+$sidenav-btn-bg-color: #7c500b;
 
 @media (max-width: 980px)
 {
@@ -52,14 +53,12 @@ $sidenav-btn-bg-color: #bcae7f;
 	.sidenav
 	{
 		display: flex;
-		flex-direction: column;
+		align-items: center;
+		flex-direction: row;
 		justify-content: center;
 		width: 100%;
-		height: 80px;
-	}
-	ul
-	{
-		flex-direction: row;
+		height: 90px;
+		border-bottom: 2px solid #0e2554;
 	}
 }
 
@@ -103,6 +102,7 @@ $sidenav-btn-bg-color: #bcae7f;
 
 .pushable-back
 {
+	height: 60px;
 	border: none;
 	border-radius: 999px;
 	outline: none;
@@ -112,7 +112,11 @@ $sidenav-btn-bg-color: #bcae7f;
 .pushable-front
 {
 	font-size: 1rem;
-	display: block;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
 	padding: 10px 32px;
 	cursor: pointer;
 	transition: transform 250ms;
