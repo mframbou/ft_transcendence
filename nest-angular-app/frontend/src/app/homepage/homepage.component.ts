@@ -88,7 +88,6 @@ class FallingHeadsCanvas
 
 		window.addEventListener("resize", () =>
 		{
-			console.log('Resize')
 			this.updateCanvasSize();
 		});
 
@@ -176,6 +175,6 @@ export class HomepageComponent implements OnInit
 
 	oauthLogin()
 	{
-		console.log("Test");
+		console.log("Login button pressed");
 	}
 }
