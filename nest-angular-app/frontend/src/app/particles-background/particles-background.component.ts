@@ -130,7 +130,7 @@ class ParticlesBackground
 
 		this.init_points(POINTS_COUNT, canvas.width, canvas.height);
 		this.lastUpdate = performance.now();
-		requestAnimationFrame(() => this.loop());
+		requestAnimationFrame(this.loop.bind(this));
 	}
 
 	dist(x1: number, y1: number, x2: number, y2: number): number
@@ -184,7 +184,9 @@ class ParticlesBackground
 			this.points[i].drawImg(this.ctx);
 		}
 
-		requestAnimationFrame(() => this.loop());
+		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
+		// loop will have this set to this (could be anything but we want this)
+		requestAnimationFrame(this.loop.bind(this));
 	}
 
 	init_points(pointsCount: number, width: number, height: number): void
