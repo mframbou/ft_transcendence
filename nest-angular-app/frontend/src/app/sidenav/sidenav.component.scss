@@ -24,6 +24,9 @@ $sidenav-btn-bg-color: #7c500b;
 	}
 	.sidenav
 	{
+		position: fixed;
+		top: 0;
+		left: 0;
 		width: $sidenav-mobile-width;
 		height: 100%;
 		transition: transform $sidenav-transition;
@@ -64,9 +67,6 @@ $sidenav-btn-bg-color: #7c500b;
 
 .sidenav
 {
-	position: fixed;
-	top: 0;
-	left: 0;
 	background-color: $sidenav-bg-color;
 }
 

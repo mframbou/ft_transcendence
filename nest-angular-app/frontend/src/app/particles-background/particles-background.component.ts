@@ -1,18 +1,18 @@
 import {Component, OnInit} from '@angular/core';
 
-const imgs = ["assets/images/sspina-transparent.png",
+const images = [
+	"assets/images/sspina-transparent.png",
 	"assets/images/dsamain-transparent.png",
 	"assets/images/oronda-transparent.png",
-	"assets/images/mframbou-transparent.png"]
-		.map(path =>
-		{
-			const img = new Image();
-			img.src = path;
-			return img;
-		})
+	"assets/images/mframbou-transparent.png"
+].map(path => loadImage(path));
 
-const canvas: HTMLCanvasElement | null = null;
-const ctx: CanvasRenderingContext2D | null = null;
+function loadImage(path: string): HTMLImageElement
+{
+	const img = new Image();
+	img.src = path;
+	return img;
+}
 
 const MAX_POINT_SIZE = 25;
 const MIN_POINT_SIZE = 10;
@@ -24,7 +24,7 @@ const COLOR = "#55a0f0";
 
 let mousePos: any = undefined;
 
-class Point
+class ImagePoint
 {
 	public x: number;
 	public y: number;
@@ -35,7 +35,6 @@ class Point
 	private readonly vel: number;
 	private readonly img: HTMLImageElement;
 
-
 	constructor(x: number, y: number, size: number)
 	{
 		this.x = x;
@@ -43,7 +42,7 @@ class Point
 		this.size = size;
 		this.angle = Math.random() * Math.PI * 2;
 		this.vel = Math.random() * (MAX_VELOCITY - MIN_VELOCITY) + MIN_VELOCITY;
-		this.img = imgs[Math.floor(Math.random() * imgs.length)];
+		this.img = images[Math.floor(Math.random() * images.length)];
 		this.vx = Math.cos(this.angle) * this.vel;
 		this.vy = Math.sin(this.angle) * this.vel;
 	}
@@ -69,15 +68,7 @@ class Point
 		}
 	}
 
-	drawPoint(ctx: CanvasRenderingContext2D, color: string = "white"): void
-	{
-		ctx.fillStyle = color;
-		ctx.beginPath();
-		ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
-		ctx.fill();
-	}
-
-	drawImg(ctx: CanvasRenderingContext2D): void
+	drawPoint(ctx: CanvasRenderingContext2D): void
 	{
 		ctx.drawImage(this.img, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
 	}
@@ -86,61 +77,68 @@ class Point
 class ParticlesBackground
 {
 	private canvas: HTMLCanvasElement;
-	private readonly ctx: CanvasRenderingContext2D;
-	private images: HTMLImageElement[];
-	private points: Point[];
-	private mousePos: any = null;
-	private maxDist: number;
+	private ctx: CanvasRenderingContext2D;
+	private points: ImagePoint[];
 	private lastUpdate: number;
+	private maxDist: number;
 
-	constructor(canvas: HTMLCanvasElement, images: HTMLImageElement[])
+	constructor(canvas: HTMLCanvasElement)
 	{
 		this.canvas = canvas;
 		this.ctx = canvas.getContext('2d')!;
-		this.images = images;
 		this.points = [];
-
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
-
+		this.setCanvasSize();
+		this.initPoints(POINTS_COUNT, canvas.width, canvas.height);
 		this.maxDist = Math.max(canvas.width, canvas.height) / 8;
+		this.lastUpdate = performance.now();
 
 		canvas.addEventListener("click", (e: MouseEvent) =>
 		{
+			mousePos = this.getMousePosOnCanvas(e.clientX, e.clientY);
 			if (this.points.length + 3 < MAX_POINTS)
 			{
-				for (let i = 0; i < 3; i++)
+				const count = Math.floor(Math.random() * 3) + 1;
+				for (let i = 0; i < count; i++)
 				{
 					let pointSize = Math.random() * (MAX_POINT_SIZE - MIN_POINT_SIZE) + MIN_POINT_SIZE;
-					this.points.push(new Point(e.clientX, e.clientY, pointSize));
+					this.points.push(new ImagePoint(mousePos.x, mousePos.y, pointSize));
 				}
 			}
 		});
 
-		canvas.addEventListener("mousemove", (e: MouseEvent) =>
-		{
-			mousePos = {x: e.clientX, y: e.clientY};
-		});
+		canvas.addEventListener("mousemove", (e: MouseEvent) => mousePos = this.getMousePosOnCanvas(e.clientX, e.clientY));
+		window.addEventListener("resize", () => this.setCanvasSize());
+	}
 
-		window.addEventListener("resize", () =>
-		{
-			canvas.width = window.innerWidth;
-			canvas.height = window.innerHeight;
-		});
+	getMousePosOnCanvas(windowX: number, windowY: number): { x: number, y: number }
+	{
+		const rect = this.canvas.getBoundingClientRect();
+		const x = windowX - rect.left;
+		const y = windowY - rect.top;
+		return {x, y};
+	}
 
-		this.init_points(POINTS_COUNT, canvas.width, canvas.height);
+	setCanvasSize(): void
+	{
+		this.canvas.width = this.canvas.parentElement?.clientWidth ?? window.innerWidth;
+		this.canvas.height = this.canvas.parentElement?.clientHeight ?? window.innerHeight;
+	}
+
+	render(): void
+	{
 		this.lastUpdate = performance.now();
 		requestAnimationFrame(this.loop.bind(this));
 	}
 
 	dist(x1: number, y1: number, x2: number, y2: number): number
 	{
-		let d1 = Math.abs(x1 - x2);
-		let d2 = Math.abs(y1 - y2);
+		const d1 = Math.abs(x1 - x2);
+		const d2 = Math.abs(y1 - y2);
+
 		return Math.sqrt((d1 * d1) + (d2 * d2));
 	}
 
-	draw_line(x1: number, y1: number, x2: number, y2: number, color: string = COLOR): void
+	drawLine(x1: number, y1: number, x2: number, y2: number, color: string = COLOR): void
 	{
 		let trans = (Math.max(0, 255 - Math.floor(this.dist(x1, y1, x2, y2) / this.maxDist * 255))).toString(16);
 		if (trans.length == 1) trans = '0' + trans;
@@ -155,33 +153,33 @@ class ParticlesBackground
 	{
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		let now = performance.now();
-		let deltaTime = now - this.lastUpdate;
+		const now = performance.now();
+		const deltaTime = now - this.lastUpdate;
 		this.lastUpdate = now
 
-		for (let i = 0; i < this.points.length; ++i)
+		// Update pos of all points
+		for (let point of this.points)
 		{
-			this.points[i].update(this.canvas.width, this.canvas.height, deltaTime);
+			point.update(this.canvas.width, this.canvas.height, deltaTime);
+			point.drawPoint(this.ctx);
 		}
-		for (let i = 0; i < this.points.length; ++i)
+
+		// Draw lines between points
+		for (let i = 0; i < this.points.length; i++)
 		{
-			for (let j = i + 1; j < this.points.length; ++j)
+			for (let j = i + 1; j < this.points.length; j++)
 			{
 				if (this.dist(this.points[i].x, this.points[i].y, this.points[j].x, this.points[j].y) >= this.maxDist)
 					continue;
-				this.draw_line(this.points[i].x, this.points[i].y, this.points[j].x, this.points[j].y);
+				this.drawLine(this.points[i].x, this.points[i].y, this.points[j].x, this.points[j].y);
 			}
 
 			if (mousePos)
 			{
 				if (this.dist(this.points[i].x, this.points[i].y, mousePos.x, mousePos.y) >= this.maxDist)
 					continue;
-				this.draw_line(this.points[i].x, this.points[i].y, mousePos.x, mousePos.y);
+				this.drawLine(this.points[i].x, this.points[i].y, mousePos.x, mousePos.y);
 			}
-		}
-		for (let i = 0; i < this.points.length; i++)
-		{
-			this.points[i].drawImg(this.ctx);
 		}
 
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
@@ -189,30 +187,17 @@ class ParticlesBackground
 		requestAnimationFrame(this.loop.bind(this));
 	}
 
-	init_points(pointsCount: number, width: number, height: number): void
+	initPoints(pointsCount: number, width: number, height: number): void
 	{
 		for (let i = 0; i < pointsCount; i++)
 		{
-			let pointSize = Math.random() * (MAX_POINT_SIZE - MIN_POINT_SIZE) + MIN_POINT_SIZE;
-			let x = Math.floor(Math.random() * width);
-			let y = Math.floor(Math.random() * height);
-			this.points.push(new Point(x, y, pointSize));
+			const pointSize = Math.random() * (MAX_POINT_SIZE - MIN_POINT_SIZE) + MIN_POINT_SIZE;
+			const x = Math.floor(Math.random() * width);
+			const y = Math.floor(Math.random() * height);
+			this.points.push(new ImagePoint(x, y, pointSize));
 		}
 	}
 };
-
-
-const images = [
-	"assets/images/sspina-transparent.png",
-	"assets/images/dsamain-transparent.png",
-	"assets/images/oronda-transparent.png",
-	"assets/images/mframbou-transparent.png"
-].map(path =>
-{
-	const img = new Image();
-	img.src = path;
-	return img;
-})
 
 @Component({
 	selector: 'app-particles-background',
@@ -234,7 +219,7 @@ export class ParticlesBackgroundComponent implements OnInit
 		if (!canvas)
 			return;
 
-		const particlesBackground = new ParticlesBackground(canvas, images);
+		const particlesBackground = new ParticlesBackground(canvas);
+		particlesBackground.render();
 	}
-
 }
