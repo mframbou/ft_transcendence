@@ -1,21 +1,22 @@
 import {Component, OnInit} from '@angular/core';
 
 @Component({
-  selector: 'app-login-button',
-  templateUrl: './login-button.component.html',
-  styleUrls: ['./login-button.component.scss']
+	selector: 'app-login-button',
+	templateUrl: './login-button.component.html',
+	styleUrls: ['./login-button.component.scss']
 })
 export class LoginButtonComponent implements OnInit
 {
 
-  constructor()
-  { }
+	constructor()
+	{ }
 
-  ngOnInit(): void
-  { }
+	ngOnInit(): void
+	{ }
 
-  oauthLogin()
-  {
-    console.log("Login button pressed")
-  }
+	oauthLogin()
+	{
+		
+		console.log("Login button pressed")
+	}
 }

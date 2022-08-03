@@ -56,6 +56,7 @@ class ImagePoint
 
 		if (this.x < 0 || this.x > width)
 		{
+			// console.log(width + ', ' + height);
 			this.angle = Math.PI - this.angle;
 			this.vx = Math.cos(this.angle) * this.vel;
 			this.vy = Math.sin(this.angle) * this.vel;
@@ -108,6 +109,12 @@ class ParticlesBackground
 
 		canvas.addEventListener("mousemove", (e: MouseEvent) => mousePos = this.getMousePosOnCanvas(e.clientX, e.clientY));
 		window.addEventListener("resize", () => this.setCanvasSize());
+		// To avoid very high velocity when coming back to the page
+		document.addEventListener("visibilitychange", e =>
+		{
+			if (document.visibilityState === "visible")
+				this.lastUpdate = performance.now();
+		});
 	}
 
 	getMousePosOnCanvas(windowX: number, windowY: number): { x: number, y: number }
@@ -159,10 +166,7 @@ class ParticlesBackground
 
 		// Update pos of all points
 		for (let point of this.points)
-		{
 			point.update(this.canvas.width, this.canvas.height, deltaTime);
-			point.drawPoint(this.ctx);
-		}
 
 		// Draw lines between points
 		for (let i = 0; i < this.points.length; i++)
@@ -181,6 +185,9 @@ class ParticlesBackground
 				this.drawLine(this.points[i].x, this.points[i].y, mousePos.x, mousePos.y);
 			}
 		}
+
+		for (let point of this.points)
+			point.drawPoint(this.ctx);
 
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
 		// loop will have this set to this (could be anything but we want this)
