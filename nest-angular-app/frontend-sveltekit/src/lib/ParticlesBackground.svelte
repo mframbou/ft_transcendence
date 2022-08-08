@@ -1,0 +1,218 @@
+<script lang="ts">
+
+	import {browser} from '$app/env';
+	import {onMount} from "svelte";
+
+	export let properties = {
+		maxPointSize: 25,
+		minPointSize: 10,
+		minVelocity: 0.75,
+		maxVelocity: 1.5,
+		initialCount: 80,
+		lineColor: '#55a0f0',
+		addOnClick: true,
+		images: [
+			"src/lib/assets/images/dsamain-transparent.png",
+			"src/lib/assets/images/oronda-transparent.png",
+			"src/lib/assets/images/sspina-transparent.png",
+			"src/lib/assets/images/mframbou-transparent.png"],
+		maxDistRatio: 1 / 8,
+		maxPoints: 300
+	}
+
+	const mousePos = {x: -1, y: -1}
+
+	class Point
+	{
+		public x: number;
+		public y: number;
+
+		private vy: number;
+		private vx: number;
+		private angle: number;
+		private size: number;
+		private velocity: number;
+		private img: HTMLImageElement;
+
+		constructor(x: number, y: number, images: HTMLImageElement[])
+		{
+			this.x = x;
+			this.y = y;
+
+			this.size = Math.random() * (properties.maxPointSize - properties.minPointSize) + properties.minPointSize;
+			this.angle = Math.random() * Math.PI * 2;
+			this.velocity = Math.random() * (properties.maxVelocity - properties.minVelocity) + properties.minVelocity;
+			this.vx = Math.cos(this.angle) * this.velocity;
+			this.vy = Math.sin(this.angle) * this.velocity;
+			this.img = images[Math.floor(Math.random() * images.length)];
+		}
+
+		update(canvasWidth: number, canvasHeight: number, elapsedTime: number)
+		{
+			let velocity = (this.velocity * elapsedTime) / 10;
+
+			this.x += this.vx * velocity;
+			this.y += this.vy * velocity;
+
+			if (this.x < 0 || this.x > canvasWidth)
+			{
+				this.angle = Math.PI - this.angle;
+				this.vx = Math.cos(this.angle) * this.velocity;
+				this.vy = Math.sin(this.angle) * this.velocity;
+			}
+
+			if (this.y < 0 || this.y > canvasHeight)
+			{
+				this.angle = -this.angle;
+				this.vy = -this.vy
+			}
+		}
+
+		draw(ctx: CanvasRenderingContext2D)
+		{
+			ctx.drawImage(this.img, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+		}
+	};
+
+	function dist({x: x1, y: y1}, {x: x2, y: y2})
+	{
+		return Math.hypot(x1 - x2, y1 - y2);
+	}
+
+	function drawLine(context: CanvasRenderingContext2D, {x: x1, y: y1}, {x: x2, y: y2})
+	{
+		let trans = (Math.max(0, 255 - Math.floor(dist({x: x1, y: y1}, {x: x2, y: y2}) / maxDist * 255))).toString(16);
+		if (trans.length == 1) trans = '0' + trans;
+		context.beginPath();
+		context.strokeStyle = properties.lineColor + trans;
+		context.moveTo(x1, y1);
+		context.lineTo(x2, y2);
+		context.stroke();
+	}
+
+	function updateCanvasSize(canvas: HTMLCanvasElement)
+	{
+		canvas.width = canvas.parentElement?.clientWidth ?? window.innerWidth;
+		canvas.height = canvas.parentElement?.clientHeight ?? window.innerHeight;
+		maxDist = properties.maxDistRatio * Math.max(canvas.width, canvas.height);
+	}
+
+	function loop(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D)
+	{
+		context.clearRect(0, 0, canvas.width, canvas.height);
+
+		const now = performance.now();
+		const deltaTime = now - lastUpdate;
+		lastUpdate = now;
+
+		for (let point of points)
+			point.update(canvas.width, canvas.height, deltaTime);
+
+		for (let i = 0; i < points.length; i++)
+		{
+			for (let j = i + 1; j < points.length; j++)
+			{
+				if (dist(points[i], points[j]) < maxDist)
+					drawLine(context, points[i], points[j]);
+			}
+
+			if (mousePos.x != -1)
+			{
+				if (dist(points[i], mousePos) < maxDist)
+					drawLine(context, points[i], mousePos);
+			}
+		}
+
+		for (let point of points)
+			point.draw(context);
+
+		requestAnimationFrame(() => loop(canvas, context));
+	}
+
+	function render(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D)
+	{
+		lastUpdate = performance.now();
+		requestAnimationFrame(() => loop(canvas, context));
+	}
+
+	const points: Point[] = [];
+	let lastUpdate: number = performance.now();
+	let maxDist: number = 0;
+	let canvas: HTMLCanvasElement;
+
+	onMount(() =>
+	{
+		if (browser)
+		{
+			const context: CanvasRenderingContext2D = canvas.getContext('2d');
+
+			const images: HTMLImageElement[] = properties.images.map(path =>
+			{
+				const image = new Image();
+				image.src = path;
+				return image;
+			});
+
+			updateCanvasSize(canvas);
+
+			for (let i = 0; i < properties.initialCount; i++)
+			{
+				const x = Math.random() * canvas.width;
+				const y = Math.random() * canvas.height;
+				points.push(new Point(x, y, images));
+			}
+
+			canvas.addEventListener("click", (e: MouseEvent) =>
+			{
+				const rect = canvas.getBoundingClientRect();
+				mousePos.x = e.clientX - rect.left;
+				mousePos.y = e.clientY - rect.top;
+
+				if (points.length + 3 < properties.maxPoints)
+				{
+					const count = Math.floor(Math.random() * 3) + 1;
+					for (let i = 0; i < count; i++)
+						points.push(new Point(mousePos.x, mousePos.y, images));
+				}
+			});
+
+			canvas.addEventListener("mousemove", (e: MouseEvent) =>
+			{
+				const rect = canvas.getBoundingClientRect();
+				mousePos.x = e.clientX - rect.left;
+				mousePos.y = e.clientY - rect.top;
+			});
+			window.addEventListener("resize", () =>
+			{
+				updateCanvasSize(canvas);
+			});
+			// To avoid very high velocity when coming back to the page
+			document.addEventListener("visibilitychange", () =>
+			{
+				if (document.visibilityState === "visible")
+					lastUpdate = performance.now();
+			});
+
+			render(canvas, context);
+		}
+	});
+
+</script>
+
+<div class="wrapper">
+	<canvas bind:this={canvas} class="particles-background"></canvas>
+</div>
+
+<style lang="scss">
+	.wrapper
+	{
+		width: 100%;
+		height: 100%;
+		overflow: hidden; // To allow shrinking the canvas
+	}
+
+	canvas
+	{
+		background-color: var(--background-color, #ffffff);
+	}
+</style>

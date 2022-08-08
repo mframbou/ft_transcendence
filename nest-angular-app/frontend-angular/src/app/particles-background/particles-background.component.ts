@@ -39,6 +39,7 @@ class ImagePoint
 	{
 		this.x = x;
 		this.y = y;
+
 		this.size = size;
 		this.angle = Math.random() * Math.PI * 2;
 		this.vel = Math.random() * (MAX_VELOCITY - MIN_VELOCITY) + MIN_VELOCITY;

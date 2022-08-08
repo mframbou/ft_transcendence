@@ -1,65 +1,146 @@
-<script context="module" lang="ts">
-	export const prerender = true;
-</script>
-
 <script lang="ts">
-	import Counter from '$lib/Counter.svelte';
+	// import ParticlesBackground from '$lib/ParticlesBackground.svelte';
+	import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
+
+	function login()
+	{
+		alert('pouet');
+	}
+
 </script>
 
-<svelte:head>
-	<title>Home</title>
-	<meta content="Svelte demo app" name="description"/>
-</svelte:head>
+<div class="wrapwrapper">
+	<div class="wrapper">
+		<h1 class="title">Transcendence</h1>
+		<div class="circle-wrapper">
+			<button class="login-btn" on:click={login}>
+				<p class="text">Login</p>
+				<!--				Create circle svg-->
 
-<section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset="svelte-welcome.webp" type="image/webp"/>
-				<img alt="Welcome" src="svelte-welcome.png"/>
-			</picture>
-		</span>
 
-		to your new<br/>SvelteKit app
-	</h1>
+				<!--				<div id="circle" class="circle"/>-->
+				<div class="svg-wrapper">
+					<svg class="svg" width="200vw" height="200vh">
 
-	<h2>
-		try editing <strong>src/routes/index.svelte</strong>
-	</h2>
+						<clipPath id="circle">
+							<circle stroke="#ffffff" stroke-miterlimit="10" cx="50%" cy="50%" r="300"/>
+						</clipPath>
+					</svg>
 
-	<Counter/>
-</section>
+					<svg class="svg" width="200vw" height="200vh">
+						<circle cx="50%" cy="50%" r="150" stroke="black" stroke-width="3" fill="red"/>
+					</svg>
+				</div>
+			</button>
+		</div>
+	</div>
+	<FallingHeadsBackground --background-color='#0f0d25'/>
+</div>
 
 <style lang="scss">
-	section
+
+	.wrapwrapper
 	{
+		display: grid;
+		place-items: center;
+		height: 100vh;
+		overflow: hidden;
+	}
+
+	.wrapper
+	{
+		//position: absolute;
+		//top: 50%;
+		//left: 50%;
 		display: flex;
 		align-items: center;
-		flex: 1;
-		flex-direction: column;
 		justify-content: center;
+		flex-direction: column;
+		//margin-top: auto;
+		//transform: translate(-50%, calc(-50% + 50px)); //To center the text on the page
 	}
 
-	h1
+	.title
 	{
-		width: 100%;
+		z-index: 1;
+		text-transform: uppercase;
+		font-family: NexaBlack;
+		font-size: clamp(10px, 10vw, 250px);
+		user-select: none;
+		color: white;
+
+		clip-path: url("#circle");
 	}
 
-	.welcome
+	.login-btn
+	{
+		text-transform: uppercase;
+		font-family: Lato;
+		font-weight: 700;
+		font-size: min(3vw, 20px);
+		padding: 1em 2em;
+		cursor: pointer;
+		user-select: none;
+		transition: background-color 250ms ease;
+		text-decoration: none;
+		color: white;
+		border: 3px solid #ccc;
+		border-radius: 2px;
+		background-color: rgba(0, 0, 0, 0.15);
+		backdrop-filter: blur(1px);
+
+		&:hover
+		{
+			background-color: rgba(50, 50, 50, 0.4);
+		}
+
+		&:focus
+		{
+			outline: none;
+		}
+	}
+
+	.circle-wrapper
 	{
 		position: relative;
-		display: block;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
+		margin-top: 50px;
 	}
 
-	.welcome img
+	.text
+	{
+		position: relative; // Elements must be positioned to use z index
+		z-index: 3;
+		pointer-events: none; // can click / hover through text
+	}
+
+	.svg-wrapper
 	{
 		position: absolute;
-		top: 0;
-		display: block;
-		width: 100%;
-		height: 100%;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 	}
+
+	#circle
+	{
+		//z-index: 2;
+		//position: absolute;
+		//top: 50%;
+		//left: 50%;
+		//transform: translate(-50%, -50%);
+		//height: 50px;
+		//width: 50px;
+		//background-color: red;
+		//border-radius: 999px;
+		//transition: all 1500ms ease;
+	}
+
+	#circle:hover, .login-btn:hover > #circle
+	{
+		height: max(150vw, 150vh);
+		//width: 10px;
+		width: max(150vw, 150vh);
+		background-color: green;
+	}
+
 </style>

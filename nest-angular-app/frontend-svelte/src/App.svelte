@@ -42,12 +42,24 @@
 		bgs = bgs.filter(bg => bg.id !== id);
 	}
 
+	let isRed = true;
+
+	let name3: string = "John Doe";
+	let iq: number = 100;
+
 </script>
 
 <!--<Button></Button>-->
-<Button message="Click me bro"/>
-<Button isBlue={false} isRed={true}/>
+<Button message="Click me bro" on:click={() => alert("Event forwarded from child to parent")}/>
+<Button isBlue={false} isRed={isRed}/>
+<!-- shorter syntax assumes name of variable (isRed) is the same in the component -->
+<Button message="same syntax but shorter" isBlue={false} {isRed}/>
 <!--	https://stackoverflow.com/questions/68051031/why-does-svelte-put-curly-braces-on-scalars-->
+
+<Button>
+	<p>This is child of Button in App.svelte</p>
+	<p slot="title">This is a title slot</p>
+</Button>
 
 <main>
 	<h1>Hello {name}! {name2} your iq is {test}</h1>
@@ -78,6 +90,15 @@
 		<h3>There are no bgs</h3>
 	{/if}
 
+	<!-- Default action on forms is refresh on submit -->
+	<form on:submit|preventDefault={() => alert('Hello ' + name3 + ' your iq * 2 is ' + (iq*2))}>
+		<input type="text" placeholder="name" bind:value={name3}>
+		<input type="number" placeholder="iq" bind:value={iq}>
+		<button>Submit</button>
+	</form>
+
+	<p>IQ type is {typeof (iq)} because svelte automatically converts in forms to target datatype</p>
+	<p>Name type is {typeof (name)}</p>
 </main>
 
 <style>
