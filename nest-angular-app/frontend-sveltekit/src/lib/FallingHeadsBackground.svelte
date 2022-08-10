@@ -66,8 +66,9 @@
 
 	function updateCanvasSize(canvas: HTMLCanvasElement)
 	{
-		canvas.width = canvas.parentElement?.clientWidth ?? window.innerWidth;
-		canvas.height = canvas.parentElement?.clientHeight ?? window.innerHeight;
+		console.log(canvas.parentElement.clientWidth);
+		canvas.width = canvas.parentElement.clientWidth ?? window.innerWidth;
+		canvas.height = canvas.parentElement.clientHeight ?? window.innerHeight;
 	}
 
 	function loop(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D)
@@ -148,6 +149,7 @@
 		position: absolute;
 		top: 0;
 		left: 0;
+		overflow: hidden;
 		z-index: var(--z-index, auto);
 		width: 100%;
 		height: 100%;

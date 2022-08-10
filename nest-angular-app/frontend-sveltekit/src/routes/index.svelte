@@ -28,20 +28,99 @@
 <div class="global-wrapper">
 
 	<div class="page-front">
+	</div>
+
+
+	<div class="content-front">
 		<h1 class="title" data-title="Transcendence">
 			Transcendence
 			<button class="login-btn">Login</button>
 		</h1>
 	</div>
-</div>
 
-<FallingHeadsBackground --z-index="10" --pointer-events="none" --background-color="transparent"/>
+	<div class="page-back">
+	</div>
+
+	<div class="content-back">
+		<h1 class="title" data-title="Transcendence">
+			Transcendence
+			<button class="login-btn">Login</button>
+		</h1>
+	</div>
+
+
+</div>
+<FallingHeadsBackground --z-index="3" --pointer-events="none" --background-color="transparent"/>
+
 
 <style lang="scss">
 
 	.global-wrapper, .page-front, :global(.page-back)
 	{
 		position: relative;
+	}
+
+	.global-wrapper
+	{
+		height: 100vh;
+		width: 100vw;
+	}
+
+	.content-front, .content-back
+	{
+		position:absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		transition: mask 2.5s, -webkit-mask 2.5s;
+	}
+
+	.content-front
+	{
+		.title
+		{
+			color: yellow;
+		}
+
+		-webkit-mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
+		linear-gradient(#fff, #fff);
+		-webkit-mask-composite: xor; // tried all values and this is the only one working without a background
+
+		mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
+		linear-gradient(#fff, #fff);
+		mask-composite: exclude;
+
+
+		z-index: 5;
+		background: transparent;
+	}
+
+
+	.content-back
+	{
+		-webkit-mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
+		linear-gradient(transparent, transparent);
+		-webkit-mask-composite: source-out;
+
+
+		mask: radial-gradient(farthest-side, black 99.99%, transparent 100%) center center/0px 0px no-repeat,
+		linear-gradient(transparent, transparent);
+		mask-composite: add;
+
+		.title
+		{
+			font-size: 10vw;
+			color: white;
+		}
+		z-index: 4;
+
+		background: transparent;
 	}
 
 	// Need to put page-black global otherwise sveltekit removes unused css
@@ -101,12 +180,12 @@
 	}
 
 	// https://stackoverflow.com/questions/37000558/clip-path-inset-circle
-	.global-wrapper:hover > .page-front
+	.global-wrapper:hover > .page-front, .global-wrapper:hover > .content-front, .global-wrapper:hover > .content-back
 	{
 		$size: max(140vw, 140vh);
 
-		mask-size: $size $size, auto;
 		-webkit-mask-size: $size $size, auto;
+		mask-size: $size $size, auto;
 		pointer-events: none;
 	}
 
@@ -123,15 +202,16 @@
 		top: 0;
 		left: 0;
 
-		mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
-		linear-gradient(#fff, #fff);
-		mask-composite: exclude;
-
+		// Put webkit mask before so that mozilla applies mask and not webkit-mask
 		-webkit-mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
 		linear-gradient(#fff, #fff);
 		-webkit-mask-composite: destination-out;
 
+		mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
+		linear-gradient(#fff, #fff);
 		mask-composite: exclude;
+
+
 		transition: mask 2.5s, -webkit-mask 2.5s;
 	}
 
