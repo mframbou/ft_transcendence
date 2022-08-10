@@ -1,5 +1,7 @@
 <script lang="ts">
-	// import ParticlesBackground from '$lib/ParticlesBackground.svelte';
+
+	import {browser} from '$app/env';
+	import {onMount} from "svelte";
 	import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
 
 	function login()
@@ -7,140 +9,164 @@
 		alert('pouet');
 	}
 
+	onMount(() =>
+	{
+
+		if (browser)
+		{
+			// let page = document.querySelector('.page-front');
+			// let pageBehind = page.cloneNode(true);
+			//
+			// pageBehind.classList.remove('page-front');
+			// pageBehind.classList.add('page-back');
+			//
+			// document.querySelector('.global-wrapper').appendChild(pageBehind);
+		}
+	})
 </script>
 
-<div class="wrapwrapper">
-	<div class="wrapper">
-		<h1 class="title">Transcendence</h1>
-		<div class="circle-wrapper">
-			<button class="login-btn" on:click={login}>
-				<p class="text">Login</p>
-				<!--				Create circle svg-->
+<div class="global-wrapper">
 
-
-				<!--				<div id="circle" class="circle"/>-->
-				<div class="svg-wrapper">
-					<svg class="svg" width="200vw" height="200vh">
-
-						<clipPath id="circle">
-							<circle stroke="#ffffff" stroke-miterlimit="10" cx="50%" cy="50%" r="300"/>
-						</clipPath>
-					</svg>
-
-					<svg class="svg" width="200vw" height="200vh">
-						<circle cx="50%" cy="50%" r="150" stroke="black" stroke-width="3" fill="red"/>
-					</svg>
-				</div>
-			</button>
-		</div>
+	<div class="page-front">
+		<h1 class="title" data-title="Transcendence">
+			Transcendence
+			<button class="login-btn">Login</button>
+		</h1>
 	</div>
-	<FallingHeadsBackground --background-color='#0f0d25'/>
 </div>
+
+<FallingHeadsBackground --z-index="10" --pointer-events="none" --background-color="transparent"/>
 
 <style lang="scss">
 
-	.wrapwrapper
+	.global-wrapper, .page-front, :global(.page-back)
 	{
-		display: grid;
-		place-items: center;
-		height: 100vh;
-		overflow: hidden;
+		position: relative;
 	}
 
-	.wrapper
+	// Need to put page-black global otherwise sveltekit removes unused css
+	:global(.page-back)
 	{
-		//position: absolute;
-		//top: 50%;
-		//left: 50%;
+		z-index: 1;
+		background: red;
+
+		.title
+		{
+			position: absolute;
+			z-index: 1000000;
+			color: black;
+		}
+
+		.login-btn
+		{
+			color: black;
+			border: 3px solid blue;
+			background-color: rgba(255, 255, 255, 0.15);
+
+			&:hover
+			{
+				background-color: rgba(205, 205, 205, 0.4);
+			}
+		}
+	}
+
+	.page-front
+	{
+		z-index: 2;
+		background: blue;
+
+		.title
+		{
+			position: absolute;
+			z-index: 50000;
+			color: white;
+		}
+
+		.login-btn
+		{
+			color: white;
+			border: 3px solid #ccc;
+			background-color: rgba(0, 0, 0, 0.15);
+
+			&:hover
+			{
+				background-color: rgba(50, 50, 50, 0.4);
+			}
+		}
+	}
+
+	.global-wrapper
+	{
+		//pointer-events: none;
+	}
+
+	// https://stackoverflow.com/questions/37000558/clip-path-inset-circle
+	.global-wrapper:hover > .page-front
+	{
+		$size: max(140vw, 140vh);
+
+		mask-size: $size $size, auto;
+		-webkit-mask-size: $size $size, auto;
+		pointer-events: none;
+	}
+
+	.page-front, :global(.page-back)
+	{
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		flex-direction: column;
-		//margin-top: auto;
-		//transform: translate(-50%, calc(-50% + 50px)); //To center the text on the page
+
+		height: 100vh;
+		width: 100vw;
+		position: absolute;
+		top: 0;
+		left: 0;
+
+		mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
+		linear-gradient(#fff, #fff);
+		mask-composite: exclude;
+
+		-webkit-mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
+		linear-gradient(#fff, #fff);
+		-webkit-mask-composite: destination-out;
+
+		mask-composite: exclude;
+		transition: mask 2.5s, -webkit-mask 2.5s;
 	}
 
 	.title
 	{
-		z-index: 1;
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 		text-transform: uppercase;
 		font-family: NexaBlack;
-		font-size: clamp(10px, 10vw, 250px);
-		user-select: none;
-		color: white;
-
-		clip-path: url("#circle");
+		font-size: clamp(10px, 9vw, 250px);
 	}
 
 	.login-btn
 	{
+		//backdrop-filter: blur(10px);
+		position: absolute;
+		top: 100%;
 		text-transform: uppercase;
 		font-family: Lato;
 		font-weight: 700;
+		margin-top: 50px;
+
 		font-size: min(3vw, 20px);
 		padding: 1em 2em;
 		cursor: pointer;
-		user-select: none;
 		transition: background-color 250ms ease;
 		text-decoration: none;
-		color: white;
-		border: 3px solid #ccc;
 		border-radius: 2px;
-		background-color: rgba(0, 0, 0, 0.15);
-		backdrop-filter: blur(1px);
-
-		&:hover
-		{
-			background-color: rgba(50, 50, 50, 0.4);
-		}
 
 		&:focus
 		{
 			outline: none;
 		}
-	}
-
-	.circle-wrapper
-	{
-		position: relative;
-		margin-top: 50px;
-	}
-
-	.text
-	{
-		position: relative; // Elements must be positioned to use z index
-		z-index: 3;
-		pointer-events: none; // can click / hover through text
-	}
-
-	.svg-wrapper
-	{
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-	}
-
-	#circle
-	{
-		//z-index: 2;
-		//position: absolute;
-		//top: 50%;
-		//left: 50%;
-		//transform: translate(-50%, -50%);
-		//height: 50px;
-		//width: 50px;
-		//background-color: red;
-		//border-radius: 999px;
-		//transition: all 1500ms ease;
-	}
-
-	#circle:hover, .login-btn:hover > #circle
-	{
-		height: max(150vw, 150vh);
-		//width: 10px;
-		width: max(150vw, 150vh);
-		background-color: green;
 	}
 
 </style>

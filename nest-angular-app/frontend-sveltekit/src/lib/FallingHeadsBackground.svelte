@@ -145,14 +145,18 @@
 <style lang="scss">
 	.wrapper
 	{
-		position: fixed;
-		z-index: -1;
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: var(--z-index, auto);
 		width: 100%;
 		height: 100%;
+		pointer-events: var(--pointer-events, auto);
 	}
 
 	canvas
 	{
 		background-color: var(--background-color, #ffffff);
 	}
+
 </style>
