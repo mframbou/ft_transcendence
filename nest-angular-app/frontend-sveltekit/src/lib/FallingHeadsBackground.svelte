@@ -66,7 +66,6 @@
 
 	function updateCanvasSize(canvas: HTMLCanvasElement)
 	{
-		console.log(canvas.parentElement.clientWidth);
 		canvas.width = canvas.parentElement.clientWidth ?? window.innerWidth;
 		canvas.height = canvas.parentElement.clientHeight ?? window.innerHeight;
 	}

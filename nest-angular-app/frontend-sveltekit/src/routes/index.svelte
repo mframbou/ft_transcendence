@@ -11,41 +11,36 @@
 
 	onMount(() =>
 	{
-
 		if (browser)
 		{
-			// let page = document.querySelector('.page-front');
-			// let pageBehind = page.cloneNode(true);
-			//
-			// pageBehind.classList.remove('page-front');
-			// pageBehind.classList.add('page-back');
-			//
-			// document.querySelector('.global-wrapper').appendChild(pageBehind);
+			let contentsFront = document.querySelector('.content-front');
+			let contentsBack = document.querySelector('.content-back');
+			let newContentsBack = contentsFront.cloneNode(true);
+			newContentsBack.classList.remove('content-front');
+			newContentsBack.classList.add('content-back');
+			contentsBack.replaceWith(newContentsBack);
 		}
 	})
 </script>
 
-<div class="global-wrapper">
+<div class="page-wrapper">
 
-	<div class="page-front">
-	</div>
-
+	<div class="page-front"/>
 
 	<div class="content-front">
-		<h1 class="title" data-title="Transcendence">
+		<h1 class="title">
 			Transcendence
 			<button class="login-btn">Login</button>
 		</h1>
 	</div>
 
-	<div class="page-back">
-	</div>
+	<div class="page-back"/>
 
 	<div class="content-back">
-		<h1 class="title" data-title="Transcendence">
-			Transcendence
-			<button class="login-btn">Login</button>
-		</h1>
+<!--		<h1 class="title">-->
+<!--			Transcendence-->
+<!--			<button class="login-btn">Login</button>-->
+<!--		</h1>-->
 	</div>
 
 
@@ -55,164 +50,35 @@
 
 <style lang="scss">
 
-	.global-wrapper, .page-front, :global(.page-back)
-	{
-		position: relative;
-	}
+	//$radial-gradient: radial-gradient(farthest-side, white 79.99%, transparent 80%, transparent 95%, white 95.01%, white 99.99%, transparent 100%) center center/0px 0px no-repeat;
+	$radial-gradient: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat;
+	$scale-size: max(180vw, 180vh);
+	$transition: 1.4s cubic-bezier(.33, .09, .2, 1);
 
-	.global-wrapper
+	.page-wrapper
 	{
-		height: 100vh;
-		width: 100vw;
+		height: 100%;
+		width: 100%;
 	}
 
 	.content-front, .content-back
 	{
-		position:absolute;
-		top:0;
-		left:0;
-		width:100%;
-		height:100%;
-
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		transition: mask 2.5s, -webkit-mask 2.5s;
-	}
-
-	.content-front
-	{
-		.title
-		{
-			color: yellow;
-		}
-
-		-webkit-mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
-		linear-gradient(#fff, #fff);
-		-webkit-mask-composite: xor; // tried all values and this is the only one working without a background
-
-		mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
-		linear-gradient(#fff, #fff);
-		mask-composite: exclude;
-
-
-		z-index: 5;
-		background: transparent;
-	}
-
-
-	.content-back
-	{
-		-webkit-mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
-		linear-gradient(transparent, transparent);
-		-webkit-mask-composite: source-out;
-
-
-		mask: radial-gradient(farthest-side, black 99.99%, transparent 100%) center center/0px 0px no-repeat,
-		linear-gradient(transparent, transparent);
-		mask-composite: add;
-
-		.title
-		{
-			font-size: 10vw;
-			color: white;
-		}
-		z-index: 4;
-
-		background: transparent;
-	}
-
-	// Need to put page-black global otherwise sveltekit removes unused css
-	:global(.page-back)
-	{
-		z-index: 1;
-		background: red;
-
-		.title
-		{
-			position: absolute;
-			z-index: 1000000;
-			color: black;
-		}
-
-		.login-btn
-		{
-			color: black;
-			border: 3px solid blue;
-			background-color: rgba(255, 255, 255, 0.15);
-
-			&:hover
-			{
-				background-color: rgba(205, 205, 205, 0.4);
-			}
-		}
-	}
-
-	.page-front
-	{
-		z-index: 2;
-		background: blue;
-
-		.title
-		{
-			position: absolute;
-			z-index: 50000;
-			color: white;
-		}
-
-		.login-btn
-		{
-			color: white;
-			border: 3px solid #ccc;
-			background-color: rgba(0, 0, 0, 0.15);
-
-			&:hover
-			{
-				background-color: rgba(50, 50, 50, 0.4);
-			}
-		}
-	}
-
-	.global-wrapper
-	{
-		//pointer-events: none;
-	}
-
-	// https://stackoverflow.com/questions/37000558/clip-path-inset-circle
-	.global-wrapper:hover > .page-front, .global-wrapper:hover > .content-front, .global-wrapper:hover > .content-back
-	{
-		$size: max(140vw, 140vh);
-
-		-webkit-mask-size: $size $size, auto;
-		mask-size: $size $size, auto;
-		pointer-events: none;
-	}
-
-	.page-front, :global(.page-back)
-	{
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-
-		height: 100vh;
-		width: 100vw;
 		position: absolute;
 		top: 0;
 		left: 0;
+		width: 100%;
+		height: 100%;
 
-		// Put webkit mask before so that mozilla applies mask and not webkit-mask
-		-webkit-mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
-		linear-gradient(#fff, #fff);
-		-webkit-mask-composite: destination-out;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background: transparent;
+	}
 
-		mask: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat,
-		linear-gradient(#fff, #fff);
-		mask-composite: exclude;
-
-
-		transition: mask 2.5s, -webkit-mask 2.5s;
+	.content-front, .content-back, .page-front, .page-back
+	{
+		transition: mask $transition, -webkit-mask $transition;
 	}
 
 	.title
@@ -223,7 +89,7 @@
 		align-items: center;
 		text-transform: uppercase;
 		font-family: NexaBlack;
-		font-size: clamp(10px, 9vw, 250px);
+		font-size: clamp(10px, 9.5vw, 250px);
 	}
 
 	.login-btn
@@ -247,6 +113,152 @@
 		{
 			outline: none;
 		}
+	}
+
+	.page-back
+	{
+		z-index: 1;
+
+		background-color: #49306B;
+	}
+
+	.page-front
+	{
+		z-index: 2;
+		
+		background-color: #E1CDB5;
+	}
+
+	.content-front
+	{
+		z-index: 5;
+
+		.title
+		{
+			color: black;
+		}
+
+		.login-btn
+		{
+			color: black;
+			border-color: #313131;
+			background-color: rgba(255, 255, 255, 0.15);
+
+			&:hover
+			{
+				background-color: rgba(205, 205, 205, 0.4);
+			}
+		}
+
+		-webkit-mask: $radial-gradient,
+		linear-gradient(#fff, #fff);
+		-webkit-mask-composite: xor; // tried all values and this is the only one working without a background
+
+		mask: $radial-gradient,
+		linear-gradient(#fff, #fff);
+		mask-composite: exclude;
+
+	}
+
+	// Global so that unsued css (because clone in js) are not deleted
+	:global(.content-back)
+	{
+		z-index: 4;
+
+		.title
+		{
+			color: white;
+		}
+
+		.login-btn
+		{
+			color: white;
+			border-color: #ccc;
+			background-color: rgba(0, 0, 0, 0.15);
+
+			&:hover
+			{
+				background-color: rgba(50, 50, 50, 0.4);
+			}
+		}
+
+
+		// Inverted mask (circle shows content instead of hiding)
+		-webkit-mask: $radial-gradient,
+		linear-gradient(transparent, transparent);
+		-webkit-mask-composite: source-out;
+
+		mask: $radial-gradient,
+		linear-gradient(transparent, transparent);
+		mask-composite: add;
+	}
+
+	.title
+	{
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-transform: uppercase;
+		font-family: NexaBlack;
+		font-size: clamp(10px, 9.5vw, 250px);
+	}
+
+	.login-btn
+	{
+		//backdrop-filter: blur(10px);
+		position: absolute;
+		top: 100%;
+		text-transform: uppercase;
+		font-family: Lato;
+		font-weight: 700;
+		margin-top: 50px;
+
+		font-size: min(3vw, 20px);
+		padding: 1em 2em;
+		cursor: pointer;
+		transition: background-color 250ms ease;
+		text-decoration: none;
+		border-radius: 2px;
+		border: 3px solid;
+
+		&:focus
+		{
+			outline: none;
+		}
+	}
+
+	// https://stackoverflow.com/questions/37000558/clip-path-inset-circle
+	.page-wrapper:hover
+	{
+		& > .page-front, & > .content-front, & > .content-back
+		{
+			mask-size: $scale-size $scale-size, auto;
+			-webkit-mask-size: $scale-size $scale-size, auto;
+		}
+
+		& > .page-front, & > .content-front
+		{
+			pointer-events: none;
+		}
+	}
+
+	.page-front, .page-back
+	{
+		height: 100%;
+		width: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+
+		// Put webkit mask before so that mozilla applies mask and not webkit-mask
+		-webkit-mask: $radial-gradient,
+		linear-gradient(#fff, #fff);
+		-webkit-mask-composite: xor; // tried all values and this is the only one working without a background
+
+		mask: $radial-gradient,
+		linear-gradient(#fff, #fff);
+		mask-composite: exclude;
 	}
 
 </style>
