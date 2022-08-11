@@ -9,19 +9,43 @@
 		alert('pouet');
 	}
 
-	onMount(() =>
+	let loading = true;
+
+	onMount(async () =>
 	{
+
 		if (browser)
 		{
+			const timeNow = new Date().getTime();
+
 			let contentsFront = document.querySelector('.content-front');
 			let contentsBack = document.querySelector('.content-back');
-			let newContentsBack = contentsFront.cloneNode(true);
-			newContentsBack.classList.remove('content-front');
-			newContentsBack.classList.add('content-back');
-			contentsBack.replaceWith(newContentsBack);
+
+			if (contentsFront && contentsBack)
+			{
+				let newContentsBack = contentsFront.cloneNode(true);
+				newContentsBack.classList.remove('content-front');
+				newContentsBack.classList.add('content-back');
+				contentsBack.replaceWith(newContentsBack);
+			}
+
+			const endTime = new Date().getTime();
+
+			if (endTime - timeNow < 1000)
+			{
+				await new Promise(resolve => setTimeout(resolve, 1000 - (endTime - timeNow)));
+			}
+			loading = false;
 		}
 	})
 </script>
+
+{#if loading}
+	<div class="test" style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background-color: pink; z-index: 999">
+		<div class="spinning-ring">
+		</div>
+	</div>
+{/if}
 
 <div class="page-wrapper">
 
@@ -38,7 +62,7 @@
 
 	<div class="content-back">
 <!--		<h1 class="title">-->
-<!--			Transcendence-->
+<!--			pouet pouet-->
 <!--			<button class="login-btn">Login</button>-->
 <!--		</h1>-->
 	</div>
@@ -48,12 +72,35 @@
 <FallingHeadsBackground --z-index="3" --pointer-events="none" --background-color="transparent"/>
 
 
+
 <style lang="scss">
+
+	.spinning-ring {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 64px;
+		height: 64px;
+		margin: 8px;
+		border-radius: 50%;
+		border: 6px solid #fff;
+		border-color: #fff transparent #fff transparent;
+		animation: lds-dual-ring 1.2s linear infinite;
+	}
+	@keyframes lds-dual-ring {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
 
 	//$radial-gradient: radial-gradient(farthest-side, white 79.99%, transparent 80%, transparent 95%, white 95.01%, white 99.99%, transparent 100%) center center/0px 0px no-repeat;
 	$radial-gradient: radial-gradient(farthest-side, white 99.99%, transparent 100%) center center/0px 0px no-repeat;
 	$scale-size: max(180vw, 180vh);
-	$transition: 1.4s cubic-bezier(.33, .09, .2, 1);
+	$transition: 1s cubic-bezier(.33, .09, .2, 1);
 
 	.page-wrapper
 	{
@@ -214,7 +261,7 @@
 		font-weight: 700;
 		margin-top: 50px;
 
-		font-size: min(3vw, 20px);
+		font-size: clamp(12px, 2.5vw, 24px);
 		padding: 1em 2em;
 		cursor: pointer;
 		transition: background-color 250ms ease;
