@@ -29,19 +29,21 @@
 				contentsBack.replaceWith(newContentsBack);
 			}
 
+
+			// Chrome dev tools performance can slow down network to test
 			const endTime = new Date().getTime();
 
-			if (endTime - timeNow < 1000)
-			{
-				await new Promise(resolve => setTimeout(resolve, 1000 - (endTime - timeNow)));
-			}
+			// if (endTime - timeNow < 1000)
+			// {
+			// 	await new Promise(resolve => setTimeout(resolve, 1000 - (endTime - timeNow)));
+			// }
 			loading = false;
 		}
 	})
 </script>
 
 {#if loading}
-	<div class="test" style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background-color: pink; z-index: 999">
+	<div class="test" style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background-color: #E1CDB5; z-index: 999">
 		<div class="spinning-ring">
 		</div>
 	</div>
