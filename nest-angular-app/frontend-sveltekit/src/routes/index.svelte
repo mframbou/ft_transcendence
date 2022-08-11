@@ -4,9 +4,12 @@
 	import {onMount} from "svelte";
 	import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
 
-	function login()
+	function oauth42()
 	{
-		alert('pouet');
+		if (browser)
+		{
+			window.location.href = ('/test');
+		}
 	}
 
 	let loading = true;
@@ -16,34 +19,25 @@
 
 		if (browser)
 		{
-			const timeNow = new Date().getTime();
-
-			let contentsFront = document.querySelector('.content-front');
-			let contentsBack = document.querySelector('.content-back');
-
-			if (contentsFront && contentsBack)
-			{
-				let newContentsBack = contentsFront.cloneNode(true);
-				newContentsBack.classList.remove('content-front');
-				newContentsBack.classList.add('content-back');
-				contentsBack.replaceWith(newContentsBack);
-			}
-
-
-			// Chrome dev tools performance can slow down network to test
-			const endTime = new Date().getTime();
-
-			// if (endTime - timeNow < 1000)
+			// let contentsFront = document.querySelector('.content-front');
+			// let contentsBack = document.querySelector('.content-back');
+			//
+			// if (contentsFront && contentsBack)
 			// {
-			// 	await new Promise(resolve => setTimeout(resolve, 1000 - (endTime - timeNow)));
+			// 	let newContentsBack = contentsFront.cloneNode(true);
+			// 	newContentsBack.classList.remove('content-front');
+			// 	newContentsBack.classList.add('content-back');
+			// 	contentsBack.replaceWith(newContentsBack);
 			// }
-			loading = false;
 		}
+		// Chrome dev tools performance can slow down network to test
+		loading = false;
 	})
 </script>
 
 {#if loading}
-	<div class="test" style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background-color: #E1CDB5; z-index: 999">
+	<div class="test"
+			 style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background-color: #E1CDB5; z-index: 999">
 		<div class="spinning-ring">
 		</div>
 	</div>
@@ -56,28 +50,30 @@
 	<div class="content-front">
 		<h1 class="title">
 			Transcendence
-			<button class="login-btn">Login</button>
+			<button on:click={oauth42} class="login-btn">Login with</button>
 		</h1>
 	</div>
 
 	<div class="page-back"/>
 
+	<!--	Need to put cloned HTML instead of doing it in JS because otherwise button click has no effect-->
 	<div class="content-back">
-<!--		<h1 class="title">-->
-<!--			pouet pouet-->
-<!--			<button class="login-btn">Login</button>-->
-<!--		</h1>-->
+		<h1 class="title">
+			pouet pouet
+			<button on:click={oauth42} class="login-btn">Login with</button>
+		</h1>
 	</div>
 
 
 </div>
-<FallingHeadsBackground --z-index="3" --pointer-events="none" --background-color="transparent"/>
-
+<FallingHeadsBackground properties={ {imgHeight: 56, imgWidth: 56} } --z-index="3" --pointer-events="none"
+												--background-color="transparent"/>
 
 
 <style lang="scss">
 
-	.spinning-ring {
+	.spinning-ring
+	{
 		position: absolute;
 		top: 50%;
 		left: 50%;
@@ -90,11 +86,15 @@
 		border-color: #fff transparent #fff transparent;
 		animation: lds-dual-ring 1.2s linear infinite;
 	}
-	@keyframes lds-dual-ring {
-		0% {
+
+	@keyframes lds-dual-ring
+	{
+		0%
+		{
 			transform: rotate(0deg);
 		}
-		100% {
+		100%
+		{
 			transform: rotate(360deg);
 		}
 	}
@@ -143,7 +143,11 @@
 
 	.login-btn
 	{
-		//backdrop-filter: blur(10px);
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+
 		position: absolute;
 		top: 100%;
 		text-transform: uppercase;
@@ -151,16 +155,29 @@
 		font-weight: 700;
 		margin-top: 50px;
 
-		font-size: min(3vw, 20px);
+		font-size: clamp(12px, 2.5vw, 24px);
 		padding: 1em 2em;
 		cursor: pointer;
 		transition: background-color 250ms ease;
 		text-decoration: none;
-		border-radius: 2px;
+		border: 3px solid;
+		border-radius: 3px;
 
 		&:focus
 		{
 			outline: none;
+		}
+
+		&:after
+		{
+			$size: 1.5em;
+
+			content: url("/42_Logo_white.svg");
+			display: inline-block;
+			height: $size;
+			width: $size;
+			margin-left: 0.2em;
+			margin-top: 0.1em;
 		}
 	}
 
@@ -168,13 +185,14 @@
 	{
 		z-index: 1;
 
-		background-color: #49306B;
+		//background-color: #49306B;
+		background-color: #030f31;
 	}
 
 	.page-front
 	{
 		z-index: 2;
-		
+
 		background-color: #E1CDB5;
 	}
 
@@ -195,18 +213,14 @@
 
 			&:hover
 			{
-				background-color: rgba(205, 205, 205, 0.4);
+				background-color: rgba(50, 50, 50, 0.4);
+			}
+
+			&:after
+			{
+				content: url("/42_Logo_black.svg");
 			}
 		}
-
-		-webkit-mask: $radial-gradient,
-		linear-gradient(#fff, #fff);
-		-webkit-mask-composite: xor; // tried all values and this is the only one working without a background
-
-		mask: $radial-gradient,
-		linear-gradient(#fff, #fff);
-		mask-composite: exclude;
-
 	}
 
 	// Global so that unsued css (because clone in js) are not deleted
@@ -227,10 +241,9 @@
 
 			&:hover
 			{
-				background-color: rgba(50, 50, 50, 0.4);
+				background-color: rgba(205, 205, 205, 0.4);
 			}
 		}
-
 
 		// Inverted mask (circle shows content instead of hiding)
 		-webkit-mask: $radial-gradient,
@@ -253,30 +266,6 @@
 		font-size: clamp(10px, 9.5vw, 250px);
 	}
 
-	.login-btn
-	{
-		//backdrop-filter: blur(10px);
-		position: absolute;
-		top: 100%;
-		text-transform: uppercase;
-		font-family: Lato;
-		font-weight: 700;
-		margin-top: 50px;
-
-		font-size: clamp(12px, 2.5vw, 24px);
-		padding: 1em 2em;
-		cursor: pointer;
-		transition: background-color 250ms ease;
-		text-decoration: none;
-		border-radius: 2px;
-		border: 3px solid;
-
-		&:focus
-		{
-			outline: none;
-		}
-	}
-
 	// https://stackoverflow.com/questions/37000558/clip-path-inset-circle
 	.page-wrapper:hover
 	{
@@ -292,14 +281,8 @@
 		}
 	}
 
-	.page-front, .page-back
+	.page-front, .content-front
 	{
-		height: 100%;
-		width: 100%;
-		position: absolute;
-		top: 0;
-		left: 0;
-
 		// Put webkit mask before so that mozilla applies mask and not webkit-mask
 		-webkit-mask: $radial-gradient,
 		linear-gradient(#fff, #fff);
@@ -308,6 +291,15 @@
 		mask: $radial-gradient,
 		linear-gradient(#fff, #fff);
 		mask-composite: exclude;
+	}
+
+	.page-front, .page-back
+	{
+		height: 100%;
+		width: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
 	}
 
 </style>

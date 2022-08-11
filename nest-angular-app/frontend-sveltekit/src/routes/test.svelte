@@ -1,12 +1,14 @@
 <script>
-    import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
+    import ParticlesBackground from "$lib/ParticlesBackground.svelte";
 </script>
 
 <div class="pouet">
 	<h1>Pouet pouet</h1>
 </div>
 
-<FallingHeadsBackground --z-index="1" --pointer-events="none" --background-color="transparent"/>
+<div class="background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+	<ParticlesBackground properties={ {lineColor: '#00ff00'} } --z-index="1" --background-color="transparent"/>
+</div>
 
 <style lang="scss">
 	.pouet

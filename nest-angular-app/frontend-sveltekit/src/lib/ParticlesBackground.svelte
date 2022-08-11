@@ -3,22 +3,24 @@
 	import {browser} from '$app/env';
 	import {onMount} from "svelte";
 
-	export let properties = {
-		maxPointSize: 25,
-		minPointSize: 10,
-		minVelocity: 0.75,
-		maxVelocity: 1.5,
-		initialCount: 80,
-		lineColor: '#55a0f0',
-		addOnClick: true,
-		images: [
-			"src/lib/assets/images/dsamain-transparent.png",
-			"src/lib/assets/images/oronda-transparent.png",
-			"src/lib/assets/images/sspina-transparent.png",
-			"src/lib/assets/images/mframbou-transparent.png"],
-		maxDistRatio: 1 / 8,
-		maxPoints: 300
-	}
+	export let properties = {}
+
+	properties = {
+		maxPointSize: properties.maxPointSize ?? 25,
+		minPointSize: properties.minPointSize ?? 10,
+		minVelocity: properties.minVelocity ?? 0.75,
+		maxVelocity: properties.maxVelocity ?? 1.5,
+		initialCount: properties.initialCount ?? 80,
+		lineColor: properties.lineColor ?? '#ffffff',
+		addOnClick: properties.addOnClick ?? true,
+		images: properties.images ?? [
+			"/images/dsamain-transparent.png",
+			"/images/oronda-transparent.png",
+			"/images/sspina-transparent.png",
+			"/images/mframbou-transparent.png"],
+		maxDistRatio: properties.maxDistRatio ?? 1 / 8,
+		maxPoints: properties.maxPoints ?? 300
+	};
 
 	const mousePos = {x: -1, y: -1}
 
@@ -209,6 +211,8 @@
 		width: 100%;
 		height: 100%;
 		overflow: hidden; // To allow shrinking the canvas
+		z-index: var(--z-index, auto);
+		pointer-events: var(--pointer-events, auto);
 	}
 
 	canvas

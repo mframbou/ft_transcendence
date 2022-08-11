@@ -3,20 +3,22 @@
 	import {browser} from '$app/env';
 	import {onMount} from "svelte";
 
-	export let properties = {
-		imgHeight: 64,
-		imgWidth: 64,
-		minScale: 0.4,
-		maxScale: 1.0,
-		minVelocity: 1.5,
-		maxVelocity: 2.2,
-		imageCount: 80,
-		images: [
-			"src/lib/assets/images/dsamain-transparent.png",
-			"src/lib/assets/images/oronda-transparent.png",
-			"src/lib/assets/images/sspina-transparent.png",
-			"src/lib/assets/images/mframbou-transparent.png"],
-	}
+	export let properties = {};
+
+	properties = {
+		imgHeight: properties.imgHeight ?? 64,
+		imgWidth: properties.imgWidth ?? 64,
+		minScale: properties.minScale ?? 0.4,
+		maxScale: properties.maxScale ?? 1.0,
+		minVelocity: properties.minVelocity ?? 1.5,
+		maxVelocity: properties.maxVelocity ?? 2.2,
+		imageCount: properties.imageCount ?? 80,
+		images: properties.images ?? [
+			"/images/dsamain-transparent.png",
+			"/images/oronda-transparent.png",
+			"/images/sspina-transparent.png",
+			"/images/mframbou-transparent.png"],
+	};
 
 	class Point
 	{
@@ -24,6 +26,7 @@
 		public y: number;
 
 		private vy: number;
+		private opacity: number;
 		private opacity: number;
 		private height: number;
 		private width: number;
@@ -149,9 +152,9 @@
 		top: 0;
 		left: 0;
 		overflow: hidden;
-		z-index: var(--z-index, auto);
 		width: 100%;
 		height: 100%;
+		z-index: var(--z-index, auto);
 		pointer-events: var(--pointer-events, auto);
 	}
 
