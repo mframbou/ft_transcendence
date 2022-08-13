@@ -143,6 +143,8 @@
 
 	.login-btn
 	{
+		-webkit-backdrop-filter: grayscale(100%);
+		backdrop-filter: grayscale(100%);
 		display: flex;
 		flex-direction: row;
 		align-items: center;
