@@ -35,9 +35,7 @@ export class PermissionService {
 			if (!data)
 				return false;
 			let user = await this.prisma.user.findUnique({
-				where : {
-					idIntra : data['id']
-				}
+				where : { idIntra : data['id'] }
 			})
 			return user.owner
 		} catch (e :any) {

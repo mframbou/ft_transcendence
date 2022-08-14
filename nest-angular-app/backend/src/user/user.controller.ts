@@ -20,7 +20,7 @@ export class UserController {
 
     @UseGuards(JwtAuthGuard)
     @Post('activate/2fa/:id')
-    async activate2fa(@Param('id') id: string, @Req() req) : Promise<HttpStatus> {
+    async two_factore_activation(@Param('id') id: string, @Req() req) : Promise<HttpStatus> {
         try {
             let user = await this.prisma.user.findUnique({
                 where:{ id : Number(id) }
