@@ -34,6 +34,11 @@
 					<span class="pushable-front">Bing chilling</span>
 				</button>
 			</li>
+			<li class="profile">
+				<button class="pushable-back">
+					<span class="pushable-front">Profile</span>
+				</button>
+			</li>
 		</ul>
 	</div>
 </div>
@@ -105,6 +110,15 @@
 			height: 90px;
 			border-bottom: 2px solid #0e2554;
 		}
+	}
+
+	//https://stackoverflow.com/questions/38948102/center-one-and-right-left-align-other-flexbox-element/59405567#59405567
+	.profile
+	{
+		//position: absolute;
+		//right: 10px;
+		margin-left: auto;
+		//margin-right: 10px;
 	}
 
 	.sidenav
@@ -195,6 +209,7 @@
 		justify-content: center;
 		list-style: none;
 		gap: 15px;
+		width: 100%;
 	}
 
 	.wrapper
