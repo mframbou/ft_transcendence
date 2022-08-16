@@ -8,7 +8,7 @@
 	{
 		if (browser)
 		{
-			window.location.href = ('/test');
+			window.location.href = ('/home');
 		}
 	}
 
