@@ -5,13 +5,14 @@
 
 <!--<Navbar></Navbar>-->
 <div class="wrapper">
+	<div class="background" style="position: absolute; top: 0; left: 0; flex: 1; width: 100%; height: 100%;">
+		<ParticlesBackground properties={ {lineColor: '#00ff00'} } --z-index="1" --background-color="transparent"/>
+	</div>
+	
 	<div class="pouet">
 		<h1>Pouet pouet</h1>
 	</div>
 
-	<div class="background" style="position: absolute; top: 0; left: 0; flex: 1; width: 100%; height: 100%;">
-		<ParticlesBackground properties={ {lineColor: '#00ff00'} } --z-index="1" --background-color="transparent"/>
-	</div>
 </div>
 
 <style lang="scss">
@@ -40,6 +41,8 @@
 		font-family: NexaBlack;
 		font-size: 8vw;
 		//text-transform: uppercase;
-		z-index: 2;
+		//z-index: 2;
 	}
+
+
 </style>

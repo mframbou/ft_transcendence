@@ -14,26 +14,28 @@
 
 </script>
 
-<!-- Sidenav is hidden by default on mobile -->
-<button on:click={toggleSideNav} class="fa-solid fa-bars sidenav-toggle hidden"></button>
-<div class="sidenav hidden">
-	<ul>
-		<li>
-			<button class="pushable-back">
-				<span class="pushable-front">Jte baise</span>
-			</button>
-		</li>
-		<li>
-			<button class="pushable-back">
-				<span class="pushable-front">Moi aussi</span>
-			</button>
-		</li>
-		<li>
-			<button class="pushable-back">
-				<span class="pushable-front">Bing chilling</span>
-			</button>
-		</li>
-	</ul>
+<div class="wrapper">
+	<!-- Sidenav is hidden by default on mobile -->
+	<button on:click={toggleSideNav} class="fa-solid fa-bars sidenav-toggle hidden"></button>
+	<div class="sidenav hidden">
+		<ul>
+			<li>
+				<button class="pushable-back">
+					<span class="pushable-front">Jte baise</span>
+				</button>
+			</li>
+			<li>
+				<button class="pushable-back">
+					<span class="pushable-front">Moi aussi</span>
+				</button>
+			</li>
+			<li>
+				<button class="pushable-back">
+					<span class="pushable-front">Bing chilling</span>
+				</button>
+			</li>
+		</ul>
+	</div>
 </div>
 
 <style lang="scss">
@@ -54,10 +56,12 @@
 			display: block;
 			opacity: 1;
 		}
+
 		.pushable-back
 		{
 			width: $sidenav-mobile-width - 20px;
 		}
+
 		.sidenav
 		{
 			position: fixed;
@@ -66,7 +70,9 @@
 			width: $sidenav-mobile-width;
 			height: 100%;
 			transition: transform $sidenav-transition;
+			backdrop-filter: blur(10px);
 		}
+
 		ul
 		{
 			flex-direction: column;
@@ -123,6 +129,7 @@
 		position: fixed;
 		top: 7px;
 		left: 7px + $sidenav-mobile-width;
+		//z-index: 999;
 		padding: 10px 15px;
 		cursor: pointer;
 		transition: transform $sidenav-transition;
@@ -189,4 +196,11 @@
 		list-style: none;
 		gap: 15px;
 	}
+
+	.wrapper
+	{
+		z-index: var(--z-index, 999);
+	}
+
+
 </style>
