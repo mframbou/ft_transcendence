@@ -12,6 +12,8 @@
 		}
 	}
 
+	export let showProfileMenu = false;
+
 </script>
 
 <div class="wrapper">
@@ -21,23 +23,34 @@
 		<ul>
 			<li>
 				<button class="pushable-back">
-					<span class="pushable-front">Jte baise</span>
+					<span class="pushable-front">Play</span>
 				</button>
 			</li>
 			<li>
 				<button class="pushable-back">
-					<span class="pushable-front">Moi aussi</span>
+					<span class="pushable-front">Chat</span>
 				</button>
 			</li>
-			<li>
-				<button class="pushable-back">
-					<span class="pushable-front">Bing chilling</span>
-				</button>
-			</li>
+			<!--			<li>-->
+			<!--				<button class="pushable-back">-->
+			<!--					<span class="pushable-front">Bing chilling</span>-->
+			<!--				</button>-->
+			<!--			</li>-->
 			<li class="profile">
 				<button class="pushable-back">
-					<span class="pushable-front">Profile</span>
+					<span class="pushable-front" on:click={() => showProfileMenu = true}>
+						<img src="/images/oronda.png"/>
+						My Profile
+					</span>
 				</button>
+				{#if showProfileMenu}
+					<div class="click-handler"
+							 style="position: fixed; top: 0; left: 0; width: 100vw; height:100vh; background-color: transparent"
+							 on:click={() => showProfileMenu = false}/>
+					<div class="test">
+						Pouet pouet
+					</div>
+				{/if}
 			</li>
 		</ul>
 	</div>
@@ -50,12 +63,28 @@
 
 	$sidenav-bg-color: #172A3A;
 
+	.profile
+	{
+		position: relative;
+	}
+
+	.test
+	{
+		background: green;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100px;
+	}
+
 	@media (max-width: 980px)
 	{
 		.hidden
 		{
 			transform: translateX(-$sidenav-mobile-width);
 		}
+
 		.sidenav-toggle
 		{
 			display: block;
@@ -82,6 +111,13 @@
 		{
 			flex-direction: column;
 			margin-top: 15px;
+			height: 100%;
+		}
+
+		.profile
+		{
+			margin-top: auto;
+			margin-bottom: 25px;
 		}
 	}
 
@@ -91,15 +127,18 @@
 		{
 			transform: translateX(0);
 		}
+
 		.sidenav-toggle
 		{
 			display: none;
 			opacity: 0;
 		}
+
 		.pushable-back
 		{
 			width: 200px;
 		}
+
 		.sidenav
 		{
 			display: flex;
@@ -110,15 +149,36 @@
 			height: 90px;
 			border-bottom: 2px solid #0e2554;
 		}
+
+		.profile
+		{
+			margin-left: auto;
+			margin-right: 10px;
+		}
+
+		ul
+		{
+			margin-left: 10px;
+		}
 	}
 
-	//https://stackoverflow.com/questions/38948102/center-one-and-right-left-align-other-flexbox-element/59405567#59405567
 	.profile
 	{
-		//position: absolute;
-		//right: 10px;
-		margin-left: auto;
-		//margin-right: 10px;
+		.pushable-front
+		{
+			justify-content: flex-start;
+		}
+
+		img
+		{
+			position: absolute;
+			top: 50%;
+			right: 5px;
+			transform: translateY(-50%);
+
+			height: 3em;
+			border-radius: 3em;
+		}
 	}
 
 	.sidenav
@@ -150,10 +210,26 @@
 		color: white;
 		border-radius: 5px;
 		background-color: #838383;
+		outline: none;
+
+		border-top: none;
+		border-left: none;
+		border-bottom: 2px solid #222;
+		border-right: 2px solid #222;
 
 		&:hover
 		{
 			background-color: #939393;
+		}
+
+		&:active, &:focus
+		{
+			outline: none;
+
+			border-top: none;
+			border-left: none;
+			border-bottom: 2px solid #222;
+			border-right: 2px solid #222;
 		}
 	}
 

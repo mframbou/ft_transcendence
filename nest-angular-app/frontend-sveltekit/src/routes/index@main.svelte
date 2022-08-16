@@ -138,7 +138,7 @@
 		align-items: center;
 		text-transform: uppercase;
 		font-family: NexaBlack;
-		font-size: clamp(10px, 9.5vw, 250px);
+		font-size: clamp(10px, 95%, 250px);
 	}
 
 	.login-btn
