@@ -2,6 +2,8 @@
 
 	import {browser} from '$app/env';
 
+	export let showProfileMenu = false;
+
 	function toggleSideNav()
 	{
 		if (browser)
@@ -12,7 +14,18 @@
 		}
 	}
 
-	export let showProfileMenu = false;
+	if (browser)
+	{
+		document.addEventListener('click', (e) =>
+		{
+			console.log(e.target);
+			if (!e.target.closest('.profile'))
+			{
+				showProfileMenu = false;
+			}
+		});
+	}
+
 
 </script>
 
@@ -20,7 +33,7 @@
 	<!-- Sidenav is hidden by default on mobile -->
 	<button on:click={toggleSideNav} class="fa-solid fa-bars sidenav-toggle hidden"></button>
 	<div class="sidenav hidden">
-		<ul>
+		<ul class="nav-buttons">
 			<li>
 				<button class="pushable-back">
 					<span class="pushable-front">Play</span>
@@ -44,11 +57,12 @@
 					</span>
 				</button>
 				{#if showProfileMenu}
-					<div class="click-handler"
-							 style="position: fixed; top: 0; left: 0; width: 100vw; height:100vh; background-color: transparent"
-							 on:click={() => showProfileMenu = false}/>
-					<div class="test">
-						Pouet pouet
+					<div class="profile-menu">
+						<ul>
+							<li>Pouet</li>
+							<li>Setings</li>
+							<li>Friendz</li>
+						</ul>
 					</div>
 				{/if}
 			</li>
@@ -68,14 +82,46 @@
 		position: relative;
 	}
 
-	.test
+	.profile-menu
 	{
-		background: green;
+		z-index: -1;
+		background-color: rgba(0, 0, 0, 0.9);
+		color: white;
 		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
-		height: 100px;
+		//height: 250px;
+		border-radius: 30px 30px 15px 15px;
+		padding-top: 60px;
+
+		ul
+		{
+			list-style: none;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: flex-start;
+			height: 100%;
+			width: 100%;
+
+			li
+			{
+				text-align: right;
+				width: 100%;
+				padding: 10px;
+
+				&:hover
+				{
+					background-color: #aaa;
+				}
+
+				&:last-child:hover
+				{
+					border-radius: 0 0 15px 15px;
+				}
+			}
+		}
 	}
 
 	@media (max-width: 980px)
@@ -107,7 +153,7 @@
 			backdrop-filter: blur(10px);
 		}
 
-		ul
+		.nav-buttons
 		{
 			flex-direction: column;
 			margin-top: 15px;
@@ -156,7 +202,7 @@
 			margin-right: 10px;
 		}
 
-		ul
+		.nav-buttons
 		{
 			margin-left: 10px;
 		}
@@ -237,7 +283,7 @@
 	{
 		height: 60px;
 		border: none;
-		border-radius: 999px;
+		border-radius: 0px;
 		outline: none;
 		background-color: transparent;
 	}
@@ -254,7 +300,7 @@
 		cursor: pointer;
 		transition: transform 250ms;
 		color: white;
-		border-radius: 999px;
+		border-radius: 30px;
 		background-color: transparent;
 		will-change: transform;
 		border: 3px solid white;
@@ -278,7 +324,7 @@
 		}
 	}
 
-	ul
+	.nav-buttons
 	{
 		display: flex;
 		align-items: center;

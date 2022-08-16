@@ -36,7 +36,7 @@
 </script>
 
 {#if loading}
-	<div class="test"
+	<div class="profile-menu"
 			 style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background-color: #E1CDB5; z-index: 999">
 		<div class="spinning-ring">
 		</div>
