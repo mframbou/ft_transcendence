@@ -63,6 +63,7 @@ export class AuthController {
     );
   }
 
+  // https://api.intra.42.fr/apidoc/guides/web_application_flow
   @Get('middleware')
   getAuthCode(@Query('code') query: string, @Res() res): any {
     return fetch('https://api.intra.42.fr/oauth/token', {
@@ -92,8 +93,12 @@ export class AuthController {
     );
   }
 
+  //////////////////
+  ///    AUTH    ///
+  //////////////////
+
   private get_token(token: string, @Res() res): any {
-    let first: boolean = false;
+    let first = false;
     try {
       return fetch('https://api.intra.42.fr/v2/me', {
         method: 'GET',
@@ -151,16 +156,46 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('/user')
   async user(@Req() req: Request) {
-    const data = await this.jwt.verifyAsync(req.cookies['cockies']);
+    const data = await this.jwt.verifyAsync(req.cookies['tshdc']);
 
     const user: IUser = await this.prisma.user.findUnique({
-      where: { idIntra: data['id'] },
+      where: {
+        idIntra: data['id'],
+      },
       include: {
         badge: true,
+        chat: true,
         admin: true,
+        participant: true,
+        userFriends: true,
+        blocked: true,
+        blockedBy: true,
         moderators: true,
       },
     });
+    user.userFriends = await Promise.all(
+      user.userFriends.map(async (friend) => {
+        return await this.prisma.user.findUnique({
+          where: {
+            idIntra: friend.friendId,
+          },
+          select: {
+            email: true,
+            tel: true,
+            img: true,
+            firstName: true,
+            lastName: true,
+            userName: true,
+            idIntra: true,
+            campus: true,
+            win: true,
+            loses: true,
+            rank: true,
+            badge: true,
+          },
+        });
+      }),
+    );
     return user;
   }
 
@@ -170,6 +205,10 @@ export class AuthController {
     res.clearCookie('cockies');
     res.redirect('/');
   }
+
+  //////////////////
+  /// TWO FACTOR ///
+  //////////////////
 
   @UseGuards(JwtAuthGuard)
   @Post('start_two_factor')

@@ -22,11 +22,11 @@ export class AuthService {
 
   async start_two_factor(id: number): Promise<any> {
     const otp = await this.prisma.user.findUnique({
-                where: { id : id, },
-                select: { otpSecret : true, }
-            })
+      where: { id: id },
+      select: { otpSecret: true },
+    });
     if (otp.otpSecret === '') {
-      let secret: GeneratedSecret = speakeasy.generateSecret();
+      const secret: GeneratedSecret = speakeasy.generateSecret();
       await this.prisma.user.update({
         where: { id: id },
         data: {
@@ -39,7 +39,7 @@ export class AuthService {
 
   // https://github.com/speakeasyjs/speakeasy
   async completed_two_factor(body: any): Promise<string> {
-    let secret: { otpUrl: string; twoFa: boolean } =
+    const secret: { otpUrl: string; twoFa: boolean } =
       await this.prisma.user.findUnique({
         where: { id: body.id },
         select: { twoFa: true, otpUrl: true },
@@ -51,13 +51,13 @@ export class AuthService {
 
   async check_two_factor(body: any, res: Response): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
-                where: { id : body.id },
-                select: { idIntra : true, otpSecret : true, }
-            });
+      where: { id: body.id },
+      select: { idIntra: true, otpSecret: true },
+    });
     const verified = speakeasy.totp.verify({
-                secret: user.otpSecret,
-                encoding: 'base32',
-                token: body.totp });
+      secret: user.otpSecret,
+      encoding: 'base32',
+      token: body.totp,
     });
     if (verified) {
       res.clearCookie('cookie2f');
