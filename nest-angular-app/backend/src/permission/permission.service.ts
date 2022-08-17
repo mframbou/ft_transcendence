@@ -11,7 +11,7 @@ export class PermissionService {
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly jwt : JwtService,
-	) {  this.prisma = new PrismaService({rejectOnNotFound: true})}
+	) {this.prisma = new PrismaService()}
 
 	
 	async is_mod(@Req() req, idChat : number) : Promise<boolean> {

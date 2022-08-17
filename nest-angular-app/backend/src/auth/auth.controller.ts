@@ -31,7 +31,7 @@ export class AuthController {
 		private jwt: JwtService,
 		private authService : AuthService,
 		private sessionService : MySessionService,
-	) {this.prisma = new PrismaService({rejectOnNotFound: true,});
+	) {this.prisma = new PrismaService();
 	this.sessionService = new MySessionService(caching({
 			store: redisStore,
 			host: 'rediStatus',

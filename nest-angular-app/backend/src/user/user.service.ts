@@ -18,7 +18,7 @@ export class UserService {
         private auth : AuthService,
         private readonly prisma: PrismaService,
         private sessionService : MySessionService,
-    ) {this.prisma = new PrismaService({rejectOnNotFound: true,}) }
+    ) {this.prisma = new PrismaService() }
 
     async two_factor_activate(id: number) : Promise<HttpStatus> {
         try {
