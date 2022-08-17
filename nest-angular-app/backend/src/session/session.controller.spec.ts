@@ -6,18 +6,18 @@ import { SessionController } from './session.controller';
 import { MySessionService } from './session.service';
 
 describe('SessionController', () => {
-	let controller: SessionController;
+  let controller: SessionController;
 
-	beforeEach(async () => {
-		const module: TestingModule = await Test.createTestingModule({
-			controllers: [SessionController],
-			providers: [MySessionService],
-		}).compile();
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [SessionController],
+      providers: [MySessionService],
+    }).compile();
 
-		controller = module.get<SessionController>(SessionController);
-	});
+    controller = module.get<SessionController>(SessionController);
+  });
 
-	it('hope its defined', () => {
-		expect(controller).toBeDefined();
-	});
+  it('hope its defined', () => {
+    expect(controller).toBeDefined();
+  });
 });

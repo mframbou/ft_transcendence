@@ -6,6 +6,5 @@ import { PermissionService } from './permission.service';
 
 @Controller('permission')
 export class PermissionController {
-	constructor(private readonly permissionService: PermissionService) {}
-
+  constructor(private readonly permissionService: PermissionService) {}
 }
