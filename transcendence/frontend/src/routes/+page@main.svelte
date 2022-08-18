@@ -8,7 +8,7 @@
 	{
 		if (browser)
 		{
-			window.location.href = ('/home');
+			window.location.href = ('http://localhost:3000/auth');
 		}
 	}
 
