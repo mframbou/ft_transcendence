@@ -55,13 +55,9 @@ export class AuthController {
     );
   }
 
-  // (it's my (= sspina) uid, it's okay but important to not leak the secrect)
-  @Get()
-  authRedirect(@Res() res): any {
-    return res.redirect(
-      `https://api.intra.42.fr/oauth/authorize?client_id=9ff20d31a6e021e5a2010628c4c7bc1604fd35f5284b13662bdf431c3d77bbb8&redirect_uri=${urlRedirect}&response_type=code`,
-    );
-  }
+  /////////////////////////
+  ///   LOGIN & AUTH   ///
+  ////////////////////////
 
   // https://api.intra.42.fr/apidoc/guides/web_application_flow
   @Get('middleware')
@@ -82,20 +78,6 @@ export class AuthController {
         this.get_token(data.access_token, res);
       });
   }
-
-  // May be useful (?)
-  is_administrator(idIntra: string) {
-    return (
-      idIntra === 'mframbou' ||
-      idIntra === 'dsamain' ||
-      idIntra === 'oronda' ||
-      idIntra === 'sspina'
-    );
-  }
-
-  //////////////////
-  ///    AUTH    ///
-  //////////////////
 
   private get_token(token: string, @Res() res): any {
     let first = false;
@@ -153,10 +135,55 @@ export class AuthController {
     }
   }
 
+  // (it's my (= sspina) uid, it's okay but important to not leak the secrect)
+  @Get()
+  authRedirect(@Res() res): any {
+    return res.redirect(
+      `https://api.intra.42.fr/oauth/authorize?client_id=9ff20d31a6e021e5a2010628c4c7bc1604fd35f5284b13662bdf431c3d77bbb8&redirect_uri=${urlRedirect}&response_type=code`,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/logout')
+  async logout(@Res() res: Response) {
+    res.clearCookie('cockies');
+    res.redirect('/');
+  }
+
+  //////////////////
+  /// TWO FACTOR ///
+  //////////////////
+
+  @UseGuards(JwtAuthGuard)
+  @Post('start_two_factor')
+  async start_two_factor(@Body() body): Promise<any> {
+    await this.authService.start_two_factor(body.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa')
+  async completed_two_factor(@Body() body): Promise<any> {
+    let a = await this.authService.completed_two_factor(body);
+    return { QRcode: a };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('check_two_factor')
+  async check_two_factor(@Body() body, @Res() res: Response): Promise<any> {
+    this.authService.check_two_factor(body, res).then((e) => {
+      e ? res.redirect('/login') : res.redirect('/login');
+      return e;
+    });
+  }
+
+  //////////////////
+  ///   UTILITY  ///
+  //////////////////
+
   @UseGuards(JwtAuthGuard)
   @Get('/user')
   async user(@Req() req: Request) {
-    const data = await this.jwt.verifyAsync(req.cookies['tshdc']);
+    const data = await this.jwt.verifyAsync(req.cookies['cockies']);
 
     const user: IUser = await this.prisma.user.findUnique({
       where: {
@@ -199,36 +226,12 @@ export class AuthController {
     return user;
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('/logout')
-  async logout(@Res() res: Response) {
-    res.clearCookie('cockies');
-    res.redirect('/');
-  }
-
-  //////////////////
-  /// TWO FACTOR ///
-  //////////////////
-
-  @UseGuards(JwtAuthGuard)
-  @Post('start_two_factor')
-  async start_two_factor(@Body() body): Promise<any> {
-    await this.authService.start_two_factor(body.id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('2fa')
-  async completed_two_factor(@Body() body): Promise<any> {
-    let a = await this.authService.completed_two_factor(body);
-    return { QRcode: a };
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('check_two_factor')
-  async check_two_factor(@Body() body, @Res() res: Response): Promise<any> {
-    this.authService.check_two_factor(body, res).then((e) => {
-      e ? res.redirect('/login') : res.redirect('/login');
-      return e;
-    });
+  is_administrator(idIntra: string) {
+    return (
+      idIntra === 'mframbou' ||
+      idIntra === 'dsamain' ||
+      idIntra === 'oronda' ||
+      idIntra === 'sspina'
+    );
   }
 }
