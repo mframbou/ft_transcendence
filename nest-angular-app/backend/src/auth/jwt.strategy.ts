@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 }
 
-var cookie_checker = function (req) {
+const cookie_checker = function (req) {
   let token = null;
   if (req && req.cookies) {
     token = req.cookies['cockies'];

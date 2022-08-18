@@ -1,5 +1,6 @@
 // Nest
 import { Injectable, CACHE_MANAGER, Inject } from '@nestjs/common';
+import { Cache } from 'cache-manager';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { GeneratedSecret } from 'speakeasy';

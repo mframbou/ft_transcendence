@@ -1,7 +1,7 @@
 // Nest
 import { CacheModule, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import * as redisStore from 'cache-manager-redis-store'
+import * as redisStore from 'cache-manager-redis-store';
 
 // Transcendence
 import { PrismaService } from 'src/prisma/prisma.service';
