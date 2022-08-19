@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+
+  frontend:
+    build: ./dockerfiles/frontend/
+    ports:
+      - "5173:3000"
+    volumes:
+      - ./frontend/:/var/www/html/
+    restart: always
+    env_file:
+      - .env
