@@ -5,7 +5,7 @@ services:
   frontend:
     build: ./dockerfiles/frontend/
     ports:
-      - "5173:3000"
+      - "3000:3000"
     volumes:
       - ./frontend/:/var/www/html/
     restart: always
@@ -16,8 +16,6 @@ services:
 
   backend:
     build: ./dockerfiles/backend/
-    ports:
-      - "3000:3000" # ONLY IN DEV ENVIRONMENT
     volumes:
       - ./backend/:/var/www/html/
     restart: always
@@ -25,23 +23,16 @@ services:
       - .env
     depends_on:
       - database
+      - cache
 
-  # psql -d transcendence -p 5432 --username=sasso -h localhost
   database:
     image: postgres
     restart: always
-    ports:
-      - "5432:5432" # ONLY IN DEV ENVIRONMENT
-    environment:
-      POSTGRES_USER: sasso
-      POSTGRES_PASSWORD: ossas
-      POSTGRES_DB: transcendence
+    env_file:
+      - .env
+    volumes:
+      - ./database/:/var/lib/postgresql/data/
 
-
-  # redis-cli -h localhost -p 6379
-  database-cache:
+  cache:
     image: redis
-    ports:
-      - "6379:6379" # ONLY IN DEV ENVIRONMENT
     restart: always
-

@@ -33,6 +33,9 @@
 		// Chrome dev tools performance can slow down network to test
 		loading = false;
 	})
+
+	// let userData = fetch('http://localhost:3000/auth');
+
 </script>
 
 {#if loading}

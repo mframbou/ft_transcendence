@@ -9,11 +9,13 @@ import { AuthModule } from './auth/auth.module';
 import { AuthService } from './auth/auth.service';
 import { AuthController } from './auth/auth.controller';
 import {ConfigModule} from "@nestjs/config";
+import {PrismaModule} from "./prisma/prisma.module";
 
 @Module({
   controllers: [AppController, AuthController],
   imports: [
     AuthModule,
+    PrismaModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),

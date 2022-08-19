@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "exclude": [
+      "src-sasso",
+    ],
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
