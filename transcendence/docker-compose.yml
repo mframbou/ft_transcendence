@@ -11,3 +11,13 @@ services:
     restart: always
     env_file:
       - .env
+
+  backend:
+    build: ./dockerfiles/backend/
+    ports:
+      - "3000:3000" # ONLY IN DEV ENVIRONMENT
+    volumes:
+      - ./backend/:/var/www/html/
+    restart: always
+    env_file:
+      - .env
