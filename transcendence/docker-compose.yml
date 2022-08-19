@@ -31,7 +31,7 @@ services:
     image: postgres
     restart: always
     ports:
-      - "5432:5432"
+      - "5432:5432" # ONLY IN DEV ENVIRONMENT
     environment:
       POSTGRES_USER: sasso
       POSTGRES_PASSWORD: ossas
@@ -42,6 +42,6 @@ services:
   database-cache:
     image: redis
     ports:
-      - "6379:6379"
+      - "6379:6379" # ONLY IN DEV ENVIRONMENT
     restart: always
 
