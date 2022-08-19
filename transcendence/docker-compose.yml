@@ -11,6 +11,8 @@ services:
     restart: always
     env_file:
       - .env
+    depends_on:
+      - backend
 
   backend:
     build: ./dockerfiles/backend/
@@ -21,3 +23,25 @@ services:
     restart: always
     env_file:
       - .env
+    depends_on:
+      - database
+
+  # psql -d transcendence -p 5432 --username=sasso -h localhost
+  database:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: sasso
+      POSTGRES_PASSWORD: ossas
+      POSTGRES_DB: transcendence
+
+
+  # redis-cli -h localhost -p 6379
+  database-cache:
+    image: redis
+    ports:
+      - "6379:6379"
+    restart: always
+
