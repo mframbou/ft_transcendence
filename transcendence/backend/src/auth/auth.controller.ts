@@ -51,27 +51,39 @@ export class AuthController {
       .then((response) => response.json())
       .then(async (data) =>
       {
-        let userData = await this.get_token(data.access_token);
+        const userData = await this.get_token(data.access_token);
 
         try
         {
-          const pouet = this.prismaService.user.create({
-            data: {
-              email: userData.email,
-              tel: userData.phone,
-              img: userData.image_url,
-              firstName: userData.first_name,
-              lastName: userData.last_name,
-              userName: userData.login,
-              idIntra: userData.login,
-              campus: userData.campus[0].name
+          // check if user already exists
+          let user = await this.prismaService.user.findUnique({
+            where: {
+              idIntra: userData.login
             }
           });
 
-          console.log("Successfully created user ", userData);
-          const user = await this.prismaService.user.findMany();
-
-          console.log("Users ", user);
+          if (user)
+          {
+            console.log('user ' + userData.login + ' already exists');
+          }
+          else
+          {
+            user = await this.prismaService.user.create({
+              data: {
+                email: userData.email,
+                tel: userData.phone,
+                img: userData.image_url,
+                firstName: userData.first_name,
+                lastName: userData.last_name,
+                userName: `${userData.login}_${String(Date.now())}`,
+                idIntra: userData.login,
+                campus: userData.campus[0].name
+              }
+            });
+            console.log("Successfully created user ", user);
+          }
+          const users = await this.prismaService.user.findMany();
+          console.log("Users ", users);
         }
         catch (e)
         {
@@ -90,15 +102,19 @@ export class AuthController {
       })
         .then((response) => response.json())
         .then((jsonData) => {
-          let ret: UserData = {
-            idIntra: jsonData.login,
-            userName: `${jsonData.login}_${String(Date.now())}`,
-            firstName: jsonData.first_name,
-            lastName: jsonData.last_name,
-            img: jsonData.image_url,
-            campus: jsonData.campus[0].name,
-          };
-          return ret;
+          // console.log("userData", jsonData," --END--");
+          // let ret: UserData = {
+          //   email: jsonData.email,
+          //   tel: jsonData.phone,
+          //   img: jsonData.image_url,
+          //   firstName: jsonData.first_name,
+          //   lastName: jsonData.last_name,
+          //   userName: `${jsonData.login}_${String(Date.now())}`,
+          //   idIntra: jsonData.login,
+          //   campus: jsonData.campus[0].name
+          // };
+          // return ret;
+          return jsonData;
         })
 
     } catch (e) {
