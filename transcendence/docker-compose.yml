@@ -31,8 +31,11 @@ services:
     env_file:
       - .env
     volumes:
-      - ./database/:/var/lib/postgresql/data/
+      - database-volume:/var/lib/postgresql/data/
 
   cache:
     image: redis
     restart: always
+
+volumes:
+    database-volume:

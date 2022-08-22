@@ -91,7 +91,7 @@ export class AuthController {
         {
           console.log("Error creating user ", e);
         }
-        res.send(userData);
+        // res.send(userData);
       });
   }
 

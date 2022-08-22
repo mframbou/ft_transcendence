@@ -40,7 +40,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./database/:/var/lib/postgresql/data/
+      - database-volume:/var/lib/postgresql/data/
 
   # redis-cli -h localhost -p 6379
   cache:
@@ -48,3 +48,6 @@ services:
     ports:
       - "6379:6379" # ONLY IN DEV ENVIRONMENT
     restart: always
+
+volumes:
+  database-volume:

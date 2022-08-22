@@ -1,7 +1,7 @@
-prod:
+prod: down
 	docker-compose -f docker-compose.yml up
 
-dev:
+dev: down
 	docker-compose -f docker-compose.dev.yml up --remove-orphans
 
 down:
