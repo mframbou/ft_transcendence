@@ -1,10 +1,10 @@
 /* eslint-disable prefer-const */
 // Nest
-import { Controller, Get, Res, Query, HttpException, HttpStatus} from '@nestjs/common';
+import { Controller, Get, Res, Query} from '@nestjs/common';
 import fetch from 'node-fetch';
 
 // Transcendence
-import {PrismaService} from "../prisma/prisma.service";
+import {AuthService} from "./auth.service";
 
 interface UserData {
   idIntra: string;
@@ -19,9 +19,10 @@ const urlRedirect = 'http://localhost:3000/auth/middleware';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private prismaService: PrismaService)
-  {
-  }
+  constructor(
+      private authService: AuthService,
+  )
+  {}
 
   /////////////////////////
   ///   LOGIN & AUTH   ///
@@ -36,8 +37,9 @@ export class AuthController {
 
   // https://api.intra.42.fr/apidoc/guides/web_application_flow
   @Get('middleware')
-  getAuthCode(@Query('code') query: string, @Res() res): any {
-    return fetch('https://api.intra.42.fr/oauth/token', {
+  async getAuthCode(@Query('code') query: string, @Res() res): Promise<any> {
+
+    let response = await fetch('https://api.intra.42.fr/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -48,82 +50,68 @@ export class AuthController {
         redirect_uri: `${urlRedirect}`,
       }),
     })
-      .then((response) => response.json())
-      .then(async (data) =>
-      {
-        const userData = await this.get_token(data.access_token);
 
-        try
-        {
-          // check if user already exists
-          let user = await this.prismaService.user.findUnique({
-            where: {
-              idIntra: userData.login
-            }
-          });
 
-          if (user)
-          {
-            // console.log('user ' + userData.login + ' already exists');
-            res.send('User ' + userData.login + ' already in the database');
-          }
-          else
-          {
-            user = await this.prismaService.user.create({
-              data: {
-                email: userData.email,
-                tel: userData.phone,
-                img: userData.image_url,
-                firstName: userData.first_name,
-                lastName: userData.last_name,
-                userName: `${userData.login}_${String(Date.now())}`,
-                idIntra: userData.login,
-                campus: userData.campus[0].name
-              }
-            });
-            res.send('User ' + userData.login + ' was successfully added to the database');
-            // console.log("Successfully created user ", user);
-          }
-          const users = await this.prismaService.user.findMany();
-          console.log("Users ", users);
-        }
-        catch (e)
-        {
-          console.log("Error creating user ", e);
-        }
-        // res.send(userData);
-      });
-  }
+    response = await response.json();
 
-  private get_token(token: string): any {
-    let first = false;
-    try {
-      return fetch('https://api.intra.42.fr/v2/me', {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((response) => response.json())
-        .then((jsonData) => {
-          // console.log("userData", jsonData," --END--");
-          // let ret: UserData = {
-          //   email: jsonData.email,
-          //   tel: jsonData.phone,
-          //   img: jsonData.image_url,
-          //   firstName: jsonData.first_name,
-          //   lastName: jsonData.last_name,
-          //   userName: `${jsonData.login}_${String(Date.now())}`,
-          //   idIntra: jsonData.login,
-          //   campus: jsonData.campus[0].name
-          // };
-          // return ret;
-          return jsonData;
-        })
+    const userData = await this.authService.getUserData(response.access_token);
 
-    } catch (e) {
-      throw new HttpException(
-        "It didn't works " + e.message,
-        HttpStatus.CONFLICT,
-      );
+    let user = await this.authService.getUser(userData.login);
+
+    let message: string;
+
+    if (!user)
+    {
+      user = await this.authService.addUser(userData);
+      message=  `Successfully added user ${user.idIntra} to the database`;
     }
+    else
+    {
+      message = `User ${user.idIntra} already exists in the database`;
+    }
+
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#parameters
+    const users = JSON.stringify(await this.authService.getUsers(), null, 4);
+
+    message += `\nUsers list: ${users}`;
+
+    console.log(message);
+    res.send(message);
+
+
+
+
+
+      // .then((response) => response.json())
+      // .then(async (data) =>
+      // {
+      //   const userData = await this.authService.getUserData(data.access_token);
+      //
+      //   try
+      //   {
+      //     // check if user already exists
+      //     let user = await this.authService.getUser(userData.login);
+      //
+      //     if (user)
+      //     {
+      //       // console.log('user ' + userData.login + ' already exists');
+      //       res.send('User ' + userData.login + ' already in the database');
+      //     }
+      //     else
+      //     {
+      //       user = await this.authService.addUser(userData);
+      //       res.send('User ' + user.login + ' was successfully added to the database');
+      //       // console.log("Successfully created user ", user);
+      //     }
+      //     const users = await this.authService.getUsers();
+      //     console.log("Users: ", users);
+      //   }
+      //   catch (e)
+      //   {
+      //     console.log("Error creating user ", e);
+      //   }
+      //   // res.send(userData);
+      // });
   }
+
 }
