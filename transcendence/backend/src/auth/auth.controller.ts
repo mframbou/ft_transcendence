@@ -64,7 +64,8 @@ export class AuthController {
 
           if (user)
           {
-            console.log('user ' + userData.login + ' already exists');
+            // console.log('user ' + userData.login + ' already exists');
+            res.send('User ' + userData.login + ' already in the database');
           }
           else
           {
@@ -80,7 +81,8 @@ export class AuthController {
                 campus: userData.campus[0].name
               }
             });
-            console.log("Successfully created user ", user);
+            res.send('User ' + userData.login + ' was successfully added to the database');
+            // console.log("Successfully created user ", user);
           }
           const users = await this.prismaService.user.findMany();
           console.log("Users ", users);

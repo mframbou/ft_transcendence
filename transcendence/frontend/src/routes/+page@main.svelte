@@ -146,8 +146,6 @@
 
 	.login-btn
 	{
-		-webkit-backdrop-filter: grayscale(100%);
-		backdrop-filter: grayscale(100%);
 		display: flex;
 		flex-direction: row;
 		align-items: center;
@@ -214,7 +212,7 @@
 		{
 			color: black;
 			border-color: #313131;
-			background-color: rgba(255, 255, 255, 0.15);
+			background-color: rgba(255, 255, 255, 0.4);
 
 			&:hover
 			{
