@@ -51,13 +51,10 @@ export class AuthController {
       }),
     })
 
-
     response = await response.json();
 
     const userData = await this.authService.getUserData(response.access_token);
-
     let user = await this.authService.getUser(userData.login);
-
     let message: string;
 
     if (!user)

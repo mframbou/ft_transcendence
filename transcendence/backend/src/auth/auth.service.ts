@@ -56,7 +56,6 @@ export class AuthService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-
   }
 
 }

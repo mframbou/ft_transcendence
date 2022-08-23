@@ -4,11 +4,13 @@
 	import {onMount} from "svelte";
 	import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
 
-	function oauth42()
+	async function oauth42()
 	{
 		if (browser)
 		{
-			window.location.href = ('http://localhost:3000/auth');
+			const { hostname, port } = window.location;
+
+			window.location.href = (`http://${hostname}:3000/auth`);
 		}
 	}
 
