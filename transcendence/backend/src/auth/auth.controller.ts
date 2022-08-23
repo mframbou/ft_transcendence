@@ -5,6 +5,7 @@ import fetch from 'node-fetch';
 
 // Transcendence
 import {AuthService} from "./auth.service";
+import {hostname} from "os";
 
 interface UserData {
   idIntra: string;
@@ -29,9 +30,10 @@ export class AuthController {
   ////////////////////////
 
   @Get()
-  authRedirect(@Res() res): any {
+  authRedirect(@Query('hostname') hostname: string, @Res() res): any {
+    let redirectUrl = `http://${hostname}:3000/auth/middleware`;
     return res.redirect(
-      `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(urlRedirect)}&response_type=code`,
+      `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUrl)}&response_type=code`,
     );
   }
 
@@ -47,12 +49,12 @@ export class AuthController {
         client_id: `${process.env.API42_CLIENT_ID}`,
         client_secret: `${process.env.API42_CLIENT_SECRET}`,
         code: query,
-        redirect_uri: `${urlRedirect}`,
+        // redirect_uri: `${urlRedirect}`,
       }),
     })
 
     response = await response.json();
-
+    
     const userData = await this.authService.getUserData(response.access_token);
     let user = await this.authService.getUser(userData.login);
     let message: string;

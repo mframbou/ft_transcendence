@@ -10,7 +10,7 @@
 		{
 			const { hostname, port } = window.location;
 
-			window.location.href = (`http://${hostname}:3000/auth`);
+			window.location.href = (`http://${hostname}:3000/auth?hostname=${encodeURIComponent(hostname)}`);
 		}
 	}
 
