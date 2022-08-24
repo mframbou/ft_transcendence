@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 // Nest
-import { Controller, Get, Res, Query} from '@nestjs/common';
+import {Controller, Get, Res, Query, Headers, Req} from '@nestjs/common';
 import fetch from 'node-fetch';
 
 // Transcendence
@@ -30,16 +30,29 @@ export class AuthController {
   ////////////////////////
 
   @Get()
-  authRedirect(@Query('hostname') hostname: string, @Res() res): any {
-    let redirectUrl = `http://${hostname}:3000/auth/middleware`;
+  authRedirect(@Query('redirect_uri') redirectUri: string, @Query('hostname') hostname: string, @Res() res): any {
+    if (redirectUri)
+    {
+      res.cookie('transcendence_redirect_uri', redirectUri);
+    }
+
+    const backendUrl = `http://${hostname}:3000/auth/middleware`;
+
     return res.redirect(
-      `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUrl)}&response_type=code`,
+      `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(backendUrl)}&response_type=code&test=pouet`,
     );
   }
 
   // https://api.intra.42.fr/apidoc/guides/web_application_flow
   @Get('middleware')
-  async getAuthCode(@Query('code') query: string, @Res() res): Promise<any> {
+  async getAuthCode(@Query('code') code: string, @Res() res, @Req() req): Promise<any> {
+
+    // log requested headers
+    const redirectUri = req.cookies['transcendence_redirect_uri'];
+    if (redirectUri)
+    {
+      res.clearCookie('transcendence_redirect_uri');
+    }
 
     let response = await fetch('https://api.intra.42.fr/oauth/token', {
       method: 'POST',
@@ -48,13 +61,15 @@ export class AuthController {
         grant_type: 'authorization_code',
         client_id: `${process.env.API42_CLIENT_ID}`,
         client_secret: `${process.env.API42_CLIENT_SECRET}`,
-        code: query,
-        // redirect_uri: `${urlRedirect}`,
+        code: code,
+        redirect_uri: `${urlRedirect}`,
       }),
     })
 
     response = await response.json();
-    
+
+    console.log(response);
+
     const userData = await this.authService.getUserData(response.access_token);
     let user = await this.authService.getUser(userData.login);
     let message: string;
@@ -75,9 +90,16 @@ export class AuthController {
     message += `\nUsers list: ${users}`;
 
     console.log(message);
-    res.send(message);
 
-
+    if (redirectUri)
+    {
+      console.log("Redirecting to " + redirectUri);
+      return res.redirect(redirectUri);
+    }
+    else
+    {
+      return res.redirect('/');
+    }
 
 
 
