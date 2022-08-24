@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 // Nest
-import {Controller, Get, Res, Query, Headers, Req} from '@nestjs/common';
+import {Controller, Get, Res, Query, Req} from '@nestjs/common';
 import fetch from 'node-fetch';
 
 // Transcendence
@@ -16,7 +16,7 @@ interface UserData {
   campus: string;
 }
 
-const urlRedirect = 'http://localhost:3000/auth/middleware';
+const callbackUrl = `http://${process.env.SERVER_NAME}:3000/auth/middleware`;
 
 @Controller('auth')
 export class AuthController {
@@ -30,29 +30,16 @@ export class AuthController {
   ////////////////////////
 
   @Get()
-  authRedirect(@Query('redirect_uri') redirectUri: string, @Query('hostname') hostname: string, @Res() res): any {
-    if (redirectUri)
-    {
-      res.cookie('transcendence_redirect_uri', redirectUri);
-    }
-
-    const backendUrl = `http://${hostname}:3000/auth/middleware`;
+  authRedirect(@Res() res): any {
 
     return res.redirect(
-      `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(backendUrl)}&response_type=code&test=pouet`,
+      `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code`,
     );
   }
 
   // https://api.intra.42.fr/apidoc/guides/web_application_flow
   @Get('middleware')
   async getAuthCode(@Query('code') code: string, @Res() res, @Req() req): Promise<any> {
-
-    // log requested headers
-    const redirectUri = req.cookies['transcendence_redirect_uri'];
-    if (redirectUri)
-    {
-      res.clearCookie('transcendence_redirect_uri');
-    }
 
     let response = await fetch('https://api.intra.42.fr/oauth/token', {
       method: 'POST',
@@ -62,7 +49,7 @@ export class AuthController {
         client_id: `${process.env.API42_CLIENT_ID}`,
         client_secret: `${process.env.API42_CLIENT_SECRET}`,
         code: code,
-        redirect_uri: `${urlRedirect}`,
+        redirect_uri: callbackUrl,
       }),
     })
 
@@ -91,15 +78,17 @@ export class AuthController {
 
     console.log(message);
 
-    if (redirectUri)
-    {
-      console.log("Redirecting to " + redirectUri);
-      return res.redirect(redirectUri);
-    }
-    else
-    {
-      return res.redirect('/');
-    }
+
+    return res.redirect(`http://${process.env.SERVER_NAME}:3001/home`);
+    // if (redirectUri)
+    // {
+    //   console.log("Redirecting to " + redirectUri);
+    //   return res.redirect(redirectUri);
+    // }
+    // else
+    // {
+    //   return res.redirect('/');
+    // }
 
 
 
