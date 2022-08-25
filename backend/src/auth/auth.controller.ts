@@ -19,6 +19,7 @@ interface UserData {
 const callbackUrl42 = `http://${process.env.SERVER_NAME}:3000/auth/42/callback`;
 const sessionCookieName = 'transcendence_session';
 const homePageFrontend = `http://${process.env.SERVER_NAME}:3001/home`;
+const cookieDuration = 1000 * 60 * 60 * 24 * 30; // 30 days
 
 @Controller('auth')
 export class AuthController {
@@ -92,7 +93,11 @@ export class AuthController {
     res.cookie(sessionCookieName, cookieHash, {
       httpOnly: true,
       sameSite: 'Strict',
-      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+      maxAge: cookieDuration,
+    });
+
+    res.cookie('transcendence_logged_in', true, {
+      maxAge: cookieDuration,
     });
 
     await this.authService.updateUserSessionCookie(user, cookieHash);

@@ -23,6 +23,7 @@
 	}
 
 	let loading = true;
+	let loggedIn = false;
 
 	onMount(async () =>
 	{
@@ -39,6 +40,10 @@
 			// 	newContentsBack.classList.add('content-back');
 			// 	contentsBack.replaceWith(newContentsBack);
 			// }
+			if (getCookie('transcendence_logged_in'))
+			{
+				loggedIn = true;
+			}
 		}
 		// Chrome dev tools performance can slow down network to test
 		loading = false;
@@ -63,7 +68,13 @@
 	<div class="content-front">
 		<h1 class="title">
 			Transcendence
-			<button on:click={oauth42} class="login-btn">Login with</button>
+			<button on:click={oauth42} class="login-btn">
+				{#if loggedIn}
+					<span>Play now</span>
+				{:else}
+					<span class="add-42-logo">Login with</span>
+				{/if}
+			</button>
 		</h1>
 	</div>
 
@@ -74,7 +85,11 @@
 		<h1 class="title">
 			pouet pouet
 			<button on:click={oauth42} class="login-btn">
-				Login with
+				{#if loggedIn}
+					<span>Play now</span>
+				{:else}
+					<span class="add-42-logo">Login with</span>
+				{/if}
 			</button>
 		</h1>
 	</div>
@@ -182,6 +197,15 @@
 		{
 			outline: none;
 		}
+	}
+
+	.add-42-logo
+	{
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+
 
 		&:after
 		{
@@ -231,7 +255,7 @@
 				background-color: rgba(50, 50, 50, 0.4);
 			}
 
-			&:after
+			.add-42-logo:after
 			{
 				content: url("/42_Logo_black.svg");
 			}
