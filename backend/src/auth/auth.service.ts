@@ -3,6 +3,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import fetch from 'node-fetch';
 import {hash} from "bcrypt";
+import {IUser} from "../interfaces/interfaces";
 
 // Transcendence
 
@@ -32,7 +33,7 @@ export class AuthService {
     }
   }
 
-  async getUserFromSessionCookie(sessionCookie: string): Promise<any> {
+  async getUserFromSessionCookie(sessionCookie: string): Promise<IUser> {
     return await this.prismaService.user.findUnique({
       where: {
         sessionCookie: sessionCookie,
