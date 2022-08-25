@@ -1,4 +1,4 @@
-npm install
+npm clean-install
 npm run build
 npx prisma generate
 
