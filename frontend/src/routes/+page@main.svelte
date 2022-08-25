@@ -83,7 +83,7 @@
 	<!--	Need to put cloned HTML instead of doing it in JS because otherwise button click has no effect-->
 	<div class="content-back">
 		<h1 class="title">
-			pouet pouet
+			Transcendence
 			<button on:click={oauth42} class="login-btn">
 				{#if loggedIn}
 					<span>Play now</span>

@@ -6,15 +6,7 @@ import { hash, compare } from 'bcrypt';
 
 // Transcendence
 import {AuthService} from "./auth.service";
-
-interface UserData {
-  idIntra: string;
-  userName: string;
-  firstName: string;
-  lastName: string;
-  img: string;
-  campus: string;
-}
+import {UserService} from "../user/user.service";
 
 const callbackUrl42 = `http://${process.env.SERVER_NAME}:3000/auth/42/callback`;
 const sessionCookieName = 'transcendence_session';
@@ -25,6 +17,7 @@ const cookieDuration = 1000 * 60 * 60 * 24 * 30; // 30 days
 export class AuthController {
   constructor(
       private authService: AuthService,
+      private userService: UserService,
   )
   {}
 
@@ -40,7 +33,7 @@ export class AuthController {
 
     if (sessionCookie) {
       const user = await this.authService.getUserFromSessionCookie(sessionCookie);
-      console.log("User already logged in: ", user.idIntra);
+      console.log("User already logged in: ", user.login);
       return res.redirect(homePageFrontend);
     }
 
@@ -67,27 +60,27 @@ export class AuthController {
     response = await response.json();
 
     const userData = await this.authService.getUserData(response.access_token);
-    let user = await this.authService.getUser(userData.login);
+    let user = await this.userService.getUser(userData.login);
     let message: string;
 
     if (!user)
     {
-      user = await this.authService.addUser(userData);
-      message=  `Successfully added user ${user.idIntra} to the database`;
+      user = await this.userService.addUser(userData);
+      message=  `Successfully added user ${user.login} to the database`;
     }
     else
     {
-      message = `User ${user.idIntra} already exists in the database`;
+      message = `User ${user.login} already exists in the database`;
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#parameters
-    const users = JSON.stringify(await this.authService.getUsers(), null, 4);
+    const users = JSON.stringify(await this.userService.getUsers(), null, 4);
 
     message += `\nUsers list: ${users}`;
 
     console.log(message);
 
-    const cookieHash = await hash(user.idIntra, 10);
+    const cookieHash = await this.authService.updateUserSessionCookie(user);
 
     // add cookie to response
     res.cookie(sessionCookieName, cookieHash, {
@@ -100,8 +93,7 @@ export class AuthController {
       maxAge: cookieDuration,
     });
 
-    await this.authService.updateUserSessionCookie(user, cookieHash);
-    console.log("Created cookie for user " + user.idIntra);
+    console.log("Created cookie for user " + user.login);
 
     return res.redirect(homePageFrontend);
   }

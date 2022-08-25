@@ -12,23 +12,22 @@ generator client {
 }
 
 model User {
-	id              Int             @default(autoincrement()) @id
-	email           String          @default("")
-	tel             String          @default("")
-	img             String
-	firstName       String
-	lastName        String
-	userName        String          @unique
-	idIntra         String          @unique
-	campus          String
-	win             Int             @default(0)
-	loses           Int             @default(0)
-	rank            Int             @default(1000)
-	twoFa           Boolean         @default(false)
-	otpSecret       String          @default("")
-	otpUrl          String          @default("")
-	owner           Boolean         @default(false)
-	isAdmin         Boolean         @default(false)
-	firstLogin      Boolean         @default(true)
-	sessionCookie   String          @unique @default("")
+	id               Int             @default(autoincrement()) @id
+	email            String
+	phone            String
+	profilePicture   String
+	firstName        String
+	lastName         String
+	userName         String
+	login            String          @unique
+	campus           String
+	win              Int             @default(0)
+	loses            Int             @default(0)
+	elo              Int             @default(1000)
+	twoFactorEnabled Boolean         @default(false)
+	otpSecret        String          @default("")
+	otpUrl           String          @default("")
+	isOwner          Boolean         @default(false)
+	isAdmin          Boolean         @default(false)
+	sessionCookie    String          @unique @default("")
 }

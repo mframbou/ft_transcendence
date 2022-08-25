@@ -1,7 +1,8 @@
 // Nest
-import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import fetch from 'node-fetch';
+import {hash} from "bcrypt";
 
 // Transcendence
 
@@ -11,33 +12,6 @@ import fetch from 'node-fetch';
 @Injectable()
 export class AuthService {
   constructor(private prismaService: PrismaService) {}
-
-  async getUser(idIntra: string) : Promise<any> {
-    return await this.prismaService.user.findUnique({
-      where: {
-        idIntra: idIntra,
-      },
-    });
-  }
-
-  async getUsers() : Promise<any> {
-    return await this.prismaService.user.findMany();
-  }
-
-  async addUser(userData: any) : Promise<any> {
-    return await this.prismaService.user.create({
-      data: {
-        email: userData.email,
-        tel: userData.phone,
-        img: userData.image_url,
-        firstName: userData.first_name,
-        lastName: userData.last_name,
-        userName: `${userData.login}_${String(Date.now())}`,
-        idIntra: userData.login,
-        campus: userData.campus[0].name
-      },
-    });
-  }
 
   async getUserData(accessToken: string) : Promise<any> {
     try
@@ -66,15 +40,19 @@ export class AuthService {
     });
   }
 
-  async updateUserSessionCookie(user: any, sessionCookie: string) : Promise<any> {
-    return await this.prismaService.user.update({
+  async updateUserSessionCookie(user: any) : Promise<string> {
+    const cookie = await hash(user.login, 10);
+
+    await this.prismaService.user.update({
       where: {
         id: user.id,
       },
       data: {
-        sessionCookie: sessionCookie,
+        sessionCookie: cookie,
       },
     });
+
+    return cookie;
   }
 
 }
