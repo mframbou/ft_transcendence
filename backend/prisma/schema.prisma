@@ -30,4 +30,5 @@ model User {
 	owner           Boolean         @default(false)
 	isAdmin         Boolean         @default(false)
 	firstLogin      Boolean         @default(true)
+	sessionCookie   String          @unique @default("")
 }

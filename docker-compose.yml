@@ -18,6 +18,7 @@ services:
     build: ./dockerfiles/backend/
     volumes:
       - ./backend/:/var/www/html/
+      - ./certificates/:/etc/ssl/
     ports:
       - "3000:3000"
     restart: always

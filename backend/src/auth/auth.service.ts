@@ -12,10 +12,10 @@ import fetch from 'node-fetch';
 export class AuthService {
   constructor(private prismaService: PrismaService) {}
 
-  async getUser(test: string) : Promise<any> {
+  async getUser(idIntra: string) : Promise<any> {
     return await this.prismaService.user.findUnique({
       where: {
-        idIntra: test,
+        idIntra: idIntra,
       },
     });
   }
@@ -56,6 +56,25 @@ export class AuthService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async getUserFromSessionCookie(sessionCookie: string): Promise<any> {
+    return await this.prismaService.user.findUnique({
+      where: {
+        sessionCookie: sessionCookie,
+      },
+    });
+  }
+
+  async updateUserSessionCookie(user: any, sessionCookie: string) : Promise<any> {
+    return await this.prismaService.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        sessionCookie: sessionCookie,
+      },
+    });
   }
 
 }

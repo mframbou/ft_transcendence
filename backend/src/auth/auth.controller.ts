@@ -17,6 +17,8 @@ interface UserData {
 }
 
 const callbackUrl42 = `http://${process.env.SERVER_NAME}:3000/auth/42/callback`;
+const sessionCookieName = 'transcendence_session';
+const homePageFrontend = `http://${process.env.SERVER_NAME}:3001/home`;
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +32,23 @@ export class AuthController {
   ////////////////////////
 
   @Get('42')
-  authRedirect42(@Res() res) {
+  async authRedirect42(@Req() req, @Res() res) {
+
+    // If user already has a session redirect to home
+    const sessionCookie = req.cookies[sessionCookieName];
+
+    if (sessionCookie) {
+      console.log("User already logged in, finding out who is it ...");
+      const user = await this.authService.getUserFromSessionCookie(sessionCookie);
+      console.log("User found: ", user.idIntra);
+      // console.log("F");
+      // const userData = await this.authService.getUserData(sessionCookie);
+      // if (userData) {
+        return res.redirect(homePageFrontend);
+      // }
+    }
+
+
     return res.redirect(
       `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl42)}&response_type=code`,
     );
@@ -74,11 +92,20 @@ export class AuthController {
 
     console.log(message);
 
-    const cookieHash = await hash('test', 10);
-    console.log("Hash is ", cookieHash);
-    console.log("Comparison result is ", await compare('test1', cookieHash));
+    const cookieHash = await hash(user.idIntra, 10);
 
-    return res.redirect(`http://${process.env.SERVER_NAME}:3001/home`);
+    // add cookie to response
+    res.cookie(sessionCookieName, cookieHash, {
+      httpOnly: true,
+      sameSite: 'Strict',
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+    });
+
+    console.log("Adding cookie to user");
+    await this.authService.updateUserSessionCookie(user, cookieHash);
+    console.log("Created cookie for user " + user.idIntra);
+
+    return res.redirect(homePageFrontend);
   }
 
 }
