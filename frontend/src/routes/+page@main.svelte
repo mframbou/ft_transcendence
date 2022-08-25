@@ -4,6 +4,14 @@
 	import {onMount} from "svelte";
 	import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
 
+	function getCookie(name) {
+		const value = "; " + document.cookie;
+		console.log("Values, ", value);
+		const parts = value.split("; " + name + "=");
+		console.log("Parts, ", parts);
+		if (parts.length == 2) return parts.pop().split(";").shift();
+	}
+
 	async function oauth42()
 	{
 		if (browser)
@@ -65,7 +73,9 @@
 	<div class="content-back">
 		<h1 class="title">
 			pouet pouet
-			<button on:click={oauth42} class="login-btn">Login with</button>
+			<button on:click={oauth42} class="login-btn">
+				Login with
+			</button>
 		</h1>
 	</div>
 

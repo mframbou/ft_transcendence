@@ -38,16 +38,10 @@ export class AuthController {
     const sessionCookie = req.cookies[sessionCookieName];
 
     if (sessionCookie) {
-      console.log("User already logged in, finding out who is it ...");
       const user = await this.authService.getUserFromSessionCookie(sessionCookie);
-      console.log("User found: ", user.idIntra);
-      // console.log("F");
-      // const userData = await this.authService.getUserData(sessionCookie);
-      // if (userData) {
-        return res.redirect(homePageFrontend);
-      // }
+      console.log("User already logged in: ", user.idIntra);
+      return res.redirect(homePageFrontend);
     }
-
 
     return res.redirect(
       `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl42)}&response_type=code`,
@@ -101,7 +95,6 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
     });
 
-    console.log("Adding cookie to user");
     await this.authService.updateUserSessionCookie(user, cookieHash);
     console.log("Created cookie for user " + user.idIntra);
 
