@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from "../prisma/prisma.service";
-import { IUser } from "../interfaces/interfaces";
+import { IUser, IPublicUser } from "../interfaces/interfaces";
 
 @Injectable()
-export class UserService {
+export class UsersService
+{
 	constructor(private prismaService: PrismaService) {}
 
 	async getUser(login: string) : Promise<IUser> {
@@ -16,6 +17,43 @@ export class UserService {
 
 	async getUsers() : Promise<IUser[]> {
 		return await this.prismaService.user.findMany();
+	}
+
+	async getPublicUser(login: string) : Promise<IPublicUser> {
+		return await this.prismaService.user.findUnique({
+			where: {
+				login: login,
+			},
+			select: {
+				login: true,
+				userName: true,
+				profilePicture: true,
+				campus: true,
+				wins: true,
+				loses: true,
+				elo: true,
+				isOwner: true,
+				isAdmin: true,
+				isOnline: true,
+			}
+		});
+	}
+
+	async getPublicUsers() : Promise<IPublicUser[]> {
+		return await this.prismaService.user.findMany({
+			select: {
+				login: true,
+				userName: true,
+				profilePicture: true,
+				campus: true,
+				wins: true,
+				loses: true,
+				elo: true,
+				isOwner: true,
+				isAdmin: true,
+				isOnline: true,
+			}
+		});
 	}
 
 	async addUser(userData: any) : Promise<IUser> {

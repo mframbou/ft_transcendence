@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import fetch from 'node-fetch';
 import {hash} from "bcrypt";
 import {IUser} from "../interfaces/interfaces";
+import {Request} from "express";
 
 // Transcendence
 
@@ -27,7 +28,7 @@ export class AuthService {
     catch (error)
     {
       throw new HttpException(
-        'Error while fetching user data ' + error.message,
+        'Error while fetching users data ' + error.message,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -39,6 +40,17 @@ export class AuthService {
         sessionCookie: sessionCookie,
       },
     });
+  }
+
+  async getCurrentUser(cookies: string[]): Promise<IUser>
+  {
+    const sessionCookie = cookies['transcendence_session'];
+
+    if (!sessionCookie)
+      return null;
+
+    const user = await this.getUserFromSessionCookie(sessionCookie);
+    return user;
   }
 
   async updateUserSessionCookie(user: any) : Promise<string> {

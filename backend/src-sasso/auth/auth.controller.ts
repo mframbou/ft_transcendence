@@ -181,7 +181,7 @@ export class AuthController {
   //////////////////
 
   @UseGuards(JwtAuthGuard)
-  @Get('/user')
+  @Get('/users')
   async user(@Req() req: Request) {
     const data = await this.jwt.verifyAsync(req.cookies['cockies']);
 

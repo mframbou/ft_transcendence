@@ -21,12 +21,12 @@ model User {
 	userName         String
 	login            String          @unique
 	campus           String
-	win              Int             @default(0)
+	wins             Int             @default(0)
 	loses            Int             @default(0)
 	elo              Int             @default(1000)
 	twoFactorEnabled Boolean         @default(false)
 	otpSecret        String          @default("")
-	otpUrl           String          @default("")
+	otpUri           String          @default("")
 	isOwner          Boolean         @default(false)
 	isAdmin          Boolean         @default(false)
 	isOnline         Boolean         @default(false)

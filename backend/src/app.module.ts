@@ -10,10 +10,13 @@ import { AuthService } from './auth/auth.service';
 import { AuthController } from './auth/auth.controller';
 import {ConfigModule} from "@nestjs/config";
 import {PrismaModule} from "./prisma/prisma.module";
-import { UserService } from './user/user.service';
+import { UsersService } from './users/users.service';
+import { UsersController } from './users/users.controller';
+import { TwoFactorService } from './two-factor/two-factor.service';
+import { TwoFactorController } from './two-factor/two-factor.controller';
 
 @Module({
-  controllers: [AppController, AuthController],
+  controllers: [AppController, AuthController, UsersController, TwoFactorController],
   imports: [
     AuthModule,
     PrismaModule,
@@ -21,6 +24,6 @@ import { UserService } from './user/user.service';
       envFilePath: '.env',
     }),
   ],
-  providers: [AppService, AuthService, UserService],
+  providers: [AppService, AuthService, UsersService, TwoFactorService],
 })
 export class AppModule {}

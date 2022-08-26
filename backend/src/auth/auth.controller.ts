@@ -2,11 +2,10 @@
 // Nest
 import {Controller, Get, Res, Query, Req} from '@nestjs/common';
 import fetch from 'node-fetch';
-import { hash, compare } from 'bcrypt';
 
 // Transcendence
 import {AuthService} from "./auth.service";
-import {UserService} from "../user/user.service";
+import {UsersService} from "../users/users.service";
 
 const callbackUrl42 = `http://${process.env.SERVER_NAME}:3000/auth/42/callback`;
 const sessionCookieName = 'transcendence_session';
@@ -17,7 +16,7 @@ const cookieDuration = 1000 * 60 * 60 * 24 * 30; // 30 days
 export class AuthController {
   constructor(
       private authService: AuthService,
-      private userService: UserService,
+      private usersService: UsersService,
   )
   {}
 
@@ -28,11 +27,11 @@ export class AuthController {
   @Get('42')
   async authRedirect42(@Req() req, @Res() res) {
 
-    // If user already has a session redirect to home
-    const sessionCookie = req.cookies[sessionCookieName];
+    // If users already has a session redirect to home
+    const user = await this.authService.getCurrentUser(req.cookies);
 
-    if (sessionCookie) {
-      const user = await this.authService.getUserFromSessionCookie(sessionCookie);
+    if (user)
+    {
       console.log("User already logged in: ", user.login);
       return res.redirect(homePageFrontend);
     }
@@ -60,12 +59,12 @@ export class AuthController {
     response = await response.json();
 
     const userData = await this.authService.getUserData(response.access_token);
-    let user = await this.userService.getUser(userData.login);
+    let user = await this.usersService.getUser(userData.login);
     let message: string;
 
     if (!user)
     {
-      user = await this.userService.addUser(userData);
+      user = await this.usersService.addUser(userData);
       message=  `Successfully added user ${user.login} to the database`;
     }
     else
@@ -74,7 +73,7 @@ export class AuthController {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#parameters
-    const users = JSON.stringify(await this.userService.getUsers(), null, 4);
+    const users = JSON.stringify(await this.usersService.getUsers(), null, 4);
 
     message += `\nUsers list: ${users}`;
 
@@ -93,7 +92,7 @@ export class AuthController {
       maxAge: cookieDuration,
     });
 
-    console.log("Created cookie for user " + user.login);
+    console.log("Created cookie for users " + user.login);
 
     return res.redirect(homePageFrontend);
   }

@@ -13,44 +13,30 @@ export interface IUser {
   userName: string;
   login: string;
   campus: string;
-  win: number;
+  wins: number;
   loses: number;
   elo: number;
   twoFactorEnabled: boolean;
   otpSecret: string;
-  otpUrl: string;
+  otpUri: string;
   isOwner: boolean;
   isAdmin: boolean;
   isOnline: boolean;
   sessionCookie: string;
 }
 
-// export interface IUser {
-//   id: number;
-//   email: string;
-//   tel: string;
-//   img: string;
-//   firstName: string;
-//   lastName: string;
-//   userName: string;
-//   idIntra: string;
-//   campus: string;
-//   twoFa?: boolean;
-//   otpSecret?: string;
-//   otpUrl?: string;
-//   win: number;
-//   loses: number;
-//   rank: number;
-//   badge: any;
-//   chat: any;
-//   admin: any;
-//   participant: any;
-//   userFriends: any;
-//   blocked: any;
-//   blockedBy: any;
-//   moderators: any;
-//   status?: string;
-// }
+export interface IPublicUser {
+  profilePicture: string;
+  userName: string;
+  login: string;
+  campus: string;
+  wins: number;
+  loses: number;
+  elo: number;
+  isOwner: boolean;
+  isAdmin: boolean;
+  isOnline: boolean;
+}
 
 export interface IBasicUserInfo {
   id: number;

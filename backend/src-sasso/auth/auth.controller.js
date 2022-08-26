@@ -325,7 +325,7 @@ var AuthController = /** @class */ (function () {
     ], AuthController.prototype, "check_two_factor");
     __decorate([
         (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-        (0, common_1.Get)('/user'),
+        (0, common_1.Get)('/users'),
         __param(0, (0, common_1.Req)())
     ], AuthController.prototype, "user");
     AuthController = __decorate([

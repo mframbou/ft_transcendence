@@ -18,7 +18,7 @@ export class AppController {
 
   // https://www.youtube.com/watch?v=2n3xS89TJMI
   @UseGuards(JwtAuthGuard)
-  @Get('user/:id')
+  @Get('users/:id')
   async findOne(@Param('id') id: string): Promise<any> {
     try {
       return await this.prisma.user.findUnique({

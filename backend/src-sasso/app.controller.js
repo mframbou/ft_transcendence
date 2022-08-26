@@ -82,7 +82,7 @@ var AppController = /** @class */ (function () {
     };
     __decorate([
         (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-        (0, common_1.Get)('user/:id'),
+        (0, common_1.Get)('users/:id'),
         __param(0, (0, common_1.Param)('id'))
     ], AppController.prototype, "findOne");
     AppController = __decorate([
