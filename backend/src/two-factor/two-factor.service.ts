@@ -86,4 +86,25 @@ export class TwoFactorService {
 		return res.url
 	}
 
+	async verifyCode(login: string, code: string) : Promise<boolean> {
+		const user = await this.usersService.getUser(login);
+
+		if (!user)
+			throw new NotFoundException(`User ${login} does not exists`);
+
+		if (user.otpSecret === '')
+			throw new NotFoundException(`User ${login} does not have 2FA enabled`);
+
+
+		const result = twofactor.verifyToken(user.otpSecret, code);
+
+		console.log(`User ${login} verified code ${code}`);
+		if (!result || result.delta !== 0)
+			return false;
+
+		console.log(`delta is ${result.delta} (0 means OK, -1 too late, 1 too early)`);
+
+		return true;
+	}
+
 }
