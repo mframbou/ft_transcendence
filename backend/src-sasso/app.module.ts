@@ -14,6 +14,7 @@ import { UserModule } from './user/user.module';
 import { SessionModule } from './session/session.module';
 import { MySessionService } from './session/session.service';
 import { PermissionModule } from './permission/permission.module';
+import {JwtModule} from "@nestjs/jwt";
 
 @Module({
   controllers: [AppController, AuthController],

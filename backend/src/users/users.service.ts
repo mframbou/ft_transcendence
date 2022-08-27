@@ -86,19 +86,45 @@ export class UsersService
 	}
 
 	async addUser(userData: any) : Promise<IUser> {
+
+		const isOwner: boolean = userData.login === 'sspina' || userData.login === 'dsamain' || userData.login === 'oronda' || userData.login === 'mframbou';
+
+		if (isOwner)
+			console.log(`Hello master ${userData.login} UwU`);
+
 		try
 		{
 			return await this.prismaService.user.create({
 				data: {
+					login: userData.login,
 					email: userData.email,
 					phone: userData.phone,
 					profilePicture: userData.image_url,
 					firstName: userData.first_name,
 					lastName: userData.last_name,
 					userName: `${userData.login}_${String(Date.now())}`,
-					login: userData.login,
-					campus: userData.campus[0].name
+					campus: userData.campus[0].name,
+					isOwner: isOwner,
+					isAdmin: isOwner,
 				},
+			});
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
+	}
+
+	async setOnlineStatus(login: string, isOnline: boolean) : Promise<IUser> {
+		try
+		{
+			return await this.prismaService.user.update({
+				where: {
+					login: login,
+				},
+				data: {
+					isOnline: isOnline,
+				}
 			});
 		}
 		catch (e)

@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-// import * as fs from 'fs';
 import * as cookieParser from 'cookie-parser';
+// import * as fs from 'fs';
 
 async function bootstrap() {
 
@@ -14,7 +14,7 @@ async function bootstrap() {
     // httpsOptions,
   });
   app.use(cookieParser()); // To allow to get cookies
-  // app.setGlobalPrefix('test');
   await app.listen(3000);
 }
+
 bootstrap();

@@ -33,6 +33,7 @@ export class AuthController {
     if (user)
     {
       console.log("User already logged in: ", user.login);
+      await this.usersService.setOnlineStatus(user.login, true);
       return res.redirect(homePageFrontend);
     }
 
