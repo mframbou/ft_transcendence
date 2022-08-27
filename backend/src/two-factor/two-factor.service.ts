@@ -3,6 +3,7 @@ import * as twofactor from 'node-2fa'
 import { PrismaService } from "../prisma/prisma.service";
 import { UsersService } from '../users/users.service';
 import fetch from 'node-fetch';
+import errorDispatcher from "../utils/error-dispatcher";
 
 @Injectable()
 export class TwoFactorService {
@@ -29,15 +30,22 @@ export class TwoFactorService {
 
 		const secret = twofactor.generateSecret({ name: "Transcendence", account: login });
 
-		await this.prismaService.user.update({
-			where: {
-				login: login,
-			},
-			data: {
-				otpSecret: secret.secret,
-				otpUri: secret.uri,
-			}
-		});
+		try
+		{
+			await this.prismaService.user.update({
+				where: {
+					login: login,
+				},
+				data: {
+					otpSecret: secret.secret,
+					otpUri: secret.uri,
+				}
+			});
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
 
 		console.log(`enabled 2FA for user ${login}`);
 		return await this.getUserQr(login);
@@ -53,15 +61,22 @@ export class TwoFactorService {
 		if (user.otpSecret === '')
 			throw new NotFoundException(`User ${login} does not have 2FA enabled`);
 
-		await this.prismaService.user.update({
-			where: {
-				login: login,
-			},
-			data: {
-				otpSecret: '',
-				otpUri: '',
-			}
-		});
+		try
+		{
+			await this.prismaService.user.update({
+				where: {
+					login: login,
+				},
+				data: {
+					otpSecret: '',
+					otpUri: '',
+				}
+			});
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
 
 		console.log(`disabled 2FA for user ${login}`);
 		return "Successfully disabled 2FA";
@@ -99,10 +114,10 @@ export class TwoFactorService {
 		const result = twofactor.verifyToken(user.otpSecret, code);
 
 		console.log(`User ${login} verified code ${code}`);
+
 		if (!result || result.delta !== 0)
 			return false;
 
-		console.log(`delta is ${result.delta} (0 means OK, -1 too late, 1 too early)`);
 
 		return true;
 	}

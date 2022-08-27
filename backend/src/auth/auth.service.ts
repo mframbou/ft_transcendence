@@ -1,12 +1,12 @@
 // Nest
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import fetch from 'node-fetch';
-import {hash} from "bcrypt";
-import {IUser} from "../interfaces/interfaces";
-import {Request} from "express";
+import { hash } from "bcrypt";
 
 // Transcendence
+import { PrismaService } from 'src/prisma/prisma.service';
+import { IUser } from "../interfaces/interfaces";
+import errorDispatcher from '../utils/error-dispatcher';
 
 // Videos tutorial: https://www.youtube.com/watch?v=KQya9i6czhM
 // https://www.youtube.com/watch?v=Yv5tZu5wAU0
@@ -35,11 +35,18 @@ export class AuthService {
   }
 
   async getUserFromSessionCookie(sessionCookie: string): Promise<IUser> {
-    return await this.prismaService.user.findUnique({
-      where: {
-        sessionCookie: sessionCookie,
-      },
-    });
+    try
+    {
+      return await this.prismaService.user.findUnique({
+        where: {
+          sessionCookie: sessionCookie,
+        },
+      });
+    }
+    catch (e)
+    {
+      errorDispatcher(e);
+    }
   }
 
   async getCurrentUser(cookies: string[]): Promise<IUser>
@@ -56,14 +63,21 @@ export class AuthService {
   async updateUserSessionCookie(user: any) : Promise<string> {
     const cookie = await hash(user.login, 10);
 
-    await this.prismaService.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        sessionCookie: cookie,
-      },
-    });
+    try
+    {
+      await this.prismaService.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          sessionCookie: cookie,
+        },
+      });
+    }
+    catch (e)
+    {
+      errorDispatcher(e);
+    }
 
     return cookie;
   }
