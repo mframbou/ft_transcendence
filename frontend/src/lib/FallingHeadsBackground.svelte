@@ -69,8 +69,8 @@
 
 	function updateCanvasSize(canvas: HTMLCanvasElement)
 	{
-		canvas.width = canvas.parentElement.clientWidth ?? window.innerWidth;
-		canvas.height = canvas.parentElement.clientHeight ?? window.innerHeight;
+		canvas.width = canvas.parentElement?.clientWidth ?? window.innerWidth;
+		canvas.height = canvas.parentElement?.clientHeight ?? window.innerHeight;
 	}
 
 	function loop(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D)

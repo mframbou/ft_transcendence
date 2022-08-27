@@ -6,9 +6,7 @@
 
 	function getCookie(name) {
 		const value = "; " + document.cookie;
-		console.log("Values, ", value);
 		const parts = value.split("; " + name + "=");
-		console.log("Parts, ", parts);
 		if (parts.length == 2) return parts.pop().split(";").shift();
 	}
 
@@ -16,7 +14,7 @@
 	{
 		if (browser)
 		{
-			const { hostname, port } = window.location;
+			const { hostname } = window.location;
 
 			window.location.href = (`http://${hostname}:3000/auth/42`);
 		}

@@ -13,21 +13,13 @@ import {TwoFactorService} from './two-factor/two-factor.service';
 import {TwoFactorController} from './two-factor/two-factor.controller';
 import {StatusController} from './status/status.controller';
 import {StatusService} from './status/status.service';
-import {StatusMiddleware} from "./status.middleware";
+import { AppGateway } from './app.gateway';
 
 @Module({
   controllers: [AppController, AuthController, UsersController, TwoFactorController, StatusController],
   imports: [
     PrismaModule,
   ],
-  providers: [AppService, AuthService, UsersService, TwoFactorService, StatusService],
+  providers: [AppService, AuthService, UsersService, TwoFactorService, StatusService, AppGateway],
 })
-export class AppModule {
-  // https://docs.nestjs.com/middleware
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-        .apply(StatusMiddleware)
-        .exclude('/status/offline')
-        .forRoutes('*')
-  }
-}
+export class AppModule {}

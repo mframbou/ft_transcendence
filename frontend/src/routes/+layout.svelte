@@ -8,6 +8,7 @@
 	<slot/>
 </div>
 
+
 <style lang="scss">
 	.wrapper
 	{
