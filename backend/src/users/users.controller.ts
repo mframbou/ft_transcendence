@@ -52,6 +52,22 @@ export class UsersController
 		if (!currentUser)
 			throw new NotFoundException(`Cannot find current user in database`);
 
+		if (updateValues.username)
+		{
+			updateValues.username = updateValues.username.trim();
+			if (updateValues.username.length === 0)
+				throw new NotFoundException(`Username cannot be empty`);
+			else if (updateValues.username.length > 20)
+				throw new NotFoundException(`Username cannot be longer than 20 characters`);
+		}
+
+		if (updateValues.profilePicture)
+		{
+			// check if image png, jpg or gif
+			if (!updateValues.profilePicture.match(/^data:image\/(png|jpg|gif|jpeg);base64,/))
+				throw new NotFoundException(`Profile picture must be a png, jpg or gif`);
+		}
+
 		const updatedUser = await this.usersService.updateUser(currentUser.login, updateValues);
 
 		return updatedUser;
