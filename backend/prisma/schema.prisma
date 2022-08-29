@@ -18,7 +18,7 @@ model User {
 	profilePicture   String
 	firstName        String
 	lastName         String
-	userName         String
+	username         String
 	login            String          @unique
 	campus           String
 	wins             Int             @default(0)

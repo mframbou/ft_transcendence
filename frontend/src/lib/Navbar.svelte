@@ -1,6 +1,6 @@
 <script lang="ts">
-
-	import {browser} from '$app/env';
+	import { browser } from '$app/env';
+	import { getUser } from "$lib/stores";
 
 	export let showProfileMenu = false;
 
@@ -25,6 +25,12 @@
 		});
 	}
 
+	function getUserPfp(user) {
+		return user.profilePicture;
+	}
+
+	const hostname = browser ? window.location.hostname : 'localhost';
+	const [userData] = getUser(hostname);
 
 </script>
 
@@ -51,8 +57,8 @@
 			<li class="profile">
 				<button class="pushable-back">
 					<span class="pushable-front" on:click={() => showProfileMenu = true}>
-						<img src="/images/oronda.png"/>
-						My Profile
+						<img src={$userData.profilePicture}/>
+						{$userData.username}
 					</span>
 				</button>
 				{#if showProfileMenu}
@@ -222,7 +228,10 @@
 			transform: translateY(-50%);
 
 			height: 3em;
+			width: 3em;
 			border-radius: 3em;
+
+			object-fit: cover;
 		}
 	}
 

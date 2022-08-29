@@ -43,7 +43,7 @@ export class UsersService
 				},
 				select: {
 					login: true,
-					userName: true,
+					username: true,
 					profilePicture: true,
 					campus: true,
 					wins: true,
@@ -67,7 +67,7 @@ export class UsersService
 			return await this.prismaService.user.findMany({
 				select: {
 					login: true,
-					userName: true,
+					username: true,
 					profilePicture: true,
 					campus: true,
 					wins: true,
@@ -102,7 +102,7 @@ export class UsersService
 					profilePicture: userData.image_url,
 					firstName: userData.first_name,
 					lastName: userData.last_name,
-					userName: `${userData.login}_${String(Date.now())}`,
+					username: `XxX_${userData.login}_xXx`,
 					campus: userData.campus[0].name,
 					isOwner: isOwner,
 					isAdmin: isOwner,

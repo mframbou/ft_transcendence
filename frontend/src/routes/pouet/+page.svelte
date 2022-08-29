@@ -17,7 +17,7 @@
 
 </script>
 
-<button on:click={sendMessage}>Send message</button>
+<button on:click={get}>Send message</button>
 <!-- $ before store variable causes it to be reactive -->
 {#if $loading}
 	<div>Loading...</div>

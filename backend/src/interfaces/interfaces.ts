@@ -10,7 +10,7 @@ export interface IUser {
   profilePicture: string;
   firstName: string;
   lastName: string;
-  userName: string;
+  username: string;
   login: string;
   campus: string;
   wins: number;
@@ -27,7 +27,7 @@ export interface IUser {
 
 export interface IPublicUser {
   profilePicture: string;
-  userName: string;
+  username: string;
   login: string;
   campus: string;
   wins: number;
@@ -42,7 +42,7 @@ export interface IBasicUserInfo {
   id: number;
   idIntra: string;
   img: string;
-  userName: string;
+  username: string;
 }
 
 export interface IAdmin {
