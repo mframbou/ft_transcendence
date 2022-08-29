@@ -1,12 +1,12 @@
 import { writable, get } from 'svelte/store';
 
 // const currentUser = writable(null);
+const loading = writable(false);
+const error = writable(false);
+const user = writable({});
 
 // https://svelte.dev/repl/b2d671b8119845ca903667f1b3a96e31?version=3.37.0
 export function getUser(hostname: string) {
-	const loading = writable(false);
-	const error = writable(false);
-	const user = writable({});
 
 	async function getUser() {
 
@@ -20,7 +20,6 @@ export function getUser(hostname: string) {
 		error.set(false);
 
 		try {
-			console.log("Fetching user");
 			const response = await fetch(`http://${hostname}:3000/users/me`, {
 				credentials: 'include', // To send auth cookies
 			});
@@ -33,6 +32,7 @@ export function getUser(hostname: string) {
 			error.set(e);
 		}
 		loading.set(false);
+		// console.log("Sucessfully (re)loaded user");
 	}
 
 	getUser();

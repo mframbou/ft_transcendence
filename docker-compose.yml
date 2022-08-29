@@ -26,7 +26,6 @@ services:
       - .env
     depends_on:
       - database
-      - cache
 
   database:
     image: postgres
@@ -36,9 +35,6 @@ services:
     volumes:
       - database-volume:/var/lib/postgresql/data/
 
-  cache:
-    image: redis
-    restart: always
 
 volumes:
     database-volume:
