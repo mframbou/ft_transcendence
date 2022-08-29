@@ -14,6 +14,12 @@ async function bootstrap() {
     // httpsOptions,
   });
   app.use(cookieParser()); // To allow to get cookies
+
+  app.enableCors({
+    origin: `http://${process.env.SERVER_NAME}:3001`, // Allow requests from front to back / reverse
+    credentials: true, // Allow passing credentials front front to back / reverse
+  }); // To allow cross-origin requests (requests from different origins)
+
   await app.listen(3000);
 }
 

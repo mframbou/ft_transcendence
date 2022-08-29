@@ -13,36 +13,36 @@ export class TwoFactorController {
 	) {}
 
 
-	@Get('activate/:login')
-	async activate2fa(@Param('login') login: string, @Req() req: Request): Promise<any> {
+	@Get('activate/')
+	async activate2fa(@Req() req: Request): Promise<any> {
 
 		const currentUser = await this.authService.getCurrentUser(req.cookies);
 
-		if (!currentUser || currentUser.login !== login) {
+		if (!currentUser) {
 			throw new UnauthorizedException('You need to be logged in to activate 2FA');
 		}
 
 		return await this.twoFactorService.enableTwoFactor(currentUser.login);
 	}
 
-	@Get('deactivate/:login')
-	async deactivate2fa(@Param('login') login: string, @Req() req: Request): Promise<any> {
+	@Get('deactivate')
+	async deactivate2fa(@Req() req: Request): Promise<any> {
 
 		const currentUser = await this.authService.getCurrentUser(req.cookies);
 
-		if (!currentUser || currentUser.login !== login) {
+		if (!currentUser) {
 			throw new UnauthorizedException('You need to be logged in to deactivate 2FA');
 		}
 
 		return await this.twoFactorService.disableTwoFactor(currentUser.login);
 	}
 
-	@Get('verify/:login')
-	async verify2faCode(@Query('code') code: string, @Param('login') login: string, @Req() req: Request): Promise<any> {
+	@Get('verify')
+	async verify2faCode(@Query('code') code: string, @Req() req: Request): Promise<any> {
 
 		const currentUser = await this.authService.getCurrentUser(req.cookies);
 
-		if (!currentUser || currentUser.login !== login) {
+		if (!currentUser) {
 			throw new UnauthorizedException('You need to be logged in to verify 2FA');
 		}
 
