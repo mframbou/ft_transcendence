@@ -1,8 +1,9 @@
-import {Controller, Get, NotFoundException, Param, Req} from '@nestjs/common';
+import {Body, Controller, Get, NotFoundException, Param, Post, Req} from '@nestjs/common';
 import { IPublicUser} from "../interfaces/interfaces";
 import { UsersService } from "./users.service";
 import { AuthService } from "../auth/auth.service";
 import {Request} from "express";
+import { UpdateUserDto } from './updateUser.dto'
 
 @Controller('users')
 export class UsersController
@@ -39,6 +40,21 @@ export class UsersController
 			throw new NotFoundException(`User ${login} does not exists`);
 
 		return user;
+	}
+
+
+	// Max body size is 10mb (see main.ts)
+	@Post('update/me')
+	async updateCurrentUser(@Req() req: Request, @Body() updateValues: UpdateUserDto): Promise<IPublicUser>
+	{
+		const currentUser = await this.authService.getCurrentUser(req.cookies);
+
+		if (!currentUser)
+			throw new NotFoundException(`Cannot find current user in database`);
+
+		const updatedUser = await this.usersService.updateUser(currentUser.login, updateValues);
+
+		return updatedUser;
 	}
 
 

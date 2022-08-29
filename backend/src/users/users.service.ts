@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from "../prisma/prisma.service";
 import { IUser, IPublicUser } from "../interfaces/interfaces";
 import errorDispatcher from "../utils/error-dispatcher";
+import { UpdateUserDto } from './updateUser.dto';
 
 @Injectable()
 export class UsersService
@@ -125,6 +126,29 @@ export class UsersService
 				data: {
 					isOnline: isOnline,
 				}
+			});
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
+	}
+
+	async updateUser(login: string, data: UpdateUserDto) : Promise<IUser> {
+
+		const updateData = {};
+		if (data.username)
+			updateData['username'] = data.username;
+		if (data.profilePicture)
+			updateData['profilePicture'] = data.profilePicture;
+
+		try
+		{
+			return await this.prismaService.user.update({
+				where: {
+					login: login,
+				},
+				data: updateData,
 			});
 		}
 		catch (e)

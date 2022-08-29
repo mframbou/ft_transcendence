@@ -14,7 +14,7 @@ export class AppGateway {
 
   @SubscribeMessage('connection')
   handleConnect(client: any, payload: any): string {
-    console.log("received connect: ", client.id);
+    // console.log("received connect: ", client.id);
     // console.log("client: ", client);
     return 'Hello world!';
   }
