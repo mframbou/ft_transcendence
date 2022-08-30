@@ -70,7 +70,7 @@
 	<!-- Sidenav is hidden by default on mobile -->
 	<button on:click={toggleSideNav} class="fa-solid fa-bars sidenav-toggle hidden"></button>
 	<div class="sidenav hidden">
-		<img class="logo" src="/images/42_Logo_white.svg" on:click={redirectHomepage}/>
+		<img class="logo" src="/images/bellopongo-white.png" on:click={redirectHomepage}/>
 		<a class="nav-button centered-content" on:click={redirectPlay}>Play</a>
 		<a class="nav-button centered-content" on:click={redirectChat}>Chat</a>
 		<a class="nav-button profile" on:mouseenter={() => showDropDownUserMenu = true} on:mouseleave={() => showDropDownUserMenu = false} on:click={redirectProfile}>
@@ -178,6 +178,7 @@
 	.profile-dropdown-menu
 	{
 		position: absolute;
+		background-color: $sidenav-bg-color;
 
 		//height: 100%; // removed so that height is based on content
 		width: 100%;
@@ -195,7 +196,6 @@
 				width: 100%;
 				padding: 0.75em;
 				text-align: left;
-				background-color: $sidenav-bg-color;
 
 				&:hover
 				{
@@ -207,9 +207,9 @@
 
 	.profile
 	{
-		align-items:center;
+		align-items: center;
 		display: flex;
-		gap: 5px;
+		gap: 10px;
 	}
 
 	.profile-username
@@ -343,8 +343,8 @@
 
 		.logo
 		{
-			height: 75%;
-			padding: 5px 20px 0 20px;
+			height: 50%;
+			padding: 0px 20px;
 		}
 	}
 
