@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/env';
-	import { getUser } from "$lib/stores";
+	import { getUser } from '$lib/stores';
+	import {redirectTo, redirectToBackend} from '$lib/utils';
 
 	function toggleSideNav()
 	{
@@ -16,14 +17,13 @@
 		return user.profilePicture;
 	}
 
-	const hostname = browser ? window.location.hostname : 'backend';
-	const [userData, loading, error] = getUser(hostname);
+	const [userData, loading, error] = getUser();
 
 	error.subscribe(error => {
 		// Caught error on fetch (most likely user not logged in), redirect to homepage if so
 		if (browser && error.status === 404)
 		{
-			window.location.href = '/';
+			redirectTo('/');
 		}
 	});
 
@@ -31,22 +31,37 @@
 
 	function redirectProfile()
 	{
-		alert('Redirecting to profile');
+		redirectTo('/profile');
 	}
 
 	function redirectFriends()
 	{
-		alert('Redirecting to friends');
+		redirectTo('/friends');
 	}
 
 	function redirectSettings()
 	{
-		alert('Redirecting to settings');
+		redirectTo('/settings');
 	}
 
 	function redirectLogout()
 	{
-		alert('Redirecting to logout');
+		redirectToBackend('/auth/logout');
+	}
+
+	function redirectHomepage()
+	{
+		redirectTo('/home');
+	}
+
+	function redirectPlay()
+	{
+		redirectTo('/play');
+	}
+
+	function redirectChat()
+	{
+		redirectTo('/chat');
 	}
 
 </script>
@@ -55,10 +70,10 @@
 	<!-- Sidenav is hidden by default on mobile -->
 	<button on:click={toggleSideNav} class="fa-solid fa-bars sidenav-toggle hidden"></button>
 	<div class="sidenav hidden">
-		<img class="logo" src="/images/42_Logo_white.svg"/>
-		<a class="nav-button centered-content">Play</a>
-		<a class="nav-button centered-content">Chat</a>
-		<a class="nav-button profile" on:mouseenter={() => showDropDownUserMenu = true} on:mouseleave={() => showDropDownUserMenu = false}>
+		<img class="logo" src="/images/42_Logo_white.svg" on:click={redirectHomepage}/>
+		<a class="nav-button centered-content" on:click={redirectPlay}>Play</a>
+		<a class="nav-button centered-content" on:click={redirectChat}>Chat</a>
+		<a class="nav-button profile" on:mouseenter={() => showDropDownUserMenu = true} on:mouseleave={() => showDropDownUserMenu = false} on:click={redirectProfile}>
 			<!-- To avoid showing 'undefined' for a few frames at page load -->
 			{#if $userData.username && $userData.profilePicture}
 				<img class="profile-picture" src={$userData.profilePicture}/>
@@ -67,15 +82,15 @@
 			{#if showDropDownUserMenu}
 				<div class="profile-dropdown-menu">
 					<ul class="profile-dropdown-list">
-						<li on:click={redirectProfile}>Profile</li>
-						<li on:click={redirectFriends}>Friends</li>
-						<li on:click={redirectSettings}>Settings</li>
-						<li on:click={redirectLogout}>Logout</li>
+						<!-- To avoid propagating to parent and redirecting to profile (on click on button) -->
+						<li on:click|stopPropagation={redirectProfile}>Profile</li>
+						<li on:click|stopPropagation={redirectFriends}>Friends</li>
+						<li on:click|stopPropagation={redirectSettings}>Settings</li>
+						<li on:click|stopPropagation={redirectLogout}>Logout</li>
 					</ul>
 				</div>
 			{/if}
 		</a>
-
 	</div>
 </div>
 
@@ -119,6 +134,10 @@
 
 	.logo
 	{
+		&:hover
+		{
+			filter: brightness(0.8);
+		}
 		cursor: pointer;
 	}
 

@@ -6,6 +6,7 @@ import fetch from 'node-fetch';
 // Transcendence
 import {AuthService} from "./auth.service";
 import {UsersService} from "../users/users.service";
+import {Response} from "express";
 
 const callbackUrl42 = `http://${process.env.SERVER_NAME}:3000/auth/42/callback`;
 const sessionCookieName = 'transcendence_session';
@@ -92,6 +93,18 @@ export class AuthController {
     console.log("Created cookie for users " + user.login);
 
     return res.redirect(homePageFrontend);
+  }
+
+  @Get('/logout')
+  async logout(@Res() res: Response) {
+    console.log("Logged out user");
+    res.cookie(sessionCookieName, '', {
+      expires: new Date(0),
+    })
+    // res.clearCookie(sessionCookieName, { path: '/' });
+    // return res.redirect(homePageFrontend);
+    return res.redirect(homePageFrontend);
+    // return res.send('test');
   }
 
 }

@@ -1,9 +1,7 @@
 import ioClient from 'socket.io-client';
-import { browser } from '$app/env';
+import { getBackendUrl } from "$lib/utils";
 
-
-const hostname = browser ? window.location.hostname : {host: 'localhost:3000'};
-const ENDPOINT = `http://${hostname}:3000`;
+const ENDPOINT = getBackendUrl('');
 const socket = ioClient(ENDPOINT);
 
 socket.on('connect', () => {

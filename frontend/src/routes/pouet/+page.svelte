@@ -2,13 +2,13 @@
 	import { io } from '$lib/socket-io';
 	import { getUser } from '$lib/stores';
 	import { browser } from '$app/env';
+	import { getBackendUrl } from '$lib/utils';
 
 	function sendMessage() {
 		io.emit('message', "Test test");
 	}
 
-	const hostname = browser ? window.location.hostname : 'backend';
-	let [user, loading, error, updateUser] = getUser(hostname);
+	let [user, loading, error, updateUser] = getUser();
 
 	function getUserPfp(user) {
 		return user.profilePicture;
@@ -51,7 +51,7 @@
 		if (Object.keys(errors).length > 0)
 			return;
 
-		const response = await fetch(`http://${hostname}:3000/users/update/me`, {
+		const response = await fetch(getBackendUrl('/users/update/me'), {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

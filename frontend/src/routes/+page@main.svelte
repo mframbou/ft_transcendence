@@ -3,6 +3,7 @@
 	import {browser} from '$app/env';
 	import {onMount} from "svelte";
 	import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
+	import {getBackendUrl} from "../lib/utils";
 
 	function getCookie(name) {
 		const value = "; " + document.cookie;
@@ -14,9 +15,7 @@
 	{
 		if (browser)
 		{
-			const { hostname } = window.location;
-
-			window.location.href = (`http://${hostname}:3000/auth/42`);
+			window.location.href = getBackendUrl('/auth/42');
 		}
 	}
 
@@ -28,8 +27,7 @@
 		if (browser)
 		{
 			// check if user is logged in
-			const hostname = window.location.hostname;
-			const checkLogin = await fetch(`http://${hostname}:3000/users/me`, {
+			const checkLogin = await fetch(getBackendUrl('/users/me'), {
 				credentials: 'include',
 			});
 
