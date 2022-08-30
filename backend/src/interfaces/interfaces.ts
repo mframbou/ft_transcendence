@@ -26,7 +26,6 @@ export interface IUser
 	isOwner: boolean;
 	isAdmin: boolean;
 	isOnline: boolean;
-	sessionCookie: string;
 }
 
 export interface IPublicUser

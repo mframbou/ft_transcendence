@@ -13,6 +13,7 @@ import { JwtTwoFactorAuthGuard } from './jwt-two-factor-auth.guard';
 
 
 const homePageFrontend = `http://${process.env.SERVER_NAME}:3001/home`;
+const twoFactorVerifyFrontend = `http://${process.env.SERVER_NAME}:3001/otp-verify`;
 const callbackUrl42 = `http://${process.env.SERVER_NAME}:3000/auth/42/callback`;
 
 const sessionCookieName = 'cockies';
@@ -36,12 +37,17 @@ export class AuthController
 	async authRedirect42(@Req() req: Request, @Res() res: Response)
 	{
 		// If users already has a session redirect to home
-		const user = await this.authService.getCurrentUser(req.cookies);
+		const jwtPayload: IJwtPayload = await this.authService.getCurrentJwt(req);
 
-		if (user)
+		if (jwtPayload)
 		{
-			console.log('User already logged in: ', user.login);
-			await this.usersService.setOnlineStatus(user.login, true);
+			console.log('User already logged in: ', jwtPayload.login);
+			if (jwtPayload.twoFactorEnabled)
+			{
+				console.log('User has two factor enabled');
+				return res.redirect(twoFactorVerifyFrontend);
+			}
+			await this.usersService.setOnlineStatus(jwtPayload.login, true);
 			return res.redirect(homePageFrontend);
 		}
 
@@ -52,7 +58,7 @@ export class AuthController
 
 	// https://api.intra.42.fr/apidoc/guides/web_application_flow
 	@Get('42/callback')
-	async authCallback42(@Query('code') code: string, @Res() res, @Req() req): Promise<any>
+	async authCallback42(@Query('code') code: string, @Res() res: Response, @Req() req): Promise<any>
 	{
 		let response = await fetch('https://api.intra.42.fr/oauth/token', {
 			method: 'POST',
@@ -96,12 +102,15 @@ export class AuthController
 		// add cookie to response
 		res.cookie(sessionCookieName, cookieHash, {
 			httpOnly: true,
-			sameSite: 'Strict',
+			// sameSite: 'Strict',
 			maxAge: cookieDuration,
 			// secure: true, // only HTTPS
 		});
 
 		console.log('Created cookie for users ' + user.login);
+
+		if (user.twoFactorEnabled)
+			return res.redirect(twoFactorVerifyFrontend);
 
 		return res.redirect(homePageFrontend);
 	}

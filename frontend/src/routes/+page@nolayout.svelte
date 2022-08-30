@@ -36,6 +36,11 @@
 			{
 				window.location.href = '/home';
 			}
+			else
+			{
+				const json = await checkLogin.json();
+				const errorMessage = json.message;
+			}
 
 		}
 		// Chrome dev tools performance can slow down network to test

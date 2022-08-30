@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { IJwtPayload, IUser } from '../interfaces/interfaces';
 import errorDispatcher from '../utils/error-dispatcher';
 import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
 
 // Videos tutorial: https://www.youtube.com/watch?v=KQya9i6czhM
 // https://www.youtube.com/watch?v=Yv5tZu5wAU0
@@ -40,60 +41,27 @@ export class AuthService
 		}
 	}
 
-	async getUserFromSessionCookie(sessionCookie: string): Promise<IUser>
+	async getJwtFromCookie(sessionCookie: string): Promise<IJwtPayload>
 	{
 		// decode jwt cookie
 		const jwtPayload = this.jwtService.decode(sessionCookie);
 
-		if (!jwtPayload || typeof jwtPayload === 'string' || !jwtPayload.login)
+		if (!jwtPayload || typeof jwtPayload === 'string' || jwtPayload.login === undefined || jwtPayload.twoFactorEnabled === undefined)
 			throw new HttpException('Invalid session cookie', HttpStatus.BAD_REQUEST);
 
-		try
-		{
-			return await this.prismaService.user.findUnique({
-				where: {
-					login: jwtPayload.login,
-				},
-			});
-		}
-		catch (e)
-		{
-			errorDispatcher(e);
-		}
+		// cast because decode has no type safety (checking types right above)
+		return jwtPayload as IJwtPayload;
 	}
 
-	async getCurrentUser(cookies: string[]): Promise<IUser>
+	async getCurrentJwt(req: Request): Promise<IJwtPayload>
 	{
-		const sessionCookie = cookies['cockies'];
+		const sessionCookie = req?.cookies['cockies'] ?? null;
 
 		if (!sessionCookie)
 			return null;
 
-		const user = await this.getUserFromSessionCookie(sessionCookie);
-		return user;
-	}
-
-	async updateUserSessionCookie(user: any): Promise<string>
-	{
-		const cookie = await hash(user.login, 10);
-
-		try
-		{
-			await this.prismaService.user.update({
-				where: {
-					id: user.id,
-				},
-				data: {
-					sessionCookie: cookie,
-				},
-			});
-		}
-		catch (e)
-		{
-			errorDispatcher(e);
-		}
-
-		return cookie;
+		const jwt: IJwtPayload = await this.getJwtFromCookie(sessionCookie);
+		return jwt;
 	}
 
 }

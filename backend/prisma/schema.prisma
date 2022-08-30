@@ -30,5 +30,4 @@ model User {
 	isOwner          Boolean         @default(false)
 	isAdmin          Boolean         @default(false)
 	isOnline         Boolean         @default(false)
-	sessionCookie    String          @unique @default("")
 }
