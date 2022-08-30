@@ -21,7 +21,7 @@
 
 	error.subscribe(error => {
 		// Caught error on fetch (most likely user not logged in), redirect to homepage if so
-		if (browser && error.status === 404)
+		if (browser && error.status >= 400 && error.status < 500)
 		{
 			redirectTo('/');
 		}

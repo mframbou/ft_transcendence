@@ -9,7 +9,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// too long value
 			[
 				'P2000',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -17,7 +18,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// The record searched for in the where condition ({model_name}.{argument_name} = {argument_value}) does not exist
 			[
 				'P2001',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.NOT_FOUND);
 				},
 			],
@@ -25,7 +27,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Unique constraint failed on the {constraint}
 			[
 				'P2002',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -33,7 +36,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Foreign key constraint failed on the field: {field_name}
 			[
 				'P2003',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -41,7 +45,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// A constraint failed on the database: {database_error}
 			[
 				'P2004',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -49,7 +54,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// The value {field_value} stored in the database for the field {field_name} is invalid for the field's type
 			[
 				'P2005',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.NOT_ACCEPTABLE);
 				},
 			],
@@ -57,7 +63,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// The provided value {field_value} for {model_name} field {field_name} is not valid
 			[
 				'P2006',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.NOT_ACCEPTABLE);
 				},
 			],
@@ -65,7 +72,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Data validation error {database_error}
 			[
 				'P2007',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.CONFLICT);
 				},
 			],
@@ -73,7 +81,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Failed to parse the query {query_parsing_error} at {query_position}
 			[
 				'P2008',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -81,7 +90,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Failed to validate the query: {query_validation_error} at {query_position}
 			[
 				'P2009',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.NOT_ACCEPTABLE);
 				},
 			],
@@ -89,7 +99,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Raw query failed. Code: {code}. Message: {message}
 			[
 				'P2010',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -97,7 +108,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Null constraint violation on the {constraint}
 			[
 				'P2011',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.NOT_ACCEPTABLE);
 				},
 			],
@@ -105,7 +117,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Missing a required value at {path}
 			[
 				'P2012',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -113,7 +126,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Missing the required argument {argument_name} for field {field_name} on {object_name}
 			[
 				'P2013',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -121,7 +135,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// The change you are trying to make would violate the required relation '{relation_name}' between the {model_a_name} and {model_b_name} models
 			[
 				'P2014',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.FAILED_DEPENDENCY);
 				},
 			],
@@ -129,7 +144,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// A related record could not be found. {details}
 			[
 				'P2015',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -137,7 +153,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// Query interpretation error. {details}
 			[
 				'P2016',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -145,7 +162,8 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// The records for relation {relation_name} between the {parent_name} and {child_name} models are not connected.
 			[
 				'P2017',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
@@ -153,18 +171,21 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 			// The required connected records were not found. {details}
 			[
 				'P2018',
-				(e: PrismaClientKnownRequestError) => {
+				(e: PrismaClientKnownRequestError) =>
+				{
 					throw new HttpException(e.message, HttpStatus.BAD_REQUEST);
 				},
 			],
 		]);
 
-function dispatch_prisma_error(error: PrismaClientKnownRequestError) {
+function dispatch_prisma_error(error: PrismaClientKnownRequestError)
+{
 	if (error_codes[error.code]) error_codes[error.code](error);
 	else throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
 }
 
-function dispatch_error(error: any) {
+function dispatch_error(error: any)
+{
 	if (error instanceof PrismaClientKnownRequestError)
 	{
 		dispatch_prisma_error(error);
@@ -179,6 +200,7 @@ function dispatch_error(error: any) {
 	}
 }
 
-export default function errorDispatcher(error: any) {
+export default function errorDispatcher(error: any)
+{
 	dispatch_error(error);
 }

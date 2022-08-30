@@ -31,14 +31,14 @@ model User {
 	isAdmin          Boolean         @default(false)
 	isOnline         Boolean         @default(false)
 	sessionCookie    String          @unique @default("")
-    chat            Chat[]
-    admin           Admin[]
-    participant     Participant[]
-    userFriends     Friends[]       @relation(name: "users")
-    friendUsers     Friends[]       @relation(name: "friends")
-    blocked         Blacklist[]     @relation(name: "block")
-    blockedBy       Blacklist[]     @relation(name: "blocked")
-    moderators      Moderator[]
+    chat             Chat[]
+    admin            Admin[]
+    participant      Participant[]
+    userFriends      Friends[]       @relation(name: "users")
+    friendUsers      Friends[]       @relation(name: "friends")
+    blocked          Blacklist[]     @relation(name: "block")
+    blockedBy        Blacklist[]     @relation(name: "blocked")
+    moderators       Moderator[]
 }
 
 // TO ADD AT THE PREVIOUS SCHEMA
@@ -47,7 +47,7 @@ model   Chat {
     id              Int         @default(autoincrement()) @unique
     name            String
     user            User        @relation(fields: [login], references: [login])
-    login         String
+    login           String
     types           String      @default("public")
     pwd             String?
     admin           Admin[]
@@ -60,7 +60,7 @@ model   Chat {
 
 model   Participant {
     user            User        @relation(fields: [login], references: [login])
-    login         String
+    login           String
     chat            Chat        @relation(fields: [idChat], references: [id])
     idChat          Int
     muted           Boolean     @default(false)
@@ -70,7 +70,7 @@ model   Participant {
 
 model   Admin {
     user        User        @relation(fields: [login], references: [login])
-    login     String
+    login       String
     chat        Chat        @relation(fields: [idChat], references: [id])
     idChat      Int
 
@@ -79,7 +79,7 @@ model   Admin {
 
 model   Moderator {
     user        User        @relation(fields: [login], references: [login])
-    login     String
+    login       String
     chat        Chat        @relation(fields: [idChat], references: [id])
     idChat      Int
 
@@ -87,7 +87,7 @@ model   Moderator {
 }
 
 model   Friends {
-    login      String
+    login       String
     friendId    String
     Users       User     @relation(name: "users", fields: [login], references: [login])
     Friends     User     @relation(name: "friends", fields: [friendId], references: [login])

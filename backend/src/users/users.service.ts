@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from "../prisma/prisma.service";
-import { IUser, IPublicUser } from "../interfaces/interfaces";
-import errorDispatcher from "../utils/error-dispatcher";
+import { PrismaService } from '../prisma/prisma.service';
+import { IUser, IPublicUser } from '../interfaces/interfaces';
+import errorDispatcher from '../utils/error-dispatcher';
 import { UpdateUserDto } from './updateUser.dto';
 
 @Injectable()
@@ -9,7 +9,8 @@ export class UsersService
 {
 	constructor(private prismaService: PrismaService) {}
 
-	async getUser(login: string) : Promise<IUser> {
+	async getUser(login: string): Promise<IUser>
+	{
 		try
 		{
 			return await this.prismaService.user.findUnique({
@@ -24,7 +25,8 @@ export class UsersService
 		}
 	}
 
-	async getUsers() : Promise<IUser[]> {
+	async getUsers(): Promise<IUser[]>
+	{
 		try
 		{
 			return await this.prismaService.user.findMany();
@@ -35,7 +37,8 @@ export class UsersService
 		}
 	}
 
-	async getPublicUser(login: string) : Promise<IPublicUser> {
+	async getPublicUser(login: string): Promise<IPublicUser>
+	{
 		try
 		{
 			return await this.prismaService.user.findUnique({
@@ -62,7 +65,8 @@ export class UsersService
 		}
 	}
 
-	async getPublicUsers() : Promise<IPublicUser[]> {
+	async getPublicUsers(): Promise<IPublicUser[]>
+	{
 		try
 		{
 			return await this.prismaService.user.findMany({
@@ -86,7 +90,8 @@ export class UsersService
 		}
 	}
 
-	async addUser(userData: any) : Promise<IUser> {
+	async addUser(userData: any): Promise<IUser>
+	{
 
 		const isOwner: boolean = userData.login === 'sspina' || userData.login === 'dsamain' || userData.login === 'oronda' || userData.login === 'mframbou';
 
@@ -116,7 +121,8 @@ export class UsersService
 		}
 	}
 
-	async setOnlineStatus(login: string, isOnline: boolean) : Promise<IUser> {
+	async setOnlineStatus(login: string, isOnline: boolean): Promise<IUser>
+	{
 		try
 		{
 			return await this.prismaService.user.update({
@@ -134,7 +140,8 @@ export class UsersService
 		}
 	}
 
-	async updateUser(login: string, data: UpdateUserDto) : Promise<IUser> {
+	async updateUser(login: string, data: UpdateUserDto): Promise<IUser>
+	{
 
 		const updateData = {};
 		if (data.username)

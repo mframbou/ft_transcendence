@@ -10,7 +10,7 @@ const user = writable({});
 // https://svelte.dev/repl/b2d671b8119845ca903667f1b3a96e31?version=3.37.0
 export function getUser() {
 
-	async function getUser() {
+	async function fetchUser() {
 
 		// const currrentUserJson = get(currentUser);
 		// if (currrentUserJson) {
@@ -39,7 +39,7 @@ export function getUser() {
 		loading.set(false);
 	}
 
-	getUser();
+	fetchUser();
 
-	return [user, loading, error, getUser];
+	return [user, loading, error, fetchUser];
 }
