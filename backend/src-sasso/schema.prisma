@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+	provider = "postgresql"
+	url      = env("DATABASE_URL")
+}
+
+generator client {
+	provider = "prisma-client-js"
+	binaryTargets = ["native", "linux-musl"]
+}
+
+model User {
+	id               Int             @default(autoincrement()) @id
+	email            String
+	phone            String
+	profilePicture   String
+	firstName        String
+	lastName         String
+	userName         String
+	login            String          @unique
+	campus           String
+	wins             Int             @default(0)
+	loses            Int             @default(0)
+	elo              Int             @default(1000)
+	twoFactorEnabled Boolean         @default(false)
+	otpSecret        String          @default("")
+	otpUri           String          @default("")
+	isOwner          Boolean         @default(false)
+	isAdmin          Boolean         @default(false)
+	isOnline         Boolean         @default(false)
+	sessionCookie    String          @unique @default("")
+    chat            Chat[]
+    admin           Admin[]
+    participant     Participant[]
+    userFriends     Friends[]       @relation(name: "users")
+    friendUsers     Friends[]       @relation(name: "friends")
+    blocked         Blacklist[]     @relation(name: "block")
+    blockedBy       Blacklist[]     @relation(name: "blocked")
+    moderators      Moderator[]
+}
+
+// TO ADD AT THE PREVIOUS SCHEMA
+
+model   Chat {
+    id              Int         @default(autoincrement()) @unique
+    name            String
+    user            User        @relation(fields: [login], references: [login])
+    login         String
+    types           String      @default("public")
+    pwd             String?
+    admin           Admin[]
+    moderators      Moderator[]
+    participant     Participant[]
+    banned          String[]
+
+    @@id([name, login])
+}
+
+model   Participant {
+    user            User        @relation(fields: [login], references: [login])
+    login         String
+    chat            Chat        @relation(fields: [idChat], references: [id])
+    idChat          Int
+    muted           Boolean     @default(false)
+
+    @@id([login, idChat])
+}
+
+model   Admin {
+    user        User        @relation(fields: [login], references: [login])
+    login     String
+    chat        Chat        @relation(fields: [idChat], references: [id])
+    idChat      Int
+
+    @@id([login, idChat])
+}
+
+model   Moderator {
+    user        User        @relation(fields: [login], references: [login])
+    login     String
+    chat        Chat        @relation(fields: [idChat], references: [id])
+    idChat      Int
+
+    @@id([login, idChat])
+}
+
+model   Friends {
+    login      String
+    friendId    String
+    Users       User     @relation(name: "users", fields: [login], references: [login])
+    Friends     User     @relation(name: "friends", fields: [friendId], references: [login])
+
+    @@id([login, friendId])
+}
+
+model Blacklist {
+    blockId     String
+    blockedId   String
+    block       User     @relation("block", fields: [blockId], references: [login])
+    blocked     User     @relation("blocked", fields: [blockedId], references: [login])
+
+    @@id([blockId, blockedId])
+}

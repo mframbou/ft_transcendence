@@ -46,13 +46,15 @@ export class PermissionService {
       const user = await this.prisma.user.findUnique({
         where: { idIntra: data['id'] },
       });
-      return user.owner || user.is_admin;
+      return user.owner;
     } catch (e: any) {
       return false;
     }
   }
 
-  ///// CHAT FUNCTIONS /////
+  ///////////////////////////////////
+  ///       CHAT FUNCTIONS        ///
+  ///////////////////////////////////
 
   async is_mod(@Req() req, idChat: number): Promise<boolean> {
     try {
@@ -83,6 +85,37 @@ export class PermissionService {
         return true;
     } catch (e: any) {
       return false;
+    }
+  }
+
+  // A admin / mod / owner should be immune to some actions like remove or ban, non?
+  async not_immune_user(
+    @Body() body: { idIntra: string; idChat: number },
+  ): Promise<boolean> {
+    try {
+      const chat = await this.prisma.chat.findUnique({
+        where: {
+          id: body.idChat,
+        },
+        include: {
+          admin: true,
+          moderators: true,
+        },
+      });
+      if (chat.admin.find((el: any) => el.idIntra === body.idIntra))
+        return false;
+      else if (chat.moderators.find((el: any) => el.idIntra === body.idIntra))
+        return false;
+      else {
+        const user = await this.prisma.user.findUnique({
+          where: {
+            idIntra: body.idIntra,
+          },
+        });
+        return !(user.is_admin || user.isOwner);
+      }
+    } catch (e: any) {
+      error_dispatcher(e);
     }
   }
 }
