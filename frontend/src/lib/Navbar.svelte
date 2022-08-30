@@ -16,8 +16,38 @@
 		return user.profilePicture;
 	}
 
-	const hostname = browser ? window.location.hostname : 'localhost';
-	const [userData] = getUser(hostname);
+	const hostname = browser ? window.location.hostname : 'backend';
+	const [userData, loading, error] = getUser(hostname);
+
+	error.subscribe(error => {
+		// Caught error on fetch (most likely user not logged in), redirect to homepage if so
+		if (browser && error.status === 404)
+		{
+			window.location.href = '/';
+		}
+	});
+
+	let showDropDownUserMenu: boolean = false;
+
+	function redirectProfile()
+	{
+		alert('Redirecting to profile');
+	}
+
+	function redirectFriends()
+	{
+		alert('Redirecting to friends');
+	}
+
+	function redirectSettings()
+	{
+		alert('Redirecting to settings');
+	}
+
+	function redirectLogout()
+	{
+		alert('Redirecting to logout');
+	}
 
 </script>
 
@@ -25,29 +55,51 @@
 	<!-- Sidenav is hidden by default on mobile -->
 	<button on:click={toggleSideNav} class="fa-solid fa-bars sidenav-toggle hidden"></button>
 	<div class="sidenav hidden">
-
-		<img class="logo" src="/42_Logo_white.svg" height="80%"/>
-		<button>Play</button>
-		<button>Chat</button>
-		<button class="profile">
+		<img class="logo" src="/images/42_Logo_white.svg"/>
+		<a class="nav-button centered-content">Play</a>
+		<a class="nav-button centered-content">Chat</a>
+		<a class="nav-button profile" on:mouseenter={() => showDropDownUserMenu = true} on:mouseleave={() => showDropDownUserMenu = false}>
 			<!-- To avoid showing 'undefined' for a few frames at page load -->
 			{#if $userData.username && $userData.profilePicture}
-				<span>{$userData.username}</span>
-				<img src={$userData.profilePicture}/>
+				<img class="profile-picture" src={$userData.profilePicture}/>
+				<span class="profile-username">{$userData.username}</span>
 			{/if}
-		</button>
+			{#if showDropDownUserMenu}
+				<div class="profile-dropdown-menu">
+					<ul class="profile-dropdown-list">
+						<li on:click={redirectProfile}>Profile</li>
+						<li on:click={redirectFriends}>Friends</li>
+						<li on:click={redirectSettings}>Settings</li>
+						<li on:click={redirectLogout}>Logout</li>
+					</ul>
+				</div>
+			{/if}
+		</a>
 
 	</div>
 </div>
 
 <style lang="scss">
+	///////////////
+	// Variables //
+	///////////////
+
 	$sidenav-mobile-width: 250px;
 	$sidenav-desktop-width: 100%;
 	$sidenav-transition: 0.3s ease-in-out;
-
 	$sidenav-bg-color: #172A3A;
 
-	.sidenav button
+
+	/////////////////////////////
+	// Size independent styles //
+	/////////////////////////////
+
+	.sidenav
+	{
+		background-color: $sidenav-bg-color;
+	}
+
+	.nav-button
 	{
 		border: none;
 		background-color: transparent;
@@ -56,7 +108,6 @@
 		font-size: 20px;
 		font-weight: bold;
 		cursor: pointer;
-		overflow: hidden;
 
 		transition: background-color 0.1s ease-in-out;
 
@@ -66,171 +117,9 @@
 		}
 	}
 
-
-	@media (max-width: 980px)
+	.logo
 	{
-		.hidden
-		{
-			transform: translateX(-$sidenav-mobile-width);
-		}
-
-		.sidenav-toggle
-		{
-			display: block;
-			opacity: 1;
-		}
-
-
-		.sidenav
-		{
-			$padding-bottom-mobile: 15px; // for easier clicking
-
-			button
-			{
-				width: 100%;
-				height: calc(3.5em + $padding-bottom-mobile);
-			}
-
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: $sidenav-mobile-width;
-			height: 100%;
-			transition: transform $sidenav-transition;
-			backdrop-filter: blur(10px);
-
-			display: flex;
-			flex-direction: column;
-			justify-content: start;
-			align-items: center;
-
-			.nav-buttons
-			{
-				flex-direction: column;
-				margin-top: 15px;
-				height: 100%;
-			}
-
-			.profile
-			{
-				flex-direction: row-reverse;
-				justify-content: start;
-				align-items: center;
-
-				margin-top: auto;
-				padding: 0 10px $padding-bottom-mobile 10px; // left right padding + and bottom for easier clicking
-			}
-		}
-
-	}
-
-	@media (min-width: 980px)
-	{
-		.hidden
-		{
-			transform: translateX(0);
-		}
-
-		.sidenav-toggle
-		{
-			display: none;
-			opacity: 0;
-		}
-
-		.sidenav
-		{
-			button
-			{
-				height: 100%;
-				width: 10em;
-			}
-
-			display: flex;
-			align-items: center;
-			flex-direction: row;
-			justify-content: start;
-			width: 100%;
-			height: 90px;
-		}
-
-		.profile
-		{
-			padding: 0 10px; // left right padding
-
-			min-width: 8em; // To make it easier to click on small usernames (eg. |||)
-			max-width: 20em;
-			width: auto !important;
-			//width: 20em !important;
-			position: relative;
-
-			flex-direction: row;
-			justify-content: end;
-			margin-left: auto;
-		}
-
-		.logo
-		{
-			width: auto;
-			padding: 5px 20px 0 20px;
-			cursor: pointer;
-
-		}
-
-		.nav-buttons
-		{
-			margin-left: 10px;
-		}
-	}
-
-	.profile
-	{
-		align-items:center;
-		display: flex;
-		overflow: hidden;
-		gap: 5px;
-
-		span
-		{
-			text-overflow: ellipsis;
-			white-space: nowrap;
-			//width: 80%;
-			overflow: hidden;
-			text-align: right;
-		}
-
-		img
-		{
-
-			width: 3em;
-			//height: 50%;
-			aspect-ratio: 1;
-
-			//position: absolute;
-			//top: 50%;
-			//right: 5px;
-			//transform: translateY(-50%);
-
-			border-radius: 3em;
-
-			object-fit: cover;
-		}
-	}
-
-	.sidenav
-	{
-		background-color: $sidenav-bg-color;
-	}
-
-	@keyframes fadeIn
-	{
-		from
-		{
-			opacity: 0;
-		}
-		to
-		{
-			opacity: 1;
-		}
+		cursor: pointer;
 	}
 
 	.sidenav-toggle
@@ -238,7 +127,6 @@
 		position: fixed;
 		top: 7px;
 		left: 7px + $sidenav-mobile-width;
-		//z-index: 999;
 		padding: 10px 15px;
 		cursor: pointer;
 		transition: transform $sidenav-transition;
@@ -268,20 +156,194 @@
 		}
 	}
 
-	.nav-buttons
+	.profile-dropdown-menu
 	{
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		list-style: none;
-		gap: 15px;
+		position: absolute;
+
+		//height: 100%; // removed so that height is based on content
 		width: 100%;
+
+		.profile-dropdown-list
+		{
+			list-style: none;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: start;
+
+			li
+			{
+				width: 100%;
+				padding: 0.75em;
+				text-align: left;
+				background-color: $sidenav-bg-color;
+
+				&:hover
+				{
+					background-color: #1F3C55;
+				}
+			}
+		}
 	}
+
+	.profile
+	{
+		align-items:center;
+		display: flex;
+		gap: 5px;
+	}
+
+	.profile-username
+	{
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		//width: 80%;
+		overflow: hidden;
+		text-align: right;
+	}
+
+	.profile-picture
+	{
+
+		width: 3em;
+		border-radius: 0.2em;
+		object-fit: cover; // to make square
+		aspect-ratio: 1;
+	}
+
+
+	/////////////////
+	// Mobile view //
+	/////////////////
+	@media (max-width: 980px)
+	{
+		.hidden
+		{
+			transform: translateX(-$sidenav-mobile-width);
+		}
+
+		.sidenav
+		{
+			$padding-bottom-mobile: 20px; // for easier clicking
+
+
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: $sidenav-mobile-width;
+			height: 100%;
+			transition: transform $sidenav-transition;
+			backdrop-filter: blur(10px);
+
+			display: flex;
+			flex-direction: column;
+			justify-content: start;
+			align-items: center;
+
+
+			.profile-dropdown-menu
+			{
+				// cannot set percentage for obscure reason I guess so just hardcode it just like the button height
+				bottom: calc(3.5em + $padding-bottom-mobile);
+				left: 0;
+			}
+
+			.profile
+			{
+				flex-direction: row;
+				justify-content: start;
+				align-items: center;
+				height: calc(3.5em + $padding-bottom-mobile);
+
+				margin-top: auto;
+				padding: 0px 10px $padding-bottom-mobile 10px; // left right padding + and bottom for easier clicking
+			}
+		}
+
+		.nav-button
+		{
+			width: 100%;
+			height: 4.2em;
+		}
+
+		.logo
+		{
+			height: 4em;
+			padding: 10px 0px;
+		}
+
+	}
+
+
+	//////////////////
+	// Desktop view //
+	//////////////////
+	@media (min-width: 980px)
+	{
+		.hidden
+		{
+			transform: translateX(0);
+		}
+
+		.sidenav
+		{
+			display: flex;
+			align-items: center;
+			flex-direction: row;
+			justify-content: start;
+			width: 100%;
+			height: 90px;
+		}
+
+		.nav-button
+		{
+			height: 100%;
+			width: 10em;
+		}
+
+		.profile
+		{
+			padding: 0 10px; // left right padding
+
+			min-width: 8em; // To make it easier to click on small usernames (eg. |||)
+			max-width: 20em;
+			width: auto !important;
+			//width: 20em !important;
+			position: relative;
+
+			flex-direction: row;
+			justify-content: end;
+			margin-left: auto;
+		}
+
+		.profile-dropdown-menu
+		{
+			top: 100%;
+			right: 0;
+		}
+
+		.logo
+		{
+			height: 75%;
+			padding: 5px 20px 0 20px;
+		}
+	}
+
+
+	///////////
+	// Utils //
+	///////////
 
 	.wrapper
 	{
 		z-index: var(--z-index, 999);
 	}
 
+	.centered-content
+	{
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
 </style>

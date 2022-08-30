@@ -21,33 +21,28 @@
 	}
 
 	let loading = true;
-	let loggedIn = false;
 
 	onMount(async () =>
 	{
 
 		if (browser)
 		{
-			// let contentsFront = document.querySelector('.content-front');
-			// let contentsBack = document.querySelector('.content-back');
-			//
-			// if (contentsFront && contentsBack)
-			// {
-			// 	let newContentsBack = contentsFront.cloneNode(true);
-			// 	newContentsBack.classList.remove('content-front');
-			// 	newContentsBack.classList.add('content-back');
-			// 	contentsBack.replaceWith(newContentsBack);
-			// }
-			if (getCookie('transcendence_logged_in'))
+			// check if user is logged in
+			const hostname = window.location.hostname;
+			const checkLogin = await fetch(`http://${hostname}:3000/users/me`, {
+				credentials: 'include',
+			});
+
+			// if logged in, redirect to home page
+			if (checkLogin.status === 200)
 			{
-				loggedIn = true;
+				window.location.href = '/home';
 			}
+
 		}
 		// Chrome dev tools performance can slow down network to test
 		loading = false;
 	})
-
-	// let userData = fetch('http://localhost:3000/auth');
 
 </script>
 
@@ -67,11 +62,7 @@
 		<h1 class="title">
 			Transcendence
 			<button on:click={oauth42} class="login-btn">
-				{#if loggedIn}
-					<span>Play now</span>
-				{:else}
-					<span class="add-42-logo">Login with</span>
-				{/if}
+				<span class="add-42-logo">Login with</span>
 			</button>
 		</h1>
 	</div>
@@ -83,11 +74,7 @@
 		<h1 class="title">
 			Transcendence
 			<button on:click={oauth42} class="login-btn">
-				{#if loggedIn}
-					<span>Play now</span>
-				{:else}
-					<span class="add-42-logo">Login with</span>
-				{/if}
+				<span class="add-42-logo">Login with</span>
 			</button>
 		</h1>
 	</div>
@@ -209,7 +196,7 @@
 		{
 			$size: 1.5em;
 
-			content: url("/42_Logo_white.svg");
+			content: url("/images/42_Logo_white.svg");
 			display: inline-block;
 			height: $size;
 			width: $size;
@@ -255,7 +242,7 @@
 
 			.add-42-logo:after
 			{
-				content: url("/42_Logo_black.svg");
+				content: url("/images/42_Logo_black.svg");
 			}
 		}
 	}

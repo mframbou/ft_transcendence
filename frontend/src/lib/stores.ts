@@ -23,16 +23,18 @@ export function getUser(hostname: string) {
 			const response = await fetch(`http://${hostname}:3000/users/me`, {
 				credentials: 'include', // To send auth cookies
 			});
+			if (response.status !== 200) {
+				error.set(response);
+				loading.set(false);
+				return;
+			}
 			const data = await response.json();
 			user.set(data);
-			// currentUser.set(data);
-			console.log(JSON.stringify(data, null, 2));
 		}
 		catch (e) {
 			error.set(e);
 		}
 		loading.set(false);
-		// console.log("Sucessfully (re)loaded user");
 	}
 
 	getUser();

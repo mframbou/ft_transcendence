@@ -7,7 +7,7 @@
 		io.emit('message', "Test test");
 	}
 
-	const { hostname } = browser ? window.location : 'localhost';
+	const hostname = browser ? window.location.hostname : 'backend';
 	let [user, loading, error, updateUser] = getUser(hostname);
 
 	function getUserPfp(user) {
