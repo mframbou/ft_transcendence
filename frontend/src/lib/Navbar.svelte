@@ -26,6 +26,7 @@
 	<button on:click={toggleSideNav} class="fa-solid fa-bars sidenav-toggle hidden"></button>
 	<div class="sidenav hidden">
 
+		<img class="logo" src="/42_Logo_white.svg" height="80%"/>
 		<button>Play</button>
 		<button>Chat</button>
 		<button class="profile">
@@ -87,7 +88,7 @@
 			button
 			{
 				width: 100%;
-				height: calc(4em + $padding-bottom-mobile);
+				height: calc(3.5em + $padding-bottom-mobile);
 			}
 
 			position: fixed;
@@ -165,6 +166,14 @@
 			flex-direction: row;
 			justify-content: end;
 			margin-left: auto;
+		}
+
+		.logo
+		{
+			width: auto;
+			padding: 5px 20px 0 20px;
+			cursor: pointer;
+
 		}
 
 		.nav-buttons
