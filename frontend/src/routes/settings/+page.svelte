@@ -9,7 +9,7 @@
 
 	function getUserPfp(user)
 	{
-		return user.profilePicture;
+		return user.profilePicture;git stau
 	}
 
 	let errors = {};
