@@ -3,7 +3,7 @@
 	import {browser} from '$app/env';
 	import {onMount} from "svelte";
 	import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
-	import {getBackendUrl} from "../lib/utils";
+	import { getBackendUrl, redirectToBackend } from '../lib/utils';
 
 	function getCookie(name) {
 		const value = "; " + document.cookie;
@@ -13,36 +13,13 @@
 
 	async function oauth42()
 	{
-		if (browser)
-		{
-			window.location.href = getBackendUrl('/auth/42');
-		}
+		redirectToBackend('/auth/42');
 	}
 
 	let loading = true;
 
 	onMount(async () =>
 	{
-
-		if (browser)
-		{
-			// check if user is logged in
-			const checkLogin = await fetch(getBackendUrl('/users/me'), {
-				credentials: 'include',
-			});
-
-			// if logged in, redirect to home page
-			if (checkLogin.status === 200)
-			{
-				window.location.href = '/home';
-			}
-			else
-			{
-				const json = await checkLogin.json();
-				const errorMessage = json.message;
-			}
-
-		}
 		// Chrome dev tools performance can slow down network to test
 		loading = false;
 	})

@@ -44,7 +44,16 @@ export class AuthService
 	async getJwtFromCookie(sessionCookie: string): Promise<IJwtPayload>
 	{
 		// decode jwt cookie
-		const jwtPayload = this.jwtService.decode(sessionCookie);
+		let jwtPayload = null;
+		try
+		{
+			jwtPayload = await this.jwtService.verifyAsync(sessionCookie);
+		}
+		catch (e)
+		{
+			jwtPayload = null;
+		}
+
 
 		if (!jwtPayload || typeof jwtPayload === 'string' || jwtPayload.login === undefined || jwtPayload.twoFactorEnabled === undefined)
 			throw new HttpException('Invalid session cookie', HttpStatus.BAD_REQUEST);
