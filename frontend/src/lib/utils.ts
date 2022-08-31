@@ -12,16 +12,6 @@ export function redirectTo(url: string)
 	}
 }
 
-export function redirectToBackend(url: string)
-{
-	if (browser)
-	{
-		const hostname = window.location.hostname;
-		if (url.charAt(0) !== '/')
-			url = '/' + url;
-		window.location.href = `http://${hostname}:${BACKEND_PORT}${url}`;
-	}
-}
 //
 // export function getBackendUrl(url: string)
 // {

@@ -26,7 +26,7 @@
 		// 409 = 2Fa already done
 		if (res.ok || res.status === 409)
 		{
-			window.location.href = '/';
+			window.location.replace('/');
 			return;
 		}
 

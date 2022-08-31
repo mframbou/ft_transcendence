@@ -2,7 +2,6 @@
 
 	import { onMount } from 'svelte';
 	import FallingHeadsBackground from '../lib/FallingHeadsBackground.svelte';
-	import { redirectToBackend } from '../lib/utils';
 
 	function getCookie(name)
 	{

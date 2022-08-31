@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/env';
 	import { user } from '$lib/stores';
-	import { redirectTo, redirectToBackend } from '$lib/utils';
+	import { redirectTo } from '$lib/utils';
 
 	function toggleSideNav()
 	{
@@ -32,7 +32,7 @@
 
 	function redirectLogout()
 	{
-		redirectToBackend('/auth/logout');
+		window.location.replace('/api/auth/logout');
 	}
 
 	function redirectHomepage()
