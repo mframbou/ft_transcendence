@@ -6,7 +6,7 @@ import { Request } from 'express';
 import { IJwtPayload } from '../interfaces/interfaces';
 
 @Injectable()
-export class JwtTwoFactorStrategy extends PassportStrategy(Strategy, 'jwt-two-factor')
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt')
 {
 	constructor()
 	{
@@ -22,10 +22,6 @@ export class JwtTwoFactorStrategy extends PassportStrategy(Strategy, 'jwt-two-fa
 		if (!payload)
 			throw new HttpException('No payload provided', HttpStatus.UNAUTHORIZED);
 
-		if (payload.twoFactorEnabled === true)
-		{
-			throw new HttpException('You need to connect using two factor authentication', HttpStatus.UNAUTHORIZED);
-		}
 		return {login: payload.login, twoFactorEnabled: payload.twoFactorEnabled};
 	}
 }

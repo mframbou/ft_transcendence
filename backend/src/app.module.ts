@@ -13,6 +13,7 @@ import { TwoFactorService } from './two-factor/two-factor.service';
 import { TwoFactorController } from './two-factor/two-factor.controller';
 import { AppGateway } from './app.gateway';
 import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './auth/jwt.strategy';
 import { JwtTwoFactorStrategy } from './auth/jwt-two-factor.strategy';
 
 @Module({
@@ -23,7 +24,7 @@ import { JwtTwoFactorStrategy } from './auth/jwt-two-factor.strategy';
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, AppGateway, JwtTwoFactorStrategy],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, AppGateway, JwtStrategy, JwtTwoFactorStrategy],
 })
 export class AppModule
 {

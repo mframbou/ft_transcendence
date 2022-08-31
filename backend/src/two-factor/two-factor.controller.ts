@@ -6,6 +6,7 @@ import { TwoFactorService } from './two-factor.service';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { IJwtPayload, IUserRequest } from '../interfaces/interfaces';
 import { JwtService } from '@nestjs/jwt';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 const rightCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/home`;
 const wrongCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/otp-verify?wrong_code=true`;
@@ -38,7 +39,8 @@ export class TwoFactorController
 		return await this.twoFactorService.disableTwoFactor(payload.login);
 	}
 
-	@UseGuards(JwtTwoFactorAuthGuard)
+	// Dont check if user is double authenticated because its the point of this route so at request time they are not yet authenticated
+	@UseGuards(JwtAuthGuard)
 	@Get('verify')
 	async verify2faCode(@Query('code') code: string, @Req() req: IUserRequest, @Res() res: Response): Promise<any>
 	{

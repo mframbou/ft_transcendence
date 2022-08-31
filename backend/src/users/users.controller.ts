@@ -6,6 +6,7 @@ import { Request } from 'express';
 import { UpdateUserDto } from './updateUser.dto';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 
+@UseGuards(JwtTwoFactorAuthGuard)
 @Controller('users')
 export class UsersController
 {
@@ -23,7 +24,6 @@ export class UsersController
 
 	// Put 'me' before ':login' for priority
 	// jwt payload is stored under request.user (https://stackoverflow.com/questions/61724011/nestjs-nodejs-passport-jwt-stock-current-user
-	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('me')
 	async getCurrentUser(@Req() req: IUserRequest): Promise<IPublicUser>
 	{
@@ -39,7 +39,6 @@ export class UsersController
 		return user;
 	}
 
-	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get(':login')
 	async getPublicUser(@Param('login') login: string): Promise<IPublicUser>
 	{
@@ -53,7 +52,6 @@ export class UsersController
 
 
 	// Max body size is 10mb (see main.ts)
-	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('update/me')
 	async updateCurrentUser(@Req() req: IUserRequest, @Body() updateValues: UpdateUserDto): Promise<IPublicUser>
 	{

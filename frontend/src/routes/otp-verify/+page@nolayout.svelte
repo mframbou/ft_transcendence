@@ -5,6 +5,7 @@
 	const otpSubmitUrl = getBackendUrl(`2fa/verify`);
 
 	let wrongCode = false;
+
 	if (browser)
 	{
 		const urlParams = new URLSearchParams(window.location.search);

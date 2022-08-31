@@ -2,13 +2,15 @@ import { writable, get } from 'svelte/store';
 import { browser } from "$app/env";
 import { getBackendUrl } from "./utils";
 
+export const test = writable(false);
+
 // const currentUser = writable(null);
 const loading = writable(false);
 const error = writable(false);
 const user = writable({});
 
 // https://svelte.dev/repl/b2d671b8119845ca903667f1b3a96e31?version=3.37.0
-export function getUser() {
+export function getUser(update: boolean = true) {
 
 	async function fetchUser() {
 
