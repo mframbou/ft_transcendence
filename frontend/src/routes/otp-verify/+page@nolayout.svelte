@@ -19,9 +19,9 @@
 		<strong>Wrong code, try again</strong>
 	</div>
 {/if}
-<form action={otpSubmitUrl} method="GET" >
+<form action={otpSubmitUrl} method="GET">
 	Enter your code here: {wrongCode}
-	<input type="text" placeholder="123456" name="code">
+	<input name="code" placeholder="123456" type="text">
 	<input type="submit" value="Submit">
 
 </form>
@@ -33,30 +33,30 @@
 		position: fixed;
 		top: 0;
 		left: 0;
-		width: 100%;
-		height: 50px;
-		background-color: #f00;
-		color: #fff;
 		display: flex;
+		align-items: center;
 		flex-direction: row;
 		justify-content: left;
-		align-items: center;
+		width: 100%;
+		height: 50px;
 		padding: 0 20px;
+		color: #fff;
+		background-color: #f00;
 	}
 
 	form
 	{
 		display: flex;
+		align-items: center;
 		flex-direction: column;
 		justify-content: center;
-		align-items: center;
 		height: 100vh;
 		gap: 10px;
 	}
 
 	input
 	{
-		height: 40px;
 		width: 200px;
+		height: 40px;
 	}
 </style>

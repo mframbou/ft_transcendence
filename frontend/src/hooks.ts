@@ -1,12 +1,11 @@
-import { redirect } from '@sveltejs/kit';
 import * as jwt from 'jsonwebtoken';
 
 function getCookie(request: Request, name: string)
 {
-	const value = "; " + request.headers.get('cookie');
-	const parts = value.split("; " + name + "=");
+	const value = '; ' + request.headers.get('cookie');
+	const parts = value.split('; ' + name + '=');
 	if (parts && parts.length == 2)
-		return parts.pop().split(";").shift();
+		return parts.pop().split(';').shift();
 }
 
 function getPathname(url: URL)
@@ -26,9 +25,9 @@ function redirectTo(url: string, code = 302)
 
 // Will not redirect to home if user is not logged in AND redirect home if user is logged in
 const loginPages = [
-		'/',
-		'/otp-verify'
-]
+	'/',
+	'/otp-verify'
+];
 
 const loginPage = '/';
 
@@ -55,7 +54,7 @@ export async function handle({event, resolve})
 		}
 		catch (e)
 		{
-			console.log("jwt invalid, redirecting to homepage");
+			console.log('jwt invalid, redirecting to homepage');
 		}
 	}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 
-	import {browser} from '$app/env';
-	import {onMount} from "svelte";
+	import { browser } from '$app/env';
+	import { onMount } from 'svelte';
 
 	export let properties = {};
 
@@ -14,10 +14,10 @@
 		maxVelocity: properties.maxVelocity ?? 2.2,
 		imageCount: properties.imageCount ?? 80,
 		images: properties.images ?? [
-			"/images/dsamain-transparent.png",
-			"/images/oronda-transparent.png",
-			"/images/sspina-transparent.png",
-			"/images/mframbou-transparent.png"],
+			'/images/dsamain-transparent.png',
+			'/images/oronda-transparent.png',
+			'/images/sspina-transparent.png',
+			'/images/mframbou-transparent.png'],
 	};
 
 	class Point
@@ -65,7 +65,7 @@
 			ctx.globalAlpha = this.opacity;
 			ctx.drawImage(this.img, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
 		}
-	};
+	}
 
 	function updateCanvasSize(canvas: HTMLCanvasElement)
 	{
@@ -123,15 +123,15 @@
 			}
 
 
-			window.addEventListener("resize", () =>
+			window.addEventListener('resize', () =>
 			{
 				updateCanvasSize(canvas);
 			});
 
 			// To avoid very high velocity when coming back to the page
-			document.addEventListener("visibilitychange", () =>
+			document.addEventListener('visibilitychange', () =>
 			{
-				if (document.visibilityState === "visible")
+				if (document.visibilityState === 'visible')
 					lastUpdate = performance.now();
 			});
 
@@ -149,12 +149,12 @@
 	.wrapper
 	{
 		position: absolute;
+		z-index: var(--z-index, auto);
 		top: 0;
 		left: 0;
 		overflow: hidden;
 		width: 100%;
 		height: 100%;
-		z-index: var(--z-index, auto);
 		pointer-events: var(--pointer-events, auto);
 	}
 
