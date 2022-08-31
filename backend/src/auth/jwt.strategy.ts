@@ -22,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt')
 		if (!payload)
 			throw new HttpException('No payload provided', HttpStatus.UNAUTHORIZED);
 
-		return {login: payload.login, twoFactorEnabled: payload.twoFactorEnabled};
+		return {login: payload.login, need2Fa: payload.need2Fa};
 	}
 }
 

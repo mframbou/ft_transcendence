@@ -24,7 +24,8 @@ function redirectTo(url: string, code = 302)
 	return new Response('', {status: code, headers: {'Location': url}});
 }
 
-const excludeRedirects = [
+// Will not redirect to home if user is not logged in AND redirect home if user is logged in
+const loginPages = [
 		'/',
 		'/otp-verify'
 ]
@@ -49,6 +50,7 @@ export async function handle({event, resolve})
 		try
 		{
 			const jwtPayload = jwt.verify(jwtCookie, jwtSecret);
+			// console.log(jwtPayload);
 			jwtValid = true;
 		}
 		catch (e)
@@ -57,10 +59,10 @@ export async function handle({event, resolve})
 		}
 	}
 
-	if (!jwtValid && !excludeRedirects.includes(pathname))
+	if (!jwtValid && !loginPages.includes(pathname))
 		return redirectTo('/');
 
-	if (jwtValid && pathname === loginPage)
+	if (jwtValid && loginPages.includes(pathname))
 		return redirectTo('/home');
 
 

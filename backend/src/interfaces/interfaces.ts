@@ -59,7 +59,7 @@ export interface IAdmin
 export interface IJwtPayload
 {
 	login: string;
-	twoFactorEnabled: boolean;
+	need2Fa: boolean;
 }
 
 export interface IUserRequest extends Request
