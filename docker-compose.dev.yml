@@ -2,6 +2,8 @@ version: '3'
 
 services:
 
+  # https://dev.to/jiprochazka/sending-sveltekit-server-requests-with-httponly-cookies-56p6
+
   frontend:
     build:
       context: ./dockerfiles/frontend/
@@ -15,6 +17,8 @@ services:
       - .env
     depends_on:
       - backend
+    networks:
+      transcendence-network:
 
   backend:
     build:
@@ -29,9 +33,12 @@ services:
       - .env
     depends_on:
       - database
+    networks:
+      transcendence-network:
 
   # psql -d transcendence -p 5432 --username=sasso -h localhost
   database:
+    hostname: database
     image: postgres
     restart: always
     ports:
@@ -40,6 +47,12 @@ services:
       - .env
     volumes:
       - database-volume:/var/lib/postgresql/data/
+    networks:
+      transcendence-network:
 
 volumes:
   database-volume:
+
+networks:
+  transcendence-network:
+    driver: bridge

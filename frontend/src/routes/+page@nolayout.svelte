@@ -1,19 +1,20 @@
 <script lang="ts">
 
-	import {browser} from '$app/env';
-	import {onMount} from "svelte";
-	import FallingHeadsBackground from "$lib/FallingHeadsBackground.svelte";
-	import { getBackendUrl, redirectToBackend } from '../lib/utils';
+	import { onMount } from 'svelte';
+	import FallingHeadsBackground from '../lib/FallingHeadsBackground.svelte';
+	import { redirectToBackend } from '../lib/utils';
 
-	function getCookie(name) {
-		const value = "; " + document.cookie;
-		const parts = value.split("; " + name + "=");
-		if (parts.length == 2) return parts.pop().split(";").shift();
+	function getCookie(name)
+	{
+		const value = '; ' + document.cookie;
+		const parts = value.split('; ' + name + '=');
+		if (parts.length == 2) return parts.pop().split(';').shift();
 	}
 
 	async function oauth42()
 	{
-		redirectToBackend('/auth/42');
+		// fetch login
+		window.location.href = '/api/auth/42';
 	}
 
 	let loading = true;
@@ -22,7 +23,7 @@
 	{
 		// Chrome dev tools performance can slow down network to test
 		loading = false;
-	})
+	});
 
 </script>
 
@@ -41,7 +42,7 @@
 	<div class="content-front">
 		<h1 class="title">
 			Transcendence
-			<button on:click={oauth42} class="login-btn">
+			<button class="login-btn" on:click={oauth42}>
 				<span class="add-42-logo">Login with</span>
 			</button>
 		</h1>
@@ -53,7 +54,7 @@
 	<div class="content-back">
 		<h1 class="title">
 			Transcendence
-			<button on:click={oauth42} class="login-btn">
+			<button class="login-btn" on:click={oauth42}>
 				<span class="add-42-logo">Login with</span>
 			</button>
 		</h1>
@@ -61,8 +62,8 @@
 
 
 </div>
-<FallingHeadsBackground properties={ {imgHeight: 56, imgWidth: 56} } --z-index="3" --pointer-events="none"
-												--background-color="transparent"/>
+<FallingHeadsBackground --background-color="transparent" --pointer-events="none" --z-index="3"
+												properties={ {imgHeight: 56, imgWidth: 56} }/>
 
 
 <style lang="scss">
@@ -72,14 +73,14 @@
 		position: absolute;
 		top: 50%;
 		left: 50%;
-		transform: translate(-50%, -50%);
 		width: 64px;
 		height: 64px;
 		margin: 8px;
-		border-radius: 50%;
+		transform: translate(-50%, -50%);
+		animation: lds-dual-ring 1.2s linear infinite;
 		border: 6px solid #fff;
 		border-color: #fff transparent #fff transparent;
-		animation: lds-dual-ring 1.2s linear infinite;
+		border-radius: 50%;
 	}
 
 	@keyframes lds-dual-ring
@@ -101,8 +102,8 @@
 
 	.page-wrapper
 	{
-		height: 100%;
 		width: 100%;
+		height: 100%;
 	}
 
 	.content-front, .content-back
@@ -110,13 +111,13 @@
 		position: absolute;
 		top: 0;
 		left: 0;
+		display: flex;
+		align-items: center;
+
+		flex-direction: column;
+		justify-content: center;
 		width: 100%;
 		height: 100%;
-
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
 		background: transparent;
 	}
 
@@ -127,34 +128,34 @@
 
 	.title
 	{
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-transform: uppercase;
 		font-family: NexaBlack;
 		font-size: clamp(10px, 95%, 250px);
+		position: relative;
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		text-transform: uppercase;
 	}
 
 	.login-btn
 	{
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		justify-content: center;
-
-		position: absolute;
-		top: 100%;
-		text-transform: uppercase;
 		font-family: Lato;
+		font-size: clamp(12px, 2.5vw, 24px);
 		font-weight: 700;
+		position: absolute;
+
+		top: 100%;
+		display: flex;
+		align-items: center;
+		flex-direction: row;
+		justify-content: center;
 		margin-top: 50px;
 
-		font-size: clamp(12px, 2.5vw, 24px);
 		padding: 1em 2em;
 		cursor: pointer;
 		transition: background-color 250ms ease;
 		text-decoration: none;
+		text-transform: uppercase;
 		border: 3px solid;
 		border-radius: 3px;
 
@@ -167,21 +168,20 @@
 	.add-42-logo
 	{
 		display: flex;
-		flex-direction: row;
 		align-items: center;
+		flex-direction: row;
 		justify-content: center;
-
 
 		&:after
 		{
 			$size: 1.5em;
 
-			content: url("/images/42_Logo_white.svg");
 			display: inline-block;
-			height: $size;
 			width: $size;
-			margin-left: 0.2em;
+			height: $size;
 			margin-top: 0.1em;
+			margin-left: 0.2em;
+			content: url("/images/42_Logo_white.svg");
 		}
 	}
 
@@ -261,13 +261,13 @@
 
 	.title
 	{
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-transform: uppercase;
 		font-family: NexaBlack;
 		font-size: clamp(10px, 9.5vw, 250px);
+		position: relative;
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		text-transform: uppercase;
 	}
 
 	// https://stackoverflow.com/questions/37000558/clip-path-inset-circle
@@ -299,11 +299,11 @@
 
 	.page-front, .page-back
 	{
-		height: 100%;
-		width: 100%;
 		position: absolute;
 		top: 0;
 		left: 0;
+		width: 100%;
+		height: 100%;
 	}
 
 </style>

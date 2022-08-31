@@ -17,26 +17,25 @@ export class TwoFactorController
 	constructor(
 			private authService: AuthService,
 			private twoFactorService: TwoFactorService,
-			private jwtService: JwtService,
 	)
 	{}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('activate')
-	async activate2fa(@Req() req: IUserRequest): Promise<any>
+	async activate2fa(@Req() req: IUserRequest, @Res() res: Response): Promise<any>
 	{
 		const payload = req.jwtPayload;
 
-		return await this.twoFactorService.enableTwoFactor(payload.login);
+		return res.send(await this.twoFactorService.enableTwoFactor(payload.login));
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('deactivate')
-	async deactivate2fa(@Req() req: IUserRequest): Promise<any>
+	async deactivate2fa(@Req() req: IUserRequest, @Res() res: Response): Promise<any>
 	{
 		const payload = req.jwtPayload;
 
-		return await this.twoFactorService.disableTwoFactor(payload.login);
+		return res.send(await this.twoFactorService.disableTwoFactor(payload.login, res));
 	}
 
 	// Dont check if user is double authenticated because its the point of this route so at request time they are not yet authenticated
@@ -46,28 +45,28 @@ export class TwoFactorController
 	{
 		const payload = req.jwtPayload;
 
+		if (!payload.need2Fa)
+		{
+			return res.status(409).send('2FA already verified');
+		}
+
 		const codeValid: boolean = await this.twoFactorService.verifyCode(payload.login, code);
 
 		if (!codeValid)
 		{
-			return res.redirect(wrongCodeRedirectFrontend);
+			console.log("code invalid");
+			return res.status(401).send();
+			// return res.redirect(wrongCodeRedirectFrontend);
 		}
 
 
-		const jwtPayload: IJwtPayload = {login: payload.login, twoFactorEnabled: false};
-		const cookieHash = await this.jwtService.signAsync(jwtPayload);
-
-		// change cookie with twofactor to false to dont ask again till cookie expiration (dont change it in db tho otherwise it disabled 2fa for every cookie)
-		res.cookie('cockies', cookieHash, {
-			httpOnly: true,
-			// sameSite: 'Strict',
-			maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-			// secure: true, // only HTTPS
-		});
+		const jwtPayload: IJwtPayload = {login: payload.login, need2Fa: false};
+		await this.twoFactorService.updateJwt(jwtPayload, res);
 
 		console.log('Re-created cookie for users ' + payload.login);
 
-		return res.redirect(rightCodeRedirectFrontend);
+		return res.status(200).send();
+		// return res.redirect(rightCodeRedirectFrontend);
 	}
 
 }

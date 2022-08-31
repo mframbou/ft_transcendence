@@ -1,9 +1,9 @@
 <script lang="ts">
 
-	import {browser} from '$app/env';
-	import {onMount} from "svelte";
+	import { browser } from '$app/env';
+	import { onMount } from 'svelte';
 
-	export let properties = {}
+	export let properties = {};
 
 	properties = {
 		maxPointSize: properties.maxPointSize ?? 25,
@@ -14,15 +14,15 @@
 		lineColor: properties.lineColor ?? '#ffffff',
 		addOnClick: properties.addOnClick ?? true,
 		images: properties.images ?? [
-			"/images/dsamain-transparent.png",
-			"/images/oronda-transparent.png",
-			"/images/sspina-transparent.png",
-			"/images/mframbou-transparent.png"],
+			'/images/dsamain-transparent.png',
+			'/images/oronda-transparent.png',
+			'/images/sspina-transparent.png',
+			'/images/mframbou-transparent.png'],
 		maxDistRatio: properties.maxDistRatio ?? 1 / 8,
 		maxPoints: properties.maxPoints ?? 300
 	};
 
-	const mousePos = {x: -1, y: -1}
+	const mousePos = {x: -1, y: -1};
 
 	class Point
 	{
@@ -66,7 +66,7 @@
 			if (this.y < 0 || this.y > canvasHeight)
 			{
 				this.angle = -this.angle;
-				this.vy = -this.vy
+				this.vy = -this.vy;
 			}
 		}
 
@@ -74,7 +74,7 @@
 		{
 			ctx.drawImage(this.img, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
 		}
-	};
+	}
 
 	function dist({x: x1, y: y1}, {x: x2, y: y2})
 	{
@@ -164,7 +164,7 @@
 				points.push(new Point(x, y, images));
 			}
 
-			canvas.addEventListener("click", (e: MouseEvent) =>
+			canvas.addEventListener('click', (e: MouseEvent) =>
 			{
 				const rect = canvas.getBoundingClientRect();
 				mousePos.x = e.clientX - rect.left;
@@ -178,20 +178,20 @@
 				}
 			});
 
-			canvas.addEventListener("mousemove", (e: MouseEvent) =>
+			canvas.addEventListener('mousemove', (e: MouseEvent) =>
 			{
 				const rect = canvas.getBoundingClientRect();
 				mousePos.x = e.clientX - rect.left;
 				mousePos.y = e.clientY - rect.top;
 			});
-			window.addEventListener("resize", () =>
+			window.addEventListener('resize', () =>
 			{
 				updateCanvasSize(canvas);
 			});
 			// To avoid very high velocity when coming back to the page
-			document.addEventListener("visibilitychange", () =>
+			document.addEventListener('visibilitychange', () =>
 			{
-				if (document.visibilityState === "visible")
+				if (document.visibilityState === 'visible')
 					lastUpdate = performance.now();
 			});
 
@@ -208,15 +208,15 @@
 <style lang="scss">
 	.wrapper
 	{
+		z-index: var(--z-index, auto);
+		overflow: hidden; // To allow shrinking the canvas
 		width: 100%;
 		height: 100%;
-		overflow: hidden; // To allow shrinking the canvas
-		z-index: var(--z-index, auto);
 		pointer-events: var(--pointer-events, auto);
 	}
 
 	canvas
 	{
-		background-color: var(--background-color, #ffffff);
+		background-color: var(--background-color, transparent);
 	}
 </style>

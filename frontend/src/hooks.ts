@@ -1,12 +1,11 @@
-import { redirect } from '@sveltejs/kit';
 import * as jwt from 'jsonwebtoken';
 
 function getCookie(request: Request, name: string)
 {
-	const value = "; " + request.headers.get('cookie');
-	const parts = value.split("; " + name + "=");
+	const value = '; ' + request.headers.get('cookie');
+	const parts = value.split('; ' + name + '=');
 	if (parts && parts.length == 2)
-		return parts.pop().split(";").shift();
+		return parts.pop().split(';').shift();
 }
 
 function getPathname(url: URL)
@@ -19,17 +18,24 @@ function getPathname(url: URL)
 	return pathname;
 }
 
+function getQueryParam(url: URL, param: string)
+{
+	const query = url.searchParams.get(param);
+	if (query)
+		return query;
+	return null;
+}
+
 function redirectTo(url: string, code = 302)
 {
 	return new Response('', {status: code, headers: {'Location': url}});
 }
 
-const excludeRedirects = [
-		'/',
-		'/otp-verify'
-]
-
-const loginPage = '/';
+// Will not redirect to home if user is not logged in AND redirect home if user is logged in
+const loginPages = [
+	'/',
+	'/otp-verify'
+];
 
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -42,25 +48,37 @@ export async function handle({event, resolve})
 
 	const jwtCookie = getCookie(event.request, 'cockies');
 	let jwtValid = false;
+	let jwtPayload = null;
 
 	if (jwtCookie)
 	{
 		// check validity
 		try
 		{
-			const jwtPayload = jwt.verify(jwtCookie, jwtSecret);
+			jwtPayload = jwt.verify(jwtCookie, jwtSecret);
+
 			jwtValid = true;
 		}
 		catch (e)
 		{
-			console.log("jwt invalid, redirecting to homepage");
+			console.log('jwt invalid, redirecting to homepage');
 		}
 	}
 
-	if (!jwtValid && !excludeRedirects.includes(pathname))
+	// Allow user to go back to login page to change account if 2fa is required
+	if (jwtPayload && jwtPayload.need2Fa)
+	{
+		jwtValid = false;
+		if (!loginPages.includes(pathname))
+			return redirectTo('/otp-verify');
+	}
+
+	// if not logged in, redirect to login
+	if (!jwtValid && !loginPages.includes(pathname))
 		return redirectTo('/');
 
-	if (jwtValid && pathname === loginPage)
+	// if logged in and on login page, redirect to home
+	if (jwtValid && loginPages.includes(pathname))
 		return redirectTo('/home');
 
 

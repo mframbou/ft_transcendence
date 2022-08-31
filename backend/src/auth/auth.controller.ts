@@ -37,12 +37,22 @@ export class AuthController
 	async authRedirect42(@Req() req: Request, @Res() res: Response)
 	{
 		// If users already has a session redirect to home
-		const jwtPayload: IJwtPayload = await this.authService.getCurrentJwt(req);
+		let jwtPayload = null;
+
+		// In case of invalid cookie, we need to allow user to login again
+		try
+		{
+			jwtPayload = await this.authService.getCurrentJwt(req);
+		}
+		catch (e)
+		{
+			jwtPayload = null;
+		}
 
 		if (jwtPayload)
 		{
 			console.log('User already logged in: ', jwtPayload.login);
-			if (jwtPayload.twoFactorEnabled)
+			if (jwtPayload.need2Fa)
 			{
 				console.log('User has two factor enabled');
 				return res.redirect(twoFactorVerifyFrontend);
@@ -96,7 +106,7 @@ export class AuthController
 		console.log(message);
 
 		// const cookieHash = await this.authService.updateUserSessionCookie(user);
-		const jwtPayload: IJwtPayload = {login: user.login, twoFactorEnabled: user.twoFactorEnabled};
+		const jwtPayload: IJwtPayload = {login: user.login, need2Fa: user.twoFactorEnabled};
 		const cookieHash = await this.jwtService.signAsync(jwtPayload);
 
 		// add cookie to response
@@ -115,7 +125,6 @@ export class AuthController
 		return res.redirect(homePageFrontend);
 	}
 
-	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('/logout')
 	async logout(@Res() res: Response)
 	{

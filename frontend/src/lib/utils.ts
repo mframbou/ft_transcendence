@@ -22,17 +22,17 @@ export function redirectToBackend(url: string)
 		window.location.href = `http://${hostname}:${BACKEND_PORT}${url}`;
 	}
 }
-
-export function getBackendUrl(url: string)
-{
-	if (url.charAt(0) !== '/')
-		url = '/' + url;
-
-	if (browser)
-	{
-		const hostname = window.location.hostname;
-		return `http://${hostname}:${BACKEND_PORT}${url}`;
-	}
-
-	return `http://${BACKEND_HOSTNAME}:${BACKEND_PORT}${url}`;
-}
+//
+// export function getBackendUrl(url: string)
+// {
+// 	if (url.charAt(0) !== '/')
+// 		url = '/' + url;
+//
+// 	if (browser)
+// 	{
+// 		const hostname = window.location.hostname;
+// 		return `http://${hostname}:${BACKEND_PORT}${url}`;
+// 	}
+//
+// 	return `http://${BACKEND_HOSTNAME}:${BACKEND_PORT}${url}`;
+// }

@@ -24,8 +24,26 @@ const config = {
 	},
 
 	server: {
+		// https://github.com/http-party/node-http-proxy#options
+		// Cannot rewrite path (/api => /) see https://github.com/http-party/node-http-proxy/issues/1022
+		proxy: {
+			'/api': {
+				target: 'http://backend:3000',
+				changeOrigin: false,
+				secure: false,
+				ws: true,
+				rewrite: (path) => {
+					return path.replace('/api', '');
+				}
+			},
+		},
+
+		pouet: {
+
+		},
+
 		watch: {
-			usePolling: true
+			usePolling: true,
 		},
 		hmr: {
 			host: 'localhost'

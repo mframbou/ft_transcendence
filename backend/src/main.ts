@@ -24,6 +24,7 @@ async function bootstrap()
 	}); // To allow cross-origin requests (requests from different origins)
 
 	app.use('/users/update/me', json({limit: '10mb'})); // (default max body size is 1mb I think)
+	// app.setGlobalPrefix('/api');
 
 	await app.listen(3000);
 }

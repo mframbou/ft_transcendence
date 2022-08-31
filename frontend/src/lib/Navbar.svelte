@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/env';
-	import { getUser } from '$lib/stores';
-	import {redirectTo, redirectToBackend} from '$lib/utils';
+	import { user } from '$lib/stores';
+	import { redirectTo, redirectToBackend } from '$lib/utils';
 
 	function toggleSideNav()
 	{
@@ -12,12 +12,6 @@
 			document.querySelector('.sidenav-toggle')!.classList.toggle('hidden');
 		}
 	}
-
-	function getUserPfp(user) {
-		return user.profilePicture;
-	}
-
-	const [userData, loading, error] = getUser();
 
 	let showDropDownUserMenu: boolean = false;
 
@@ -60,17 +54,17 @@
 
 <div class="wrapper">
 	<!-- Sidenav is hidden by default on mobile -->
-	<button on:click={toggleSideNav} class="fa-solid fa-bars sidenav-toggle hidden"></button>
+	<button class="fa-solid fa-bars sidenav-toggle hidden" on:click={toggleSideNav}></button>
 	<div class="sidenav hidden">
-		<img class="logo" src="/images/bellopongo-white.png" on:click={redirectHomepage}/>
+		<img class="logo" on:click={redirectHomepage} src="/images/bellopongo-white.png"/>
 		<a class="nav-button centered-content" on:click={redirectPlay}>Play</a>
 		<a class="nav-button centered-content" on:click={redirectChat}>Chat</a>
-		<a class="nav-button profile" on:mouseenter={() => showDropDownUserMenu = true} on:mouseleave={() => showDropDownUserMenu = false} on:click={redirectProfile}>
+		{#if $user}
+		<a class="nav-button profile" on:click={redirectProfile}
+			 on:mouseenter={() => showDropDownUserMenu = true} on:mouseleave={() => showDropDownUserMenu = false}>
 			<!-- To avoid showing 'undefined' for a few frames at page load -->
-			{#if $userData.username && $userData.profilePicture}
-				<img class="profile-picture" src={$userData.profilePicture}/>
-				<span class="profile-username">{$userData.username}</span>
-			{/if}
+				<img class="profile-picture" src={$user.profilePicture}/>
+				<span class="profile-username">{$user.username}</span>
 			{#if showDropDownUserMenu}
 				<div class="profile-dropdown-menu">
 					<ul class="profile-dropdown-list">
@@ -83,6 +77,7 @@
 				</div>
 			{/if}
 		</a>
+		{/if}
 	</div>
 </div>
 
@@ -96,7 +91,6 @@
 	$sidenav-transition: 0.3s ease-in-out;
 	$sidenav-bg-color: #172A3A;
 
-
 	/////////////////////////////
 	// Size independent styles //
 	/////////////////////////////
@@ -108,15 +102,15 @@
 
 	.nav-button
 	{
-		border: none;
-		background-color: transparent;
-		color: white;
 		font-family: Lato;
 		font-size: 20px;
 		font-weight: bold;
 		cursor: pointer;
-
 		transition: background-color 0.1s ease-in-out;
+		color: white;
+		border: none;
+
+		background-color: transparent;
 
 		&:hover
 		{
@@ -126,11 +120,12 @@
 
 	.logo
 	{
+		cursor: pointer;
+
 		&:hover
 		{
 			filter: brightness(0.8);
 		}
-		cursor: pointer;
 	}
 
 	.sidenav-toggle
@@ -142,14 +137,14 @@
 		cursor: pointer;
 		transition: transform $sidenav-transition;
 		color: white;
-		border-radius: 5px;
-		background-color: #838383;
-		outline: none;
-
 		border-top: none;
-		border-left: none;
-		border-bottom: 2px solid #222;
 		border-right: 2px solid #222;
+		border-bottom: 2px solid #222;
+
+		border-left: none;
+		border-radius: 5px;
+		outline: none;
+		background-color: #838383;
 
 		&:hover
 		{
@@ -158,30 +153,30 @@
 
 		&:active, &:focus
 		{
-			outline: none;
-
 			border-top: none;
-			border-left: none;
-			border-bottom: 2px solid #222;
+
 			border-right: 2px solid #222;
+			border-bottom: 2px solid #222;
+			border-left: none;
+			outline: none;
 		}
 	}
 
 	.profile-dropdown-menu
 	{
 		position: absolute;
-		background-color: $sidenav-bg-color;
+		width: 100%;
 
 		//height: 100%; // removed so that height is based on content
-		width: 100%;
+		background-color: $sidenav-bg-color;
 
 		.profile-dropdown-list
 		{
-			list-style: none;
 			display: flex;
-			flex-direction: column;
 			align-items: center;
+			flex-direction: column;
 			justify-content: start;
+			list-style: none;
 
 			li
 			{
@@ -199,18 +194,18 @@
 
 	.profile
 	{
-		align-items: center;
 		display: flex;
+		align-items: center;
 		gap: 10px;
 	}
 
 	.profile-username
 	{
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		//width: 80%;
 		overflow: hidden;
 		text-align: right;
+		//width: 80%;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 	}
 
 	.profile-picture
@@ -221,7 +216,6 @@
 		object-fit: cover; // to make square
 		aspect-ratio: 1;
 	}
-
 
 	/////////////////
 	// Mobile view //
@@ -237,20 +231,18 @@
 		{
 			$padding-bottom-mobile: 20px; // for easier clicking
 
-
 			position: fixed;
 			top: 0;
 			left: 0;
+			display: flex;
+			align-items: center;
+			flex-direction: column;
+			justify-content: start;
+
 			width: $sidenav-mobile-width;
 			height: 100%;
 			transition: transform $sidenav-transition;
 			backdrop-filter: blur(10px);
-
-			display: flex;
-			flex-direction: column;
-			justify-content: start;
-			align-items: center;
-
 
 			.profile-dropdown-menu
 			{
@@ -261,9 +253,9 @@
 
 			.profile
 			{
+				align-items: center;
 				flex-direction: row;
 				justify-content: start;
-				align-items: center;
 				height: calc(3.5em + $padding-bottom-mobile);
 
 				margin-top: auto;
@@ -284,7 +276,6 @@
 		}
 
 	}
-
 
 	//////////////////
 	// Desktop view //
@@ -308,23 +299,23 @@
 
 		.nav-button
 		{
-			height: 100%;
 			width: 10em;
+			height: 100%;
 		}
 
 		.profile
 		{
-			padding: 0 10px; // left right padding
-
-			min-width: 8em; // To make it easier to click on small usernames (eg. |||)
-			max-width: 20em;
-			width: auto !important;
-			//width: 20em !important;
 			position: relative;
 
 			flex-direction: row;
 			justify-content: end;
+			width: auto !important;
+			//width: 20em !important;
+			min-width: 8em; // To make it easier to click on small usernames (eg. |||)
+
+			max-width: 20em;
 			margin-left: auto;
+			padding: 0 10px; // left right padding
 		}
 
 		.profile-dropdown-menu
@@ -339,7 +330,6 @@
 			padding: 0px 20px;
 		}
 	}
-
 
 	///////////
 	// Utils //

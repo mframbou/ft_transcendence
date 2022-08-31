@@ -22,11 +22,11 @@ export class JwtTwoFactorStrategy extends PassportStrategy(Strategy, 'jwt-two-fa
 		if (!payload)
 			throw new HttpException('No payload provided', HttpStatus.UNAUTHORIZED);
 
-		if (payload.twoFactorEnabled === true)
+		if (payload.need2Fa === true)
 		{
 			throw new HttpException('You need to connect using two factor authentication', HttpStatus.UNAUTHORIZED);
 		}
-		return {login: payload.login, twoFactorEnabled: payload.twoFactorEnabled};
+		return {login: payload.login, need2Fa: payload.need2Fa};
 	}
 }
 
