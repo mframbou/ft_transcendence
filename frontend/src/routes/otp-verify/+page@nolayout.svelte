@@ -31,7 +31,6 @@
 		console.log('verifing');
 		wrongCode = false;
 
-		await new Promise(resolve => setTimeout(resolve, wrongCodeDuration));
 		verifyingCode = true;
 
 		const res = await fetch(`/api/2fa/verify?code=${otpCode}`);
