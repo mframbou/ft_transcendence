@@ -141,14 +141,13 @@
 			border: none;
 			line-height: 50px;
 			text-align: center;
-			font-size: 24px;
-			font-family: "Raleway", sans-serif;
+			font-size: 26px;
+			font-family: Lato;
 			font-weight: 200;
 			margin: 0 2px;
 			color: var(--color, white);
 			border-radius: 3px;
 			caret-color: transparent;
-
 
 			&:focus
 			{

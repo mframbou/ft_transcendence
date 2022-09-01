@@ -60,7 +60,7 @@
 		<a class="nav-button centered-content" on:click={redirectPlay}>Play</a>
 		<a class="nav-button centered-content" on:click={redirectChat}>Chat</a>
 		{#if $user}
-		<a class="nav-button profile" on:click={redirectProfile}
+		<a class="nav-button profile"
 			 on:mouseenter={() => showDropDownUserMenu = true} on:mouseleave={() => showDropDownUserMenu = false}>
 			<!-- To avoid showing 'undefined' for a few frames at page load -->
 				<img class="profile-picture" src={$user.profilePicture}/>
@@ -114,6 +114,7 @@
 
 		&:hover
 		{
+			//background-color: lighten($sidenav-bg-color, 5%);
 			background-color: #e7b71e;
 		}
 	}
