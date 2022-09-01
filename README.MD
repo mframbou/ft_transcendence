@@ -12,9 +12,10 @@ But it's not that easy, because it's **the first time experiencing web developme
 
 # Running the app
 
-You first need to create a `.env` file with the following:
+You first need to create a `.env` file at the root of the repository with the following:
 
-```dotenv
+
+```shell
 # AUTH
 API42_CLIENT_SECRET=your_42_client_secret
 API42_CLIENT_ID=your_42_client_id
