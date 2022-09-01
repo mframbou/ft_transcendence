@@ -1,6 +1,7 @@
 import { get, writable } from 'svelte/store';
 
 export const user = writable(undefined);
+export const otpVerifyAndClear = writable(undefined);
 
 if (get(user) === undefined)
 {

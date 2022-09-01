@@ -78,7 +78,10 @@
 		context.clearRect(0, 0, canvas.width, canvas.height);
 
 		const now = performance.now();
-		const deltaTime = now - lastUpdate;
+		let deltaTime = now - lastUpdate;
+		// eg. if user leaves page to avoid having very high velocity wheb coming back (or very very very bad PC)
+		if (deltaTime > 500)
+			deltaTime = 0;
 		lastUpdate = now;
 
 		for (let point of points)
@@ -126,13 +129,6 @@
 			window.addEventListener('resize', () =>
 			{
 				updateCanvasSize(canvas);
-			});
-
-			// To avoid very high velocity when coming back to the page
-			document.addEventListener('visibilitychange', () =>
-			{
-				if (document.visibilityState === 'visible')
-					lastUpdate = performance.now();
 			});
 
 			render(canvas, context);
