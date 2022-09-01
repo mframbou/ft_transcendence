@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 // Nest
-import { Controller, Get, Res, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Res, Query, Req, UseGuards, HttpException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import fetch from 'node-fetch';
 
@@ -8,13 +8,10 @@ import fetch from 'node-fetch';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { Request, Response } from 'express';
-import { IJwtPayload, IUserRequest } from '../interfaces/interfaces';
-import { JwtTwoFactorAuthGuard } from './jwt-two-factor-auth.guard';
+import { IJwtPayload } from '../interfaces/interfaces';
 
 
-const homePageFrontend = `http://${process.env.SERVER_NAME}:3001/home`;
-const twoFactorVerifyFrontend = `http://${process.env.SERVER_NAME}:3001/otp-verify`;
-const callbackUrl42 = `http://${process.env.SERVER_NAME}:3000/auth/42/callback`;
+// hostname is 'backend' by default, but can be changed in the docker-compose file, so make it generic
 
 const sessionCookieName = 'cockies';
 const cookieDuration = 1000 * 60 * 60 * 24 * 30; // 30 days
@@ -36,33 +33,14 @@ export class AuthController
 	@Get('42')
 	async authRedirect42(@Req() req: Request, @Res() res: Response)
 	{
-		// If users already has a session redirect to home
-		let jwtPayload = null;
+		const hostname = req.headers.host;
+		// Never communicate directly from browser to backend, always use proxy setup in svelte (vite.config.json)
+		const callbackUrl = `http://${hostname}/api/auth/42/callback`;
 
-		// In case of invalid cookie, we need to allow user to login again
-		try
-		{
-			jwtPayload = await this.authService.getCurrentJwt(req);
-		}
-		catch (e)
-		{
-			jwtPayload = null;
-		}
 
-		if (jwtPayload)
-		{
-			console.log('User already logged in: ', jwtPayload.login);
-			if (jwtPayload.need2Fa)
-			{
-				console.log('User has two factor enabled');
-				return res.redirect(twoFactorVerifyFrontend);
-			}
-			await this.usersService.setOnlineStatus(jwtPayload.login, true);
-			return res.redirect(homePageFrontend);
-		}
-
+		// Dont check if user already has a session because they might want to change account, so always redirect to 42 login
 		return res.redirect(
-				`https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl42)}&response_type=code`,
+				`https://api.intra.42.fr/oauth/authorize?client_id=${process.env.API42_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code`,
 		);
 	}
 
@@ -70,6 +48,9 @@ export class AuthController
 	@Get('42/callback')
 	async authCallback42(@Query('code') code: string, @Res() res: Response, @Req() req): Promise<any>
 	{
+		const hostname = req.headers.host;
+		const callbackUrl = `http://${hostname}/api/auth/42/callback`;
+
 		let response = await fetch('https://api.intra.42.fr/oauth/token', {
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},
@@ -78,9 +59,12 @@ export class AuthController
 				client_id: process.env.API42_CLIENT_ID,
 				client_secret: process.env.API42_CLIENT_SECRET,
 				code: code,
-				redirect_uri: callbackUrl42,
+				redirect_uri: callbackUrl,
 			}),
-		});
+		})
+
+		if (!response.ok)
+			throw new HttpException('An error occured while fetching user data', response.status);
 
 		response = await response.json();
 
@@ -101,7 +85,7 @@ export class AuthController
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#parameters
 		const users = JSON.stringify(await this.usersService.getUsers(), null, 4);
 
-		message += `\nUsers list: ${users}`;
+		// message += `\nUsers list: ${users}`;
 
 		console.log(message);
 
@@ -117,25 +101,18 @@ export class AuthController
 			// secure: true, // only HTTPS
 		});
 
-		console.log('Created cookie for users ' + user.login);
+		console.log('Created cookie for user ' + user.login);
 
-		if (user.twoFactorEnabled)
-			return res.redirect(twoFactorVerifyFrontend);
-
-		return res.redirect(homePageFrontend);
+		return res.redirect('/home');
 	}
 
 	@Get('/logout')
 	async logout(@Res() res: Response)
 	{
 		console.log('Logged out user');
-		res.cookie(sessionCookieName, '', {
-			expires: new Date(0),
-		});
-		// res.clearCookie(sessionCookieName, { path: '/' });
-		// return res.redirect(homePageFrontend);
-		return res.redirect(homePageFrontend);
-		// return res.send('test');
+		res.clearCookie(sessionCookieName);
+
+		return res.redirect('/');
 	}
 
 }

@@ -3,6 +3,7 @@
 	import { browser } from '$app/env';
 	import { onMount } from 'svelte';
 
+	// Should use this https://www.reddit.com/r/sveltejs/comments/x2me4k/what_does_variable_mean/ when im not lazy
 	export let properties = {};
 
 	properties = {

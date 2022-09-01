@@ -21,6 +21,7 @@ services:
       transcendence-network:
 
   backend:
+    hostname: backend
     build:
       context: ./dockerfiles/backend/
       dockerfile: Dockerfile.dev

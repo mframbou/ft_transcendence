@@ -34,7 +34,8 @@ const config = {
 				ws: true,
 				rewrite: (path) => {
 					return path.replace('/api', '');
-				}
+				},
+				// autoRewrite: true // rewrite host:port on redirections
 			},
 		},
 

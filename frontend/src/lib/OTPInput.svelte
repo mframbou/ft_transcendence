@@ -71,9 +71,16 @@
 	// use keydown rather than up because if you write fast you can press multiple keys at the same time (same target) but release then on a different
 	function handleKeyDown(e: KeyboardEvent, i: number)
 	{
+		// e.preventDefault();
+		// if (e.)
+		// return;
 		console.log('down');
 		let prev = i > 0 ? formDigits[i - 1] : null;
 		let next = i < OTP_DIGITS - 1 ? formDigits[i + 1] : null;
+
+		// To still allow shortcut like ctrl+r ctrl+t etc.
+		if (e.ctrlKey || e.altKey || e.metaKey)
+			return;
 
 		if (e.key.length === 1)
 		{
@@ -98,10 +105,6 @@
 		{
 			if (prev)
 				prev.focus();
-		}
-		else if (next)
-		{
-			next.focus();
 		}
 	}
 

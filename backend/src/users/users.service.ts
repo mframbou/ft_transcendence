@@ -121,25 +121,6 @@ export class UsersService
 		}
 	}
 
-	async setOnlineStatus(login: string, isOnline: boolean): Promise<IUser>
-	{
-		try
-		{
-			return await this.prismaService.user.update({
-				where: {
-					login: login,
-				},
-				data: {
-					isOnline: isOnline,
-				}
-			});
-		}
-		catch (e)
-		{
-			errorDispatcher(e);
-		}
-	}
-
 	async updateUser(login: string, data: UpdateUserDto): Promise<IUser>
 	{
 
