@@ -30,6 +30,8 @@
 	{
 		console.log('verifing');
 		wrongCode = false;
+
+		await new Promise(resolve => setTimeout(resolve, wrongCodeDuration));
 		verifyingCode = true;
 
 		const res = await fetch(`/api/2fa/verify?code=${otpCode}`);
@@ -70,7 +72,7 @@
 
 <div class="wrapper">
 	<div class="background">
-		<ParticlesBackground properties={{lineColor: '#888888', minVelocity: 0.5, maxVelocity: 0.8}}/>
+		<ParticlesBackground --pointer-events=none properties={{lineColor: '#888888', minVelocity: 0.5, maxVelocity: 0.8}}/>
 	</div>
 	<div class="content">
 		<span class="prompt">Enter the 6-digit code generated on your mobile device</span>

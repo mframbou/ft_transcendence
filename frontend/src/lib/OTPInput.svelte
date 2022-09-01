@@ -16,7 +16,12 @@
 
 		if (formDigits[0])
 			formDigits[0].focus();
+	}
 
+	function setBlockedInput(blocked: boolean)
+	{
+		for (let digit of formDigits)
+			digit.disabled = blocked;
 	}
 
 	async function checkCompletion()
@@ -38,7 +43,10 @@
 
 		if ($otpVerifyAndClear)
 		{
+			setBlockedInput(true);
 			const shouldClear = await $otpVerifyAndClear(otpCode);
+			setBlockedInput(false);
+			// clear after because it focuses first digit
 			if (shouldClear)
 				clear();
 		}
@@ -60,13 +68,17 @@
 		}
 	});
 
-	function handleKeyUp(e: KeyboardEvent, i: number)
+	// use keydown rather than up because if you write fast you can press multiple keys at the same time (same target) but release then on a different
+	function handleKeyDown(e: KeyboardEvent, i: number)
 	{
+		console.log('down');
 		let prev = i > 0 ? formDigits[i - 1] : null;
 		let next = i < OTP_DIGITS - 1 ? formDigits[i + 1] : null;
 
 		if (e.key.length === 1)
 		{
+			e.preventDefault();
+			e.target.value = e.key;
 			if (next)
 				next.focus();
 			return;
@@ -74,6 +86,11 @@
 
 		if (e.code === 'Backspace')
 		{
+			if (e.target.value !== '')
+			{
+				e.target.value = '';
+				return;
+			}
 			if (prev)
 				prev.focus();
 		}
@@ -95,7 +112,7 @@
 		{#if i !== 0 && (i) % OTP_SPLIT_EVERY == 0}
 			<span class="splitter">&ndash;</span>
 		{/if}
-		<input class="digit" id={`digit-${i}`} maxlength="1" on:keyup={(e) => {handleKeyUp(e, i); if (i === OTP_DIGITS - 1) { checkCompletion(e) }}}>
+		<input class="digit" id={`digit-${i}`} maxlength="1" on:keydown={(e) => {handleKeyDown(e, i); if (i === OTP_DIGITS - 1) { checkCompletion(e) }}}>
 	{/each}
 </form>
 
