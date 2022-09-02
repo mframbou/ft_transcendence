@@ -1,8 +1,8 @@
-version: '3'
+version: '3.7'
 
 services:
 
-  # https://dev.to/jiprochazka/sending-sveltekit-server-requests-with-httponly-cookies-56p6
+  # https://docs.docker.com/compose/startup-order/
 
   frontend:
     build:

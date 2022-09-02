@@ -25,6 +25,7 @@ JWT_SECRET=your_long_jwt_secret
 POSTGRES_USER=transcendence
 POSTGRES_PASSWORD=transcendence
 POSTGRES_DB=transcendence
+POSTGRES_HOST=database # specified in docker-compose
 
 # postgres://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}
 DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}

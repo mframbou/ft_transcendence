@@ -6,4 +6,11 @@ fi
 
 npm run build
 
+until curl -s http://backend:3000/ &> /dev/null; do
+  echo "Waiting for backend..."
+  sleep 1
+done
+
+echo "Backend is up, starting frontend..."
+
 exec node ./build/index.js
