@@ -2,36 +2,48 @@ import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisco
 import { getCookie } from '../utils/utils';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
+import { AuthService } from '../auth/auth.service';
+import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
+import { WebsocketsService } from './websockets.service';
+
+
+const NAMESPACE = 'status';
 
 @WebSocketGateway(3001,{
 	// Otherwise error 'gngngn has been blocked by CORS'
 	cors: {credentials: true, origin: `http://${process.env.SERVER_NAME}:3001`},
 	// path: '/', // Default path is already '/'
-	namespace: 'status',
+	namespace: NAMESPACE,
 })
 // https://docs.nestjs.com/websockets/gateways
 export class StatusGateway
 {
+	constructor(
+			private authService: AuthService,
+			private websocketsService: WebsocketsService,
+	) {}
 
 	// Only on connection because its the only time cookies are sent
 	@UseGuards(JwtTwoFactorAuthGuard)
-	handleConnection(client: any, ...args: any[]): any
+	async handleConnection(client: any, ...args: any[])
 	{
-		const jwtCookie = getCookie('cockies', client.handshake.headers.cookie);
-		console.log(jwtCookie);
+		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(getCookie('cockies', client.handshake.headers.cookie));
 
-		console.log("New client:          " + client.id);
+		console.log(`${jwtPayload.login} is now online`);
+
+		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
 	}
 
-	handleDisconnect(client: any): any
+	@UseGuards() // just bcause otherwise webstorm says unused and might remove on code cleanup
+	async handleDisconnect(client: any)
 	{
-		console.log("Client disconnected: " + client.id);
+		const disconnectAt = new Date();
+		await new Promise(resolve => setTimeout(resolve, 1000));
+
+		const clientToRemove: IWebsocketClient = this.websocketsService.getClient(client.id);
+		console.log(`${clientToRemove.login} is now offline`);
+
+		this.websocketsService.removeClient(client.id);
 	}
 
-	@SubscribeMessage('message')
-	handleMessage(client: any, payload: any): string
-	{
-		console.log('received msg from ', client.id);
-		return 'Hello world!';
-	}
 }

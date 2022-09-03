@@ -19,7 +19,6 @@ export class JwtTwoFactorStrategy extends PassportStrategy(Strategy, 'jwt-two-fa
 
 	validate(payload: IJwtPayload): IJwtPayload
 	{
-		console.log("validating jwt");
 		if (!payload)
 			throw new HttpException('No payload provided', HttpStatus.UNAUTHORIZED);
 

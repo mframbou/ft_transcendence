@@ -17,6 +17,7 @@ import { JwtStrategy } from './auth/jwt.strategy';
 import { JwtTwoFactorStrategy } from './auth/jwt-two-factor.strategy';
 import { PermissionsService } from './permissions/permissions.service';
 import { ChatGateway } from './websockets/chat.gateway';
+import { WebsocketsService } from './websockets/websockets.service';
 
 @Module({
 	controllers: [AppController, AuthController, UsersController, TwoFactorController],
@@ -26,7 +27,7 @@ import { ChatGateway } from './websockets/chat.gateway';
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, PermissionsService, StatusGateway, ChatGateway],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService],
 })
 export class AppModule
 {}

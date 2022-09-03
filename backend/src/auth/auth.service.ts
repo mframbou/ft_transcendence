@@ -44,7 +44,7 @@ export class AuthService
 	async getJwtFromCookie(sessionCookie: string): Promise<IJwtPayload>
 	{
 		// decode jwt cookie
-		let jwtPayload = null;
+		let jwtPayload: IJwtPayload = null;
 		try
 		{
 			jwtPayload = await this.jwtService.verifyAsync(sessionCookie);
@@ -54,12 +54,11 @@ export class AuthService
 			jwtPayload = null;
 		}
 
-
-		if (!jwtPayload || typeof jwtPayload === 'string' || jwtPayload.login === undefined || jwtPayload.twoFactorEnabled === undefined)
+		if (!jwtPayload || typeof jwtPayload === 'string' || jwtPayload.login === undefined || jwtPayload.need2Fa === undefined)
 			throw new HttpException('Invalid session cookie', HttpStatus.BAD_REQUEST);
 
 		// cast because decode has no type safety (checking types right above)
-		return jwtPayload as IJwtPayload;
+		return jwtPayload;
 	}
 
 	async getCurrentJwt(req: Request): Promise<IJwtPayload>

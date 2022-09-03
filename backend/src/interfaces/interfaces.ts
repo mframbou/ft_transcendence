@@ -71,3 +71,10 @@ export interface IUserRequest extends Request
 {
 	jwtPayload: IJwtPayload,
 }
+
+export interface IWebsocketClient
+{
+	id: string;
+	login: string,
+	namespace: string,
+}
