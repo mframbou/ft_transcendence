@@ -1,5 +1,7 @@
 <script>
     import ParticlesBackground from "$lib/ParticlesBackground.svelte";
+
+    console.log('hello');
 </script>
 
 <!--<Navbar></Navbar>-->

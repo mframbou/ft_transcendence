@@ -1,11 +1,13 @@
 <script lang="ts">
 
-	import { io } from '$lib/socket-io';
+	import { statusSocket, chatSocket } from '$lib/socket-io';
 
+	// void one of imports so that code isn't unused, because import executes code and we still need to connect
+	void statusSocket; // for statussocket we dont need to send anything, just connect / disconnect
 
 	function sendMsg()
 	{
-		io.emit('message', 'test');
+		chatSocket.emit('message', 'hello everyone');
 	}
 
 </script>

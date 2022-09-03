@@ -1,6 +1,4 @@
 <script lang="ts">
-
-	import { browser } from '$app/env';
 	import { onMount } from 'svelte';
 
 	export let properties = {};
@@ -142,60 +140,66 @@
 	let maxDist: number = 0;
 	let canvas: HTMLCanvasElement;
 
+
+	// If the onMount callback returns a function, that function will be called when the component is destroyed.
 	onMount(() =>
 	{
-		if (browser)
+		const canvasClickListener = (e: MouseEvent) =>
 		{
-			const context: CanvasRenderingContext2D = canvas.getContext('2d');
+			const rect = canvas.getBoundingClientRect();
+			mousePos.x = e.clientX - rect.left;
+			mousePos.y = e.clientY - rect.top;
 
-			const images: HTMLImageElement[] = properties.images.map(path =>
+			if (points.length + 3 < properties.maxPoints)
 			{
-				const image = new Image();
-				image.src = path;
-				return image;
-			});
-
-			updateCanvasSize(canvas);
-
-			for (let i = 0; i < properties.initialCount; i++)
-			{
-				const x = Math.random() * canvas.width;
-				const y = Math.random() * canvas.height;
-				points.push(new Point(x, y, images));
+				const count = Math.floor(Math.random() * 3) + 1;
+				for (let i = 0; i < count; i++)
+					points.push(new Point(mousePos.x, mousePos.y, images));
 			}
+		};
 
-			canvas.addEventListener('click', (e: MouseEvent) =>
-			{
-				const rect = canvas.getBoundingClientRect();
-				mousePos.x = e.clientX - rect.left;
-				mousePos.y = e.clientY - rect.top;
+		const canvasMouseMoveListener = (e: MouseEvent) =>
+		{
+			const rect = canvas.getBoundingClientRect();
+			mousePos.x = e.clientX - rect.left;
+			mousePos.y = e.clientY - rect.top;
+		};
 
-				if (points.length + 3 < properties.maxPoints)
-				{
-					const count = Math.floor(Math.random() * 3) + 1;
-					for (let i = 0; i < count; i++)
-						points.push(new Point(mousePos.x, mousePos.y, images));
-				}
-			});
+		const windowResizeListener = () =>
+		{
+			updateCanvasSize(canvas);
+		};
 
-			canvas.addEventListener('mousemove', (e: MouseEvent) =>
-			{
-				const rect = canvas.getBoundingClientRect();
-				mousePos.x = e.clientX - rect.left;
-				mousePos.y = e.clientY - rect.top;
-			});
-			window.addEventListener('resize', () =>
-			{
-				updateCanvasSize(canvas);
-			});
-			// To avoid very high velocity when coming back to the page
-			document.addEventListener('visibilitychange', () =>
-			{
-				if (document.visibilityState === 'visible')
-					lastUpdate = performance.now();
-			});
+		const context: CanvasRenderingContext2D = canvas.getContext('2d');
 
-			render(canvas, context);
+		const images: HTMLImageElement[] = properties.images.map(path =>
+		{
+			const image = new Image();
+			image.src = path;
+			return image;
+		});
+
+		updateCanvasSize(canvas);
+
+		for (let i = 0; i < properties.initialCount; i++)
+		{
+			const x = Math.random() * canvas.width;
+			const y = Math.random() * canvas.height;
+			points.push(new Point(x, y, images));
+		}
+
+		canvas.addEventListener('click', canvasClickListener);
+		canvas.addEventListener('mousemove', canvasMouseMoveListener);
+		window.addEventListener('resize', windowResizeListener);
+
+		render(canvas, context);
+
+
+		return () =>
+		{
+			canvas.removeEventListener('click', canvasClickListener);
+			canvas.removeEventListener('mousemove', canvasMouseMoveListener);
+			window.removeEventListener('resize', windowResizeListener);
 		}
 	});
 

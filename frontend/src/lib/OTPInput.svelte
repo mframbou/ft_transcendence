@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { browser } from '$app/env';
-	import { onMount, createEventDispatcher } from 'svelte';
+	import { onMount, createEventDispatcher, tick } from 'svelte';
 	import { otpVerifyAndClear } from '$lib/stores';
 
 	const dispatch = createEventDispatcher();
@@ -52,19 +51,11 @@
 		}
 	}
 
-	onMount(() => {
-		if (browser)
-		{
-			const form = browser ? document.getElementById("otp-digits-input-form") : null;
+	let formElement = null;
 
-			if (form)
-			{
-				for (let i = 0; i < OTP_DIGITS; i++) {
-					formDigits[i] = form.querySelector(`#digit-${i}`);
-				}
-				if (formDigits[0])
-					formDigits[0].focus();
-			}
+	onMount(() => {
+		for (let i = 0; i < OTP_DIGITS; i++) {
+			formDigits[i] = formElement.querySelector(`#digit-${i}`);
 		}
 	});
 
@@ -109,18 +100,18 @@
 
 </script>
 
-<form id="otp-digits-input-form" autocomplete="off">
+<form bind:this={formElement} class="otp-digits-input-form" autocomplete="off">
 	{#each Array(OTP_DIGITS) as _, i}
 		{#if i !== 0 && (i) % OTP_SPLIT_EVERY == 0}
 			<span class="splitter">&ndash;</span>
 		{/if}
-		<input class="digit" id={`digit-${i}`} maxlength="1" on:keydown={(e) => {handleKeyDown(e, i); if (i === OTP_DIGITS - 1) { checkCompletion(e) }}}>
+		<input autofocus={i === 0 ? true : null} class="digit" id={`digit-${i}`} maxlength="1" on:keydown={(e) => {handleKeyDown(e, i); if (i === OTP_DIGITS - 1) { checkCompletion(e) }}}>
 	{/each}
 </form>
 
 <style lang="scss">
 
-	#otp-digits-input-form
+	.otp-digits-input-form
 	{
 		margin: 10px;
 

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { browser } from '$app/env';
-	import { slide, fade } from 'svelte/transition';
+	import { slide } from 'svelte/transition';
 	import ParticlesBackground from "$lib/ParticlesBackground.svelte";
 	import OTPInput from '$lib/OTPInput.svelte';
 	import { otpVerifyAndClear } from '$lib/stores';
@@ -9,11 +8,9 @@
 	let wrongCode = false;
 	let errorMessage = '';
 
-	if (browser)
-	{
-		const urlParams = new URLSearchParams(window.location.search);
-		wrongCode = urlParams.get('wrong_code') === 'true';
-	}
+
+	const urlParams = new URLSearchParams(window.location.search);
+	wrongCode = urlParams.get('wrong_code') === 'true';
 
 	async function onCodeComplete(event)
 	{

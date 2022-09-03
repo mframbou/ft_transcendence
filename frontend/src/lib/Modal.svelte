@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { browser } from '$app/env';
-
 	export let modalShown = true;
 
 	let wrapperElement;

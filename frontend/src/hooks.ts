@@ -66,21 +66,24 @@ export async function handle({event, resolve})
 	}
 
 	// Allow user to go back to login page to change account if 2fa is required
-	// if (jwtPayload && jwtPayload.need2Fa)
-	// {
-	// 	jwtValid = false;
-	// 	if (!loginPages.includes(pathname))
-	// 		return redirectTo('/otp-verify');
-	// }
-	//
-	// // if not logged in, redirect to login
-	// if (!jwtValid && !loginPages.includes(pathname))
-	// 	return redirectTo('/');
-	//
-	// // if logged in and on login page, redirect to home
-	// if (jwtValid && loginPages.includes(pathname))
-	// 	return redirectTo('/home');
+	if (jwtPayload && jwtPayload.need2Fa)
+	{
+		jwtValid = false;
+		if (!loginPages.includes(pathname))
+			return redirectTo('/otp-verify');
+	}
+
+	// if not logged in, redirect to login
+	if (!jwtValid && !loginPages.includes(pathname))
+		return redirectTo('/');
+
+	// if logged in and on login page, redirect to home
+	if (jwtValid && loginPages.includes(pathname))
+		return redirectTo('/home');
 
 
-	return await resolve(event);
+	// https://github.com/sveltejs/kit/discussions/3365
+	return await resolve(event, {
+		ssr: false,
+	});
 }

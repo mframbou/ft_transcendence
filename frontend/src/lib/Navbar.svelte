@@ -1,16 +1,15 @@
 <script lang="ts">
-	import { browser } from '$app/env';
 	import { user } from '$lib/stores';
 	import { goto } from '$app/navigation';
 
+	let sidenav = null;
+	let sidenavToggle = null;
+
 	function toggleSideNav()
 	{
-		if (browser)
-		{
-			// ! Means that we know for sure elt wont be null
-			document.querySelector('.sidenav')!.classList.toggle('hidden');
-			document.querySelector('.sidenav-toggle')!.classList.toggle('hidden');
-		}
+		// ! Means that we know for sure elt wont be null
+		sidenav.classList.toggle('hidden');
+		sidenavToggle.classList.toggle('hidden');
 	}
 
 	let showDropDownUserMenu: boolean = false;
@@ -54,8 +53,8 @@
 
 <div class="wrapper">
 	<!-- Sidenav is hidden by default on mobile -->
-	<button class="fa-solid fa-bars sidenav-toggle hidden" on:click={toggleSideNav}></button>
-	<div class="sidenav hidden">
+	<button class="fa-solid fa-bars sidenav-toggle hidden" on:click={toggleSideNav} bind:this={sidenavToggle}/>
+	<div class="sidenav hidden" bind:this={sidenav}>
 		<img class="logo" on:click={redirectHomepage} src="/images/bellopongo-white.png"/>
 		<a class="nav-button centered-content" on:click={redirectPlay}>Play</a>
 		<a class="nav-button centered-content" on:click={redirectChat}>Chat</a>

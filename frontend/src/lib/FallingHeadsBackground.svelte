@@ -1,6 +1,4 @@
 <script lang="ts">
-
-	import { browser } from '$app/env';
 	import { onMount } from 'svelte';
 
 	// Should use this https://www.reddit.com/r/sveltejs/comments/x2me4k/what_does_variable_mean/ when im not lazy
@@ -106,34 +104,35 @@
 
 	onMount(() =>
 	{
-		if (browser)
+		const windowResizeListener = () => updateCanvasSize(canvas);
+
+		const context: CanvasRenderingContext2D = canvas.getContext('2d');
+
+		const images: HTMLImageElement[] = properties.images.map(path =>
 		{
-			const context: CanvasRenderingContext2D = canvas.getContext('2d');
+			const image = new Image();
+			image.src = path;
+			return image;
+		});
 
-			const images: HTMLImageElement[] = properties.images.map(path =>
-			{
-				const image = new Image();
-				image.src = path;
-				return image;
-			});
+		updateCanvasSize(canvas);
 
-			updateCanvasSize(canvas);
-
-			for (let i = 0; i < properties.imageCount; i++)
-			{
-				const x = Math.random() * canvas.width;
-				const y = Math.random() * canvas.height;
-				points.push(new Point(x, y, images));
-			}
-
-
-			window.addEventListener('resize', () =>
-			{
-				updateCanvasSize(canvas);
-			});
-
-			render(canvas, context);
+		for (let i = 0; i < properties.imageCount; i++)
+		{
+			const x = Math.random() * canvas.width;
+			const y = Math.random() * canvas.height;
+			points.push(new Point(x, y, images));
 		}
+
+
+		window.addEventListener('resize', windowResizeListener);
+
+		render(canvas, context);
+
+		return () =>
+		{
+			window.removeEventListener('resize', windowResizeListener);
+		};
 	});
 
 </script>
