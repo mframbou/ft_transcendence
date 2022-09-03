@@ -1,16 +1,16 @@
 import { browser } from '$app/env';
 
 
-export const BACKEND_HOSTNAME = 'backend';
-export const BACKEND_PORT = 3000;
-
-export function redirectTo(url: string)
-{
-	if (browser)
-	{
-		window.location.href = url;
-	}
-}
+// export const BACKEND_HOSTNAME = 'backend';
+// export const BACKEND_PORT = 3000;
+//
+// export function redirectTo(url: string)
+// {
+// 	if (browser)
+// 	{
+// 		window.location.href = url;
+// 	}
+// }
 
 //
 // export function getBackendUrl(url: string)

@@ -3,20 +3,28 @@ import { browser } from '$app/env';
 
 const host = browser ? window.location.hostname : 'backend';
 
-const ENDPOINT = `ws://${host}:3002`;
+// Host:Port/Namespace, so here communicate on namespace status (but path / like all socketet)
+// This means at the end there will only be one websocket (on path '/') listening on different namespaces to separate usages
+const BASE_ENDPOINT = `ws://${host}:3002`;
 
-const socket = ioClient(ENDPOINT, {
-	path: '/',
+const statusSocket = ioClient(BASE_ENDPOINT + '/status', {
+	withCredentials: true,
 });
 
-console.log('test');
+const chatSocket = ioClient(BASE_ENDPOINT + '/chat');
 
-socket.on('connect', () =>
+
+statusSocket.on('connect', () =>
 {
-	console.log('Connected to server');
-	socket.emit('message', 'Hello from front');
+	statusSocket.emit('')
+	console.log('connected to status socket');
 });
 
-socket.connect();
+// socket.on('connect', () =>
+// {
+// 	console.log('Connected to server');
+// 	socket.emit('message', 'Hello from front');
+// });
 
-export const io = socket;
+
+export const io = statusSocket;

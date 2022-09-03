@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/env';
 	import { user } from '$lib/stores';
-	import { redirectTo } from '$lib/utils';
+	import { goto } from '$app/navigation';
 
 	function toggleSideNav()
 	{
@@ -15,39 +15,39 @@
 
 	let showDropDownUserMenu: boolean = false;
 
-	function redirectProfile()
+	async function redirectProfile()
 	{
-		redirectTo('/profile');
+		await goto('/profile');
 	}
 
-	function redirectFriends()
+	async function redirectFriends()
 	{
-		redirectTo('/friends');
+		await goto('/friends');
 	}
 
-	function redirectSettings()
+	async function redirectSettings()
 	{
-		redirectTo('/settings');
+		await goto('/settings');
 	}
 
-	function redirectLogout()
+	async function redirectLogout()
 	{
 		window.location.replace('/api/auth/logout');
 	}
 
-	function redirectHomepage()
+	async function redirectHomepage()
 	{
-		redirectTo('/home');
+		await goto('/home');
 	}
 
-	function redirectPlay()
+	async function redirectPlay()
 	{
-		redirectTo('/play');
+		await goto('/play');
 	}
 
-	function redirectChat()
+	async function redirectChat()
 	{
-		redirectTo('/chat');
+		await goto('/chat');
 	}
 
 </script>

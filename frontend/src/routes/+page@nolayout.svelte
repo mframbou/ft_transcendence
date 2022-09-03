@@ -1,6 +1,8 @@
 <script lang="ts">
 
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+
 	import FallingHeadsBackground from '../lib/FallingHeadsBackground.svelte';
 
 	function getCookie(name)
@@ -13,7 +15,7 @@
 	async function oauth42()
 	{
 		// fetch login
-		window.location.href = '/api/auth/42';
+		await goto('/api/auth/42');
 	}
 
 	let loading = true;

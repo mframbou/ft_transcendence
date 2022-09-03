@@ -5,10 +5,7 @@
 
 	function sendMsg()
 	{
-		io.connect();
-		console.log("connected ? ", io.connected);
 		io.emit('message', 'test');
-		console.log("emitted");
 	}
 
 </script>

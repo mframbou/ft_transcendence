@@ -27,6 +27,9 @@ POSTGRES_PASSWORD=transcendence
 POSTGRES_DB=transcendence
 POSTGRES_HOST=database # specified in docker-compose
 
+# For CORS, since front/back are on different ports, if allowing credentials CORS-Origin cannot be *
+SERVER_NAME=localhost
+
 # postgres://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}
 DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
 ```
