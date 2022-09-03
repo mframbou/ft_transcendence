@@ -15,6 +15,7 @@ import { AppGateway } from './app.gateway';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { JwtTwoFactorStrategy } from './auth/jwt-two-factor.strategy';
+import { PermissionsService } from './permissions/permissions.service';
 
 @Module({
 	controllers: [AppController, AuthController, UsersController, TwoFactorController],
@@ -24,7 +25,7 @@ import { JwtTwoFactorStrategy } from './auth/jwt-two-factor.strategy';
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, AppGateway, JwtStrategy, JwtTwoFactorStrategy],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, AppGateway, JwtStrategy, JwtTwoFactorStrategy, PermissionsService],
 })
 export class AppModule
 {

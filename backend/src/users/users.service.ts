@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { IUser, IPublicUser } from '../interfaces/interfaces';
+import { IUser, IPublicUser, ISelfUser } from '../interfaces/interfaces';
 import errorDispatcher from '../utils/error-dispatcher';
 import { UpdateUserDto } from './updateUser.dto';
 
@@ -56,6 +56,35 @@ export class UsersService
 					isOwner: true,
 					isAdmin: true,
 					isOnline: true,
+				}
+			});
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
+	}
+
+	async getSelfUser(login: string): Promise<ISelfUser>
+	{
+		try
+		{
+			return await this.prismaService.user.findUnique({
+				where: {
+					login: login,
+				},
+				select: {
+					login: true,
+					username: true,
+					profilePicture: true,
+					campus: true,
+					wins: true,
+					loses: true,
+					elo: true,
+					isOwner: true,
+					isAdmin: true,
+					isOnline: true,
+					twoFactorEnabled: true,
 				}
 			});
 		}

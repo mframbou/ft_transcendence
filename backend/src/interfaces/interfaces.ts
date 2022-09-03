@@ -42,6 +42,11 @@ export interface IPublicUser
 	isOnline: boolean;
 }
 
+export interface ISelfUser extends IPublicUser
+{
+	twoFactorEnabled: boolean;
+}
+
 export interface IBasicUserInfo
 {
 	id: number;

@@ -74,7 +74,6 @@
 		// e.preventDefault();
 		// if (e.)
 		// return;
-		console.log('down');
 		let prev = i > 0 ? formDigits[i - 1] : null;
 		let next = i < OTP_DIGITS - 1 ? formDigits[i + 1] : null;
 

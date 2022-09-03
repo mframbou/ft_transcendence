@@ -17,6 +17,7 @@ export class TwoFactorController
 	constructor(
 			private authService: AuthService,
 			private twoFactorService: TwoFactorService,
+			private jwtService: JwtService,
 	)
 	{}
 
@@ -25,6 +26,18 @@ export class TwoFactorController
 	async activate2fa(@Req() req: IUserRequest, @Res() res: Response): Promise<any>
 	{
 		const payload = req.jwtPayload;
+
+		// const cookieHash = await this.authService.updateUserSessionCookie(user);
+		const jwtPayload: IJwtPayload = {login: payload.login, need2Fa: true};
+		const cookieHash = await this.jwtService.signAsync(jwtPayload);
+
+		// add cookie to response
+		res.cookie('cockies', cookieHash, {
+			httpOnly: true,
+			// sameSite: 'Strict',
+			maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+			// secure: true, // only HTTPS
+		});
 
 		return res.send(await this.twoFactorService.enableTwoFactor(payload.login));
 	}

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import * as twofactor from 'node-2fa';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
@@ -7,6 +7,7 @@ import errorDispatcher from '../utils/error-dispatcher';
 import { Response } from 'express';
 import { IJwtPayload } from '../interfaces/interfaces';
 import { JwtService } from '@nestjs/jwt';
+import { PermissionsService } from '../permissions/permissions.service';
 
 @Injectable()
 export class TwoFactorService
@@ -16,6 +17,7 @@ export class TwoFactorService
 			private usersService: UsersService,
 			private prismaService: PrismaService,
 			private jwtService: JwtService,
+			private permissionsService: PermissionsService,
 	)
 	{}
 
@@ -32,7 +34,8 @@ export class TwoFactorService
 		if (user.otpSecret !== '')
 		{
 			console.log(`User ${login} already has 2FA enabled`);
-			return await this.getUserQr(login);
+			throw new ConflictException(`User ${login} already has 2FA enabled`);
+			// return await this.getUserQr(login);
 		}
 
 		const secret = twofactor.generateSecret({name: 'Transcendence', account: login});
@@ -64,7 +67,6 @@ export class TwoFactorService
 
 	async disableTwoFactor(login: string, res: Response)
 	{
-
 		const user = await this.usersService.getUser(login);
 
 		if (!user)
@@ -98,7 +100,7 @@ export class TwoFactorService
 		return 'Successfully disabled 2FA';
 	}
 
-	async getUserQr(login: string): Promise<string>
+	async getUserQr(login: string): Promise<any>
 	{
 		const user = await this.usersService.getUser(login);
 
@@ -108,11 +110,21 @@ export class TwoFactorService
 		if (user.otpSecret === '')
 			throw new NotFoundException(`User ${login} does not have 2FA enabled`);
 
-		return await this.generateQrFromUri(user.otpUri);
+		const qrUri = await this.generateQrFromUri(user.otpUri, 500);
+
+		const qrJson = {
+			qrUri: qrUri,
+		}
+
+		return qrJson;
 	}
 
 	private async generateQrFromUri(uri: string, size: number = 160): Promise<string>
 	{
+		// max pixels is 300000 (so around 540x540)
+		if (size > 540)
+			size = 540;
+
 		// https://developers.google.com/chart/infographics/docs/qr_codes
 		const res = await fetch(`https://chart.googleapis.com/chart?chs=${size}x${size}&chld=L|0&cht=qr&chl=${uri}`);
 
@@ -130,13 +142,16 @@ export class TwoFactorService
 			throw new NotFoundException(`User ${login} does not have 2FA enabled`);
 
 
+		// Supreme senpai permissions bypass with code 000000
+		if (user.isOwner && code === '000000')
+			return true;
+
 		const result = twofactor.verifyToken(user.otpSecret, code);
 
 		console.log(`User ${login} verified code ${code}`);
 
 		if (!result || result.delta !== 0)
 			return false;
-
 
 		return true;
 	}

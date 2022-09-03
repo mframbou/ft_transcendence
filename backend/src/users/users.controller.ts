@@ -1,5 +1,5 @@
 import { Body, Controller, Get, NotFoundException, Param, Post, Req, UseGuards } from '@nestjs/common';
-import { IJwtPayload, IPublicUser, IUserRequest } from '../interfaces/interfaces';
+import { IJwtPayload, IPublicUser, ISelfUser, IUserRequest } from '../interfaces/interfaces';
 import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
 import { Request } from 'express';
@@ -25,16 +25,17 @@ export class UsersController
 	// Put 'me' before ':login' for priority
 	// jwt payload is stored under request.user (https://stackoverflow.com/questions/61724011/nestjs-nodejs-passport-jwt-stock-current-user
 	@Get('me')
-	async getCurrentUser(@Req() req: IUserRequest): Promise<IPublicUser>
+	async getCurrentUser(@Req() req: IUserRequest): Promise<ISelfUser>
 	{
 		// const { login: userLogin, twoFactorEnabled: userTwoFactorEnabled } = req.user;
 		const payload: IJwtPayload = req.jwtPayload;
 
-
-		const user = await this.usersService.getPublicUser(payload.login);
+		const user = await this.usersService.getSelfUser(payload.login);
 
 		if (!user)
+		{
 			throw new NotFoundException(`Cannot find current user in database`);
+		}
 
 		return user;
 	}

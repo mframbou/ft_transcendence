@@ -18,9 +18,18 @@ export async function fetchUser()
 		{
 			const res = await fetch('/api/users/me');
 			if (res.ok)
+			{
 				user.set(await res.json());
-			else
-				console.log("User fetch failed: ", res.status);
+				return;
+			}
+
+			console.log("User fetch failed: ", res.status);
+
+			if (res.status === 404)
+			{
+				// 404 = user not found, probably removed from DB (or DB reset), so delete coookie by logging out
+				await fetch('/api/auth/logout');
+			}
 		}
 		catch (e)
 		{

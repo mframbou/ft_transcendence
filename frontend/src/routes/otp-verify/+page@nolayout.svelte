@@ -5,12 +5,9 @@
 	import OTPInput from '$lib/OTPInput.svelte';
 	import { otpVerifyAndClear } from '$lib/stores';
 
-	const otpSubmitUrl = '/api/2fa/verify'
-
 	let wrongCodeDuration = 4000;
 	let wrongCode = false;
 	let errorMessage = '';
-	let verifyingCode = false;
 
 	if (browser)
 	{
@@ -30,8 +27,6 @@
 	{
 		console.log('verifing');
 		wrongCode = false;
-
-		verifyingCode = true;
 
 		const res = await fetch(`/api/2fa/verify?code=${otpCode}`);
 
@@ -57,7 +52,6 @@
 					.then(() => wrongCode = false);
 		}
 
-		verifyingCode = false;
 		return true;
 	}
 
