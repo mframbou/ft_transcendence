@@ -28,5 +28,4 @@ import { PermissionsService } from './permissions/permissions.service';
 	providers: [AppService, AuthService, UsersService, TwoFactorService, AppGateway, JwtStrategy, JwtTwoFactorStrategy, PermissionsService],
 })
 export class AppModule
-{
-}
+{}

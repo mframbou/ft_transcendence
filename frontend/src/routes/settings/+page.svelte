@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { io } from '$lib/socket-io';
 	import { user, fetchUser } from '$lib/stores';
 	import { otpVerifyAndClear } from '$lib/stores';
 	import { fly } from 'svelte/transition';
@@ -44,11 +43,6 @@
 		}
 
 		return true;
-	}
-
-	function sendMessage()
-	{
-		io.emit('message', 'Test test');
 	}
 
 	function getUserPfp(user)

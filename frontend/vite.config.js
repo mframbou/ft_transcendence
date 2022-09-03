@@ -13,7 +13,6 @@ const config = {
 				const io = new Server(server.httpServer);
 
 				// Socket.IO stuff goes here
-
 				console.log('SocketIO injected');
 			}
 		}
@@ -31,7 +30,7 @@ const config = {
 				target: 'http://backend:3000',
 				changeOrigin: false,
 				secure: false,
-				ws: true,
+				ws: false,
 				rewrite: (path) => {
 					return path.replace('/api', '');
 				},

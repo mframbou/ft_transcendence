@@ -19,6 +19,8 @@ services:
     volumes:
       - ./backend/:/var/www/html/
       - ./certificates/:/etc/ssl/
+    ports:
+      - "3002:3001" # WebSockets
 #    ports:
 #      - "3000:3000"
     restart: always

@@ -27,6 +27,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
+      - "3002:3001" # WebSockets
     volumes:
       - ./backend/:/var/www/html/
     restart: always
