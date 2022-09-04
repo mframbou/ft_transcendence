@@ -47,6 +47,7 @@
 			this.img = images[Math.floor(Math.random() * images.length)];
 		}
 
+
 		update(canvasWidth: number, canvasHeight: number, elapsedTime: number)
 		{
 			let velocity = (this.velocity * elapsedTime) / 10;
@@ -102,7 +103,10 @@
 		context.clearRect(0, 0, canvas.width, canvas.height);
 
 		const now = performance.now();
-		const deltaTime = now - lastUpdate;
+		let deltaTime = now - lastUpdate;
+		// eg. if user leaves page to avoid having very high velocity wheb coming back (or very very very bad PC)
+		if (deltaTime > 200)
+			deltaTime = 0;
 		lastUpdate = now;
 
 		for (let point of points)

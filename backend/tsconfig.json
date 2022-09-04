@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "exclude": [
-      "src-sasso",
+      "src-sasso"
     ],
     "module": "commonjs",
     "declaration": true,

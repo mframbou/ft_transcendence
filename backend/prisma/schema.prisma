@@ -22,7 +22,7 @@ model User {
 	login            String          @unique
 	campus           String
 	wins             Int             @default(0)
-	loses            Int             @default(0)
+	losses           Int             @default(0)
 	elo              Int             @default(1000)
 	twoFactorEnabled Boolean         @default(false)
 	otpSecret        String          @default("")
@@ -30,4 +30,11 @@ model User {
 	isOwner          Boolean         @default(false)
 	isAdmin          Boolean         @default(false)
 	isOnline         Boolean         @default(false)
+	onlineStatus     Status          @default(ONLINE)
+}
+
+enum Status {
+    ONLINE
+    OFFLINE
+    IN_GAME
 }

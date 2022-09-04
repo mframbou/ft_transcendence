@@ -2,6 +2,7 @@
 	import { user, fetchUser } from '$lib/stores';
 	import { otpVerifyAndClear } from '$lib/stores';
 	import { fly } from 'svelte/transition';
+	import { onMount } from 'svelte';
 
 	import Modal from '$lib/Modal.svelte';
 	import OTPInput from "$lib/OTPInput.svelte";
@@ -43,11 +44,6 @@
 		}
 
 		return true;
-	}
-
-	function getUserPfp(user)
-	{
-		return user.profilePicture;
 	}
 
 	let errors = {};
@@ -93,9 +89,10 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
+			// https://www.prisma.io/docs/concepts/components/prisma-client/null-and-undefined
 			body: JSON.stringify({
-				username: username,
-				profilePicture: base64image,
+				username: username !== '' ? username: undefined,
+				profilePicture: base64image !== null ? base64image: undefined,
 			}),
 			credentials: 'include'
 		});
@@ -165,12 +162,9 @@
 		button.disabled = false;
 	}
 
-
 </script>
 
-<form enctype="application/x-www-form-urlencoded"
-			method="POST"
-			on:submit|preventDefault={updateUsername}>
+<form on:submit|preventDefault={updateUsername}>
 	New username:
 	{#if errors.username}<span style="color: red">{errors.username}</span>{/if}
 	<input bind:value={username} type="text">
@@ -198,9 +192,8 @@
 		<button on:click={enable2fa}>Enable 2FA</button>
 	{/if}
 
-	<div class="qr-modal">
-
 	{#if qr}
+	<div class="qr-modal">
 <!--		<Modal>Test</Modal>-->
 		<Modal>
 			<h1>Enable Two-Factor Authentication</h1>
@@ -217,8 +210,13 @@
 				</div>
 			{/if}
 		</Modal>
-	{/if}
 	</div>
+	{/if}
+
+	{#if $user}
+		<!--{JSON.stringify($user)}-->
+	{/if}
+
 </div>
 
 <!--<button on:click={get}>Send message</button>-->

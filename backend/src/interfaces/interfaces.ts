@@ -1,4 +1,5 @@
-import {Request} from 'express';
+import { Request } from 'express';
+import { Status } from '@prisma/client';
 
 export interface ISession
 {
@@ -18,14 +19,14 @@ export interface IUser
 	login: string;
 	campus: string;
 	wins: number;
-	loses: number;
+	losses: number;
 	elo: number;
 	twoFactorEnabled: boolean;
 	otpSecret: string;
 	otpUri: string;
 	isOwner: boolean;
 	isAdmin: boolean;
-	isOnline: boolean;
+	onlineStatus: Status;
 }
 
 export interface IPublicUser
@@ -35,11 +36,11 @@ export interface IPublicUser
 	login: string;
 	campus: string;
 	wins: number;
-	loses: number;
+	losses: number;
 	elo: number;
 	isOwner: boolean;
 	isAdmin: boolean;
-	isOnline: boolean;
+	onlineStatus: Status;
 }
 
 export interface ISelfUser extends IPublicUser

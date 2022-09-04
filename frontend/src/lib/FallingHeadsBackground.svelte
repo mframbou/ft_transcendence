@@ -79,7 +79,7 @@
 		const now = performance.now();
 		let deltaTime = now - lastUpdate;
 		// eg. if user leaves page to avoid having very high velocity wheb coming back (or very very very bad PC)
-		if (deltaTime > 500)
+		if (deltaTime > 200)
 			deltaTime = 0;
 		lastUpdate = now;
 

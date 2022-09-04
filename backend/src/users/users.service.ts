@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { IUser, IPublicUser, ISelfUser } from '../interfaces/interfaces';
 import errorDispatcher from '../utils/error-dispatcher';
@@ -51,11 +52,12 @@ export class UsersService
 					profilePicture: true,
 					campus: true,
 					wins: true,
-					loses: true,
+					losses: true,
 					elo: true,
 					isOwner: true,
 					isAdmin: true,
 					isOnline: true,
+					onlineStatus: true,
 				}
 			});
 		}
@@ -79,12 +81,13 @@ export class UsersService
 					profilePicture: true,
 					campus: true,
 					wins: true,
-					loses: true,
+					losses: true,
 					elo: true,
 					isOwner: true,
 					isAdmin: true,
 					isOnline: true,
 					twoFactorEnabled: true,
+					onlineStatus: true,
 				}
 			});
 		}
@@ -105,11 +108,12 @@ export class UsersService
 					profilePicture: true,
 					campus: true,
 					wins: true,
-					loses: true,
+					losses: true,
 					elo: true,
 					isOwner: true,
 					isAdmin: true,
 					isOnline: true,
+					onlineStatus: true,
 				}
 			});
 		}
@@ -152,20 +156,13 @@ export class UsersService
 
 	async updateUser(login: string, data: UpdateUserDto): Promise<IUser>
 	{
-
-		const updateData = {};
-		if (data.username)
-			updateData['username'] = data.username;
-		if (data.profilePicture)
-			updateData['profilePicture'] = data.profilePicture;
-
 		try
 		{
 			return await this.prismaService.user.update({
 				where: {
 					login: login,
 				},
-				data: updateData,
+				data: data,
 			});
 		}
 		catch (e)
