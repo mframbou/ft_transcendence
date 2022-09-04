@@ -183,7 +183,7 @@
 	<div class="settings-wrapper">
 
 		<section class="profile">
-			<h1>Profile</h1>
+			<h1 class="heading">Profile</h1>
 			<form class="profile-form" on:submit|preventDefault={updateUsername}>
 
 				<label for="settings-username">Username</label>
@@ -206,7 +206,7 @@
 
 		<section class="security">
 
-			<h1>Security</h1>
+			<h1 class="heading">Security</h1>
 			<div class="two-factor-settings">
 				<h2>
 					Two-Factor Authentication
@@ -270,7 +270,8 @@
 		{
 			display: inline-block;
 			width: 85%;
-			overflow-wrap: break-word;
+			overflow-wrap: normal;
+			text-align: justify;
 		}
 
 		.badge-disabled
@@ -325,7 +326,7 @@
 		align-items: center;
 		justify-content: center;
 		margin: 20px auto 0 auto;
-		width: 100%;
+		width: 90%;
 		max-width: 800px;
 		background-color: #ccc;
 		gap: 20px;
@@ -339,7 +340,7 @@
 			align-items: center;
 			justify-content: center;
 
-			h1
+			.heading
 			{
 				font-family: Montserrat;
 				font-weight: 700;

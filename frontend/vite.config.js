@@ -1,5 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import {Server} from "socket.io";
+import * as http from "http";
 
 /** @type {import('vite').UserConfig} */
 const config = {
@@ -25,7 +26,7 @@ const config = {
 	server: {
 		// https://github.com/http-party/node-http-proxy#options
 		proxy: {
-			'/api': {
+			'^/api': {
 				target: 'http://backend:3000',
 				changeOrigin: false,
 				secure: false,

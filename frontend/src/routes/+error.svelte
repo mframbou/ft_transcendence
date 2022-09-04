@@ -1,7 +1,8 @@
 <script lang="ts">
-    import {page} from '$app/stores';
+	import '$lib/assets/global.scss';
+	import { page } from '$app/stores';
 
-		import ParticlesBackground from '../lib/ParticlesBackground.svelte';
+	import ParticlesBackground from '../lib/ParticlesBackground.svelte';
 </script>
 
 <div class="wrapper">

@@ -10,7 +10,7 @@
 			canvasElement.addEventListener("mousemove",movePaddle);
 			context = canvasElement.getContext("2d")
 
-			setInterval(game, 1000/framePerSecond);
+			requestAnimationFrame(game);
 		})
 
 
@@ -190,6 +190,7 @@
     {
         Update();
         render();
+        requestAnimationFrame(game);
     }
 
 </script>

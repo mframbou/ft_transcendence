@@ -11,7 +11,8 @@ const NAMESPACE = 'status';
 
 @WebSocketGateway(3001,{
 	// Otherwise error 'gngngn has been blocked by CORS'
-	cors: {credentials: true, origin: `http://${process.env.SERVER_NAME}:3001`},
+	cors: {credentials: true, origin: `*`}, // origin will be modified by nginx proxy anyways
+	// cors: {origin: '*'},
 	// path: '/', // Default path is already '/'
 	namespace: NAMESPACE,
 })
@@ -24,9 +25,10 @@ export class StatusGateway
 	) {}
 
 	// Only on connection because its the only time cookies are sent
-	@UseGuards(JwtTwoFactorAuthGuard)
+	// @UseGuards(JwtTwoFactorAuthGuard)
 	async handleConnection(client: any, ...args: any[])
 	{
+		console.log("new client" + JSON.stringify(client.handshake.headers, null, 2));
 		if (!client.handshake.headers.cookie)
 		{
 			client.disconnect();
