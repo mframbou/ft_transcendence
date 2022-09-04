@@ -11,7 +11,7 @@ const NAMESPACE = 'status';
 
 @WebSocketGateway(3001,{
 	// Otherwise error 'gngngn has been blocked by CORS'
-	cors: {credentials: true, origin: `*`}, // origin will be modified by nginx proxy anyways
+	cors: {credentials: true, origin: '*'}, // origin will be modified by nginx proxy anyways
 	// cors: {origin: '*'},
 	// path: '/', // Default path is already '/'
 	namespace: NAMESPACE,

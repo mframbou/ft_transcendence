@@ -69,3 +69,7 @@ It is very simple to use the app, simply press the `Login with 42` button and yo
 - [oronda](https://github.com/Oronda42)
 - [sspina](https://github.com/SalvatoreSpina)
 - [mframbou](https://github.com/Zekoyu)
+
+# Todo
+
+Switch from cookie to localstorage, then try to implement proxy websocket
