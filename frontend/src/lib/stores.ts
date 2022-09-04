@@ -1,9 +1,10 @@
 import { get, writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
 export const user = writable(undefined);
 export const otpVerifyAndClear = writable(undefined);
 
-if (get(user) === undefined)
+if (browser && get(user) === undefined) // otherwises it runs on the first request (and only first requestm weird)
 {
 	console.log("User is undefined, fetching it");
 	fetchUser();

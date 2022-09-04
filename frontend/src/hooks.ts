@@ -82,8 +82,5 @@ export async function handle({event, resolve})
 		return redirectTo('/home');
 
 
-	// https://github.com/sveltejs/kit/discussions/3365
-	return await resolve(event, {
-		ssr: false,
-	});
+	return await resolve(event);
 }

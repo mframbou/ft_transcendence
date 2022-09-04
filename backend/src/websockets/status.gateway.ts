@@ -27,7 +27,23 @@ export class StatusGateway
 	@UseGuards(JwtTwoFactorAuthGuard)
 	async handleConnection(client: any, ...args: any[])
 	{
-		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(getCookie('cockies', client.handshake.headers.cookie));
+		if (!client.handshake.headers.cookie)
+		{
+			client.disconnect();
+			return;
+		}
+
+		let jwtPayload: IJwtPayload = null;
+		try
+		{
+			jwtPayload = await this.authService.getJwtFromCookie(getCookie('cockies', client.handshake.headers.cookie));
+		}
+		catch (e)
+		{
+			console.log(e);
+			client.disconnect();
+			return;
+		}
 
 		console.log(`${jwtPayload.login} is now online`);
 
@@ -37,9 +53,6 @@ export class StatusGateway
 	@UseGuards() // just bcause otherwise webstorm says unused and might remove on code cleanup
 	async handleDisconnect(client: any)
 	{
-		const disconnectAt = new Date();
-		await new Promise(resolve => setTimeout(resolve, 1000));
-
 		const clientToRemove: IWebsocketClient = this.websocketsService.getClient(client.id);
 		console.log(`${clientToRemove.login} is now offline`);
 

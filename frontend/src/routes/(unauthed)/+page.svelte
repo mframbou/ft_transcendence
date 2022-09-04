@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
-	import FallingHeadsBackground from '../lib/FallingHeadsBackground.svelte';
+	import FallingHeadsBackground from '$lib/FallingHeadsBackground.svelte';
 
 	function getCookie(name)
 	{

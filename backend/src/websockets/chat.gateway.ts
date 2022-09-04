@@ -26,9 +26,26 @@ export class ChatGateway
 	@UseGuards(JwtTwoFactorAuthGuard)
 	async handleConnection(client: any, ...args: any[])
 	{
-		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(getCookie('cockies', client.handshake.headers.cookie));
+		if (!client.handshake.headers.cookie)
+		{
+			client.disconnect();
+			return;
+		}
 
-		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});	}
+		let jwtPayload: IJwtPayload = null;
+		try
+		{
+			jwtPayload = await this.authService.getJwtFromCookie(getCookie('cockies', client.handshake.headers.cookie));
+		}
+		catch (e)
+		{
+			console.log(e);
+			client.disconnect();
+			return;
+		}
+
+		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
+	}
 
 	@UseGuards() // just bcause otherwise webstorm says unused and might remove on code cleanup
 	handleDisconnect(client: any): any

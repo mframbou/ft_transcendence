@@ -210,7 +210,6 @@
 
 	.profile-picture
 	{
-
 		width: 3em;
 		border-radius: 0.2em;
 		object-fit: cover; // to make square

@@ -19,7 +19,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 const rightCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/home`;
-const wrongCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/otp-verify?wrong_code=true`;
+const wrongCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/otp-verify?wrong_code`;
 
 @Controller('2fa')
 export class TwoFactorController

@@ -1,4 +1,6 @@
+import { browser } from '$app/environment';
 import ioClient from 'socket.io-client';
+
 
 const host = window.location.hostname;
 
@@ -10,6 +12,8 @@ const statusSocket = ioClient(BASE_ENDPOINT + '/status', {
 	withCredentials: true,
 });
 
-const chatSocket = ioClient(BASE_ENDPOINT + '/chat');
+const chatSocket = ioClient(BASE_ENDPOINT + '/chat', {
+	withCredentials: true,
+});
 
 export { statusSocket, chatSocket };

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { user, fetchUser } from '$lib/stores';
-	import { otpVerifyAndClear } from '$lib/stores';
+	import { user, fetchUser } from '../../../lib/stores';
+	import { otpVerifyAndClear } from '../../../lib/stores';
 	import { fly } from 'svelte/transition';
 
-	import Modal from '$lib/Modal.svelte';
-	import OTPInput from "$lib/OTPInput.svelte";
+	import Modal from '../../../lib/Modal.svelte';
+	import OTPInput from "../../../lib/OTPInput.svelte";
 
 	let wrongCodeDuration = 4000;
 	let wrongCode = false;
@@ -178,6 +178,7 @@
 
 </script>
 
+
 {#if $user}
 	<div class="settings-wrapper">
 
@@ -195,13 +196,11 @@
 
 				<button type="submit">Update username</button>
 			</form>
-			<div>
-				{#if base64image}
-					<img class="pfp-preview" src={base64image}>
-				{:else}
-					No image
-				{/if}
-			</div>
+			{#if base64image}
+				<img class="pfp-preview" src={base64image}>
+			{:else}
+				No image
+			{/if}
 		</section>
 
 
@@ -368,7 +367,11 @@
 
 	.pfp-preview
 	{
-		width: 30em;
+		margin: 20px;
+		width: 20em;
+		border-radius: 0.2em;
+		object-fit: cover; // to make square
+		aspect-ratio: 1;
 	}
 
 	.qr-modal

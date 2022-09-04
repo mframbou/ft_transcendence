@@ -1,16 +1,12 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
-	import ParticlesBackground from "$lib/ParticlesBackground.svelte";
-	import OTPInput from '$lib/OTPInput.svelte';
-	import { otpVerifyAndClear } from '$lib/stores';
+	import ParticlesBackground from "../../../lib/ParticlesBackground.svelte";
+	import OTPInput from '../../../lib/OTPInput.svelte';
+	import { otpVerifyAndClear } from '../../../lib/stores';
 
 	let wrongCodeDuration = 4000;
 	let wrongCode = false;
 	let errorMessage = '';
-
-
-	const urlParams = new URLSearchParams(window.location.search);
-	wrongCode = urlParams.get('wrong_code') === 'true';
 
 	async function onCodeComplete(event)
 	{
