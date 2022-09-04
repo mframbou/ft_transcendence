@@ -227,8 +227,7 @@
 
 				{#if qr}
 				<div class="qr-modal">
-			<!--		<Modal>Test</Modal>-->
-					<Modal>
+					<Modal closeOnClickOutside={false}>
 						<h1>Enable Two-Factor Authentication</h1>
 						<ol class="steps">
 							<li>Download a 2FA app such as <strong>Google Authenticator</strong> or <strong>Auhty</strong>.</li>

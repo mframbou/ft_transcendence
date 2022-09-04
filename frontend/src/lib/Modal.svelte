@@ -1,5 +1,7 @@
 <script lang="ts">
+
 	export let modalShown = true;
+	export let closeOnClickOutside = true;
 
 	let wrapperElement;
 
@@ -11,6 +13,9 @@
 
 	function handleClick(e)
 	{
+		if (!closeOnClickOutside)
+			return;
+
 		if (e.target === wrapperElement)
 			closeModal();
 	}

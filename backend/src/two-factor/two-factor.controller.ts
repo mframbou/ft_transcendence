@@ -1,4 +1,14 @@
-import { Controller, Get, Param, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+	Controller,
+	Get, NotFoundException,
+	Param,
+	ParseBoolPipe,
+	Query,
+	Req,
+	Res,
+	UnauthorizedException,
+	UseGuards
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { Request, Response } from 'express';
@@ -18,17 +28,19 @@ export class TwoFactorController
 			private authService: AuthService,
 			private twoFactorService: TwoFactorService,
 			private jwtService: JwtService,
+			private usersService: UsersService,
 	)
 	{}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('activate')
-	async activate2fa(@Req() req: IUserRequest, @Res() res: Response): Promise<any>
+	// cannot use parseboolpipe since arg is optional
+	async activate2fa(@Req() req: IUserRequest, @Res() res: Response, @Query('unsafe') safe?: string): Promise<any>
 	{
 		const payload = req.jwtPayload;
 
 		// const cookieHash = await this.authService.updateUserSessionCookie(user);
-		const jwtPayload: IJwtPayload = {login: payload.login, need2Fa: true};
+		const jwtPayload: IJwtPayload = {login: payload.login, need2Fa: false};
 		const cookieHash = await this.jwtService.signAsync(jwtPayload);
 
 		// add cookie to response
@@ -39,7 +51,13 @@ export class TwoFactorController
 			// secure: true, // only HTTPS
 		});
 
-		return res.send(await this.twoFactorService.enableTwoFactor(payload.login));
+		let safeVerify = false;
+		// because '' is falsy
+		if (safe !== undefined && (safe === 'true' || safe === ''))
+			safeVerify = true;
+
+		// I left the unused code just in case, but I think it's better to always be safe (means need to input code after enabling to truly enable)
+		return res.send(await this.twoFactorService.enableTwoFactor(payload.login, true));
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
@@ -57,8 +75,13 @@ export class TwoFactorController
 	async verify2faCode(@Query('code') code: string, @Req() req: IUserRequest, @Res() res: Response): Promise<any>
 	{
 		const payload = req.jwtPayload;
+		const user = await this.usersService.getUser(payload.login);
 
-		if (!payload.need2Fa)
+		if (!user)
+			throw new NotFoundException('User not found');
+
+		// check twoFactorEnabled for safe mode (if not enabled, its probably second step of safe mode)
+		if (!payload.need2Fa && user.twoFactorEnabled)
 		{
 			return res.status(409).send('2FA already verified');
 		}

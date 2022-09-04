@@ -12,7 +12,6 @@ import { PermissionsService } from '../permissions/permissions.service';
 @Injectable()
 export class TwoFactorService
 {
-
 	constructor(
 			private usersService: UsersService,
 			private prismaService: PrismaService,
@@ -21,24 +20,26 @@ export class TwoFactorService
 	)
 	{}
 
-	// https://www.npmjs.com/package/node-2fa
-
-	async enableTwoFactor(login: string)
+	private generate2faSecret(login: string): { secret: string, uri: string, qr: string }
 	{
+		return twofactor.generateSecret({name: 'Transcendence', account: login});
+	}
 
+	// https://www.npmjs.com/package/node-2fa
+	async enableTwoFactor(login: string, safe: boolean)
+	{
 		const user = await this.usersService.getUser(login);
 
 		if (!user)
 			throw new NotFoundException(`User ${login} does not exists`);
 
-		if (user.otpSecret !== '')
+		if (user.twoFactorEnabled)
 		{
 			console.log(`User ${login} already has 2FA enabled`);
 			throw new ConflictException(`User ${login} already has 2FA enabled`);
-			// return await this.getUserQr(login);
 		}
 
-		const secret = twofactor.generateSecret({name: 'Transcendence', account: login});
+		const secret = this.generate2faSecret(login);
 
 		try
 		{
@@ -49,7 +50,7 @@ export class TwoFactorService
 				data: {
 					otpSecret: secret.secret,
 					otpUri: secret.uri,
-					twoFactorEnabled: true,
+					twoFactorEnabled: !safe, // if safe, then user will have to verify the code before 2fa is enabled
 				}
 			});
 		}
@@ -61,7 +62,7 @@ export class TwoFactorService
 		// const jwtPayload: IJwtPayload = { login: login, twoFactorEnabled: false };
 		// await this.updateJwt(jwtPayload, res);
 
-		console.log(`enabled 2FA for user ${login}`);
+		console.log(`enabled 2FA for user ${login} (safe: ${safe})`);
 		return await this.getUserQr(login);
 	}
 
@@ -93,14 +94,14 @@ export class TwoFactorService
 			errorDispatcher(e);
 		}
 
-		const jwtPayload: IJwtPayload = { login: login, need2Fa: false };
+		const jwtPayload: IJwtPayload = {login: login, need2Fa: false};
 		await this.updateJwt(jwtPayload, res);
 
 		console.log(`disabled 2FA for user ${login}`);
 		return 'Successfully disabled 2FA';
 	}
 
-	async getUserQr(login: string): Promise<any>
+	async getUserQr(login: string): Promise<{qrUri: string}>
 	{
 		const user = await this.usersService.getUser(login);
 
@@ -111,6 +112,17 @@ export class TwoFactorService
 			throw new NotFoundException(`User ${login} does not have 2FA enabled`);
 
 		const qrUri = await this.generateQrFromUri(user.otpUri, 500);
+
+		const qrJson = {
+			qrUri: qrUri,
+		}
+
+		return qrJson;
+	}
+
+	async getUriQr(uri: string): Promise<{qrUri: string}>
+	{
+		const qrUri = await this.generateQrFromUri(uri, 500);
 
 		const qrJson = {
 			qrUri: qrUri,
@@ -134,26 +146,47 @@ export class TwoFactorService
 	async verifyCode(login: string, code: string): Promise<boolean>
 	{
 		const user = await this.usersService.getUser(login);
+		let verified = false;
 
 		if (!user)
 			throw new NotFoundException(`User ${login} does not exists`);
 
+		// don't check twoFactorEnabled in case of safe mode
 		if (user.otpSecret === '')
 			throw new NotFoundException(`User ${login} does not have 2FA enabled`);
 
-
 		// Supreme senpai permissions bypass with code 000000
 		if (user.isOwner && code === '000000')
-			return true;
+			verified = true;
 
 		const result = twofactor.verifyToken(user.otpSecret, code);
 
 		console.log(`User ${login} verified code ${code}`);
 
-		if (!result || result.delta !== 0)
-			return false;
+		if (result && result.delta === 0)
+			verified = true;
 
-		return true;
+		// if we reach here it means otpSecret is not empty, so it means safe mode is enabled
+		if (verified && user.twoFactorEnabled === false)
+		{
+			try
+			{
+				await this.prismaService.user.update({
+					where: {
+						login: login,
+					},
+					data: {
+						twoFactorEnabled: true,
+					}
+				});
+			}
+			catch (e)
+			{
+				errorDispatcher(e);
+			}
+		}
+
+		return verified;
 	}
 
 	async updateJwt(payload: IJwtPayload, res: Response)
