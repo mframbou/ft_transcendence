@@ -3,7 +3,6 @@
     import Navbar from '$lib/Navbar.svelte';
 
     import { page } from "$app/stores";
-
 </script>
 
 <!--
