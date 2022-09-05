@@ -51,8 +51,9 @@
 
 	let base64image = null;
 	let imageUploaded = false;
+	let updating = false;
 
-	async function updateUsername(e)
+	async function updateUser(e)
 	{
 		formErrors = {};
 
@@ -84,6 +85,7 @@
 		if (Object.keys(formErrors).length > 0)
 			return;
 
+		updating = true;
 		const response = await fetch('/api/users/update/me', {
 			method: 'POST',
 			headers: {
@@ -113,6 +115,7 @@
 
 			console.log(formErrors);
 		}
+		updating = false;
 	}
 
 
@@ -176,15 +179,26 @@
 		button.disabled = false;
 	}
 
-</script>
 
+
+	let crop = { x: 0, y: 0 };
+	let zoom = 1;
+	let image = "https://cdn1-www.dogtime.com/assets/uploads/2011/03/puppy-development.jpg";
+
+	function handleCrop(e)
+	{
+		const area = e.detail;
+		const pixels = area.pixels;
+		console.log(pixels.x, pixels.y, pixels.width, pixels.height)
+	}
+
+</script>
 
 {#if $user}
 	<div class="settings-wrapper">
-
 		<section class="profile">
 			<h1 class="heading">Profile</h1>
-			<form class="profile-form" on:submit|preventDefault={updateUsername}>
+			<form class="profile-form" on:submit|preventDefault={updateUser}>
 
 				<label for="settings-username">Username</label>
 				{#if formErrors.username}<span style="color: red">{formErrors.username}</span>{/if}
@@ -194,7 +208,7 @@
 				{#if formErrors.profilePicture}<span style="color: red">{formErrors.profilePicture}</span>{/if}
 				<input id="settings-profile-picture" accept="image/png, image/gif, image/jpeg" on:change={onFileSelected} type="file">
 
-				<button type="submit">Update username</button>
+				<button type="submit" disabled={updating}>Update username</button>
 			</form>
 			{#if base64image}
 				<img class="pfp-preview" src={base64image}>

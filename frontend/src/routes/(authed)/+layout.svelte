@@ -1,6 +1,9 @@
 <script lang-="ts">
     import '$lib/assets/global.scss';
     import Navbar from '$lib/Navbar.svelte';
+    import { statusTrackerSocket } from "$lib/stores";
+
+    statusTrackerSocket.subscribe(() => {});
 </script>
 
 
