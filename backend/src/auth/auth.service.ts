@@ -1,5 +1,5 @@
 // Nest
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import fetch from 'node-fetch';
 import { hash } from 'bcrypt';
 
@@ -8,7 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { IJwtPayload, IUser } from '../interfaces/interfaces';
 import errorDispatcher from '../utils/error-dispatcher';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 // Videos tutorial: https://www.youtube.com/watch?v=KQya9i6czhM
 // https://www.youtube.com/watch?v=Yv5tZu5wAU0
@@ -39,6 +39,24 @@ export class AuthService
 					HttpStatus.INTERNAL_SERVER_ERROR,
 			);
 		}
+	}
+
+	async addJwtCookie(res: Response, payload: IJwtPayload)
+	{
+		let cookieHash = null;
+		try
+		{
+			cookieHash = await this.jwtService.signAsync(payload);
+		}
+		catch (error)
+		{
+			throw new InternalServerErrorException('error while adding cookie: ' + error.message);
+		}
+
+		res.cookie('cockies', cookieHash, {
+			// httpOnly: true, // removed httpOnly for websocket
+			maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+		});
 	}
 
 	async getJwtFromCookie(sessionCookie: string): Promise<IJwtPayload>

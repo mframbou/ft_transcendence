@@ -52,18 +52,18 @@ services:
     networks:
       transcendence-network:
 
-  proxy:
-    hostname: proxy
-    image: nginx:alpine
-    ports:
-      - "3005:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - backend
-    restart: always
-    networks:
-      transcendence-network:
+#  proxy:
+#    hostname: proxy
+#    image: nginx:alpine
+#    ports:
+#      - "3005:80"
+#    volumes:
+#      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+#    depends_on:
+#      - backend
+#    restart: always
+#    networks:
+#      transcendence-network:
 
 volumes:
   database-volume:

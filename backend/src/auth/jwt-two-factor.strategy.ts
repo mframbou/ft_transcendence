@@ -26,6 +26,7 @@ export class JwtTwoFactorStrategy extends PassportStrategy(Strategy, 'jwt-two-fa
 		{
 			throw new HttpException('You need to connect using two factor authentication', HttpStatus.UNAUTHORIZED);
 		}
+
 		return {login: payload.login, need2Fa: payload.need2Fa};
 	}
 }

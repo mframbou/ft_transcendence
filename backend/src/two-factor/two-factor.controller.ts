@@ -18,8 +18,8 @@ import { IJwtPayload, IUserRequest } from '../interfaces/interfaces';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-const rightCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/home`;
-const wrongCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/otp-verify?wrong_code`;
+// const rightCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/home`;
+// const wrongCodeRedirectFrontend = `http://${process.env.SERVER_NAME}:3001/otp-verify?wrong_code`;
 
 @Controller('2fa')
 export class TwoFactorController
@@ -40,16 +40,7 @@ export class TwoFactorController
 		const payload = req.jwtPayload;
 
 		// const cookieHash = await this.authService.updateUserSessionCookie(user);
-		const jwtPayload: IJwtPayload = {login: payload.login, need2Fa: false};
-		const cookieHash = await this.jwtService.signAsync(jwtPayload);
-
-		// add cookie to response
-		res.cookie('cockies', cookieHash, {
-			httpOnly: true,
-			// sameSite: 'Strict',
-			maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-			// secure: true, // only HTTPS
-		});
+		await this.authService.addJwtCookie(res, payload);
 
 		let safeVerify = false;
 		// because '' is falsy
@@ -97,7 +88,7 @@ export class TwoFactorController
 
 
 		const jwtPayload: IJwtPayload = {login: payload.login, need2Fa: false};
-		await this.twoFactorService.updateJwt(jwtPayload, res);
+		await this.authService.addJwtCookie(res, jwtPayload);
 
 		console.log('Re-created cookie for users ' + payload.login);
 

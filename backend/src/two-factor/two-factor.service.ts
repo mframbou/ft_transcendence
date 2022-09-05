@@ -8,6 +8,7 @@ import { Response } from 'express';
 import { IJwtPayload } from '../interfaces/interfaces';
 import { JwtService } from '@nestjs/jwt';
 import { PermissionsService } from '../permissions/permissions.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class TwoFactorService
@@ -17,6 +18,7 @@ export class TwoFactorService
 			private prismaService: PrismaService,
 			private jwtService: JwtService,
 			private permissionsService: PermissionsService,
+			private authService: AuthService,
 	)
 	{}
 
@@ -59,9 +61,6 @@ export class TwoFactorService
 			errorDispatcher(e);
 		}
 
-		// const jwtPayload: IJwtPayload = { login: login, twoFactorEnabled: false };
-		// await this.updateJwt(jwtPayload, res);
-
 		console.log(`enabled 2FA for user ${login} (safe: ${safe})`);
 		return await this.getUserQr(login);
 	}
@@ -95,7 +94,7 @@ export class TwoFactorService
 		}
 
 		const jwtPayload: IJwtPayload = {login: login, need2Fa: false};
-		await this.updateJwt(jwtPayload, res);
+		await this.authService.addJwtCookie(res, jwtPayload);
 
 		console.log(`disabled 2FA for user ${login}`);
 		return 'Successfully disabled 2FA';
@@ -188,19 +187,4 @@ export class TwoFactorService
 
 		return verified;
 	}
-
-	async updateJwt(payload: IJwtPayload, res: Response)
-	{
-		const jwtPayload: IJwtPayload = {login: payload.login, need2Fa: payload.need2Fa};
-		const cookieHash = await this.jwtService.signAsync(jwtPayload);
-
-		// change cookie with twofactor to false to dont ask again till cookie expiration (dont change it in db tho otherwise it disabled 2fa for every cookie)
-		res.cookie('cockies', cookieHash, {
-			httpOnly: true,
-			// sameSite: 'Strict',
-			maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-			// secure: true, // only HTTPS
-		});
-	}
-
 }

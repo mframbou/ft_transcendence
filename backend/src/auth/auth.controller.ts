@@ -89,17 +89,7 @@ export class AuthController
 
 		console.log(message);
 
-		// const cookieHash = await this.authService.updateUserSessionCookie(user);
-		const jwtPayload: IJwtPayload = {login: user.login, need2Fa: user.twoFactorEnabled};
-		const cookieHash = await this.jwtService.signAsync(jwtPayload);
-
-		// add cookie to response
-		res.cookie(sessionCookieName, cookieHash, {
-			httpOnly: true,
-			// sameSite: 'Strict',
-			maxAge: cookieDuration,
-			// secure: true, // only HTTPS
-		});
+		await this.authService.addJwtCookie(res, {login: user.login, need2Fa: user.twoFactorEnabled});
 
 		console.log('Created cookie for user ' + user.login);
 

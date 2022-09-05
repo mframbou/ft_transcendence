@@ -10,7 +10,6 @@ export class WebsocketsService {
 
 	addClient(clientData: IWebsocketClient)
 	{
-
 		console.log(`New client ${clientData.login} connected to '${clientData.namespace}'`);
 
 		const client = this.clients.find(client => client.id === clientData.id);

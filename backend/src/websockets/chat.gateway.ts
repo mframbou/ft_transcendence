@@ -1,4 +1,4 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect } from '@nestjs/websockets';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
@@ -9,56 +9,45 @@ import { WebsocketsService } from './websockets.service';
 
 const NAMESPACE = 'chat';
 
-
 @WebSocketGateway(3001,{
 	cors: {origin: '*'},
 	namespace: NAMESPACE,
 })
 // @UseGuards(JwtTwoFactorAuthGuard)
-export class ChatGateway
+export class ChatGateway implements OnGatewayDisconnect
 {
-
 	constructor(
 			private authService: AuthService,
 			private websocketsService: WebsocketsService,
 	) {}
 
-	@UseGuards(JwtTwoFactorAuthGuard)
-	async handleConnection(client: any, ...args: any[])
+	@SubscribeMessage('first_connect')
+	async handleFirstConnect(client: any, payload: any)
 	{
-		if (!client.handshake.headers.cookie)
+		if (!payload)
 		{
 			client.disconnect();
 			return;
 		}
 
-		let jwtPayload: IJwtPayload = null;
-		try
-		{
-			jwtPayload = await this.authService.getJwtFromCookie(getCookie('cockies', client.handshake.headers.cookie));
-		}
-		catch (e)
-		{
-			console.log(e);
-			client.disconnect();
-			return;
-		}
+		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload);
 
 		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
 	}
 
-	@UseGuards() // just bcause otherwise webstorm says unused and might remove on code cleanup
-	handleDisconnect(client: any): any
+	async handleDisconnect(client: any)
 	{
+		const clientToRemove: IWebsocketClient = this.websocketsService.getClient(client.id);
+		if (!clientToRemove)
+			return;
+
 		this.websocketsService.removeClient(client.id);
 	}
 
 	@SubscribeMessage('message')
-	handleMessage(client: any, payload: any): string
+	async handleMessage(client: any, payload: any)
 	{
-		const user: IWebsocketClient = this.websocketsService.getClient(client.id);
-
-		console.log('received msg from ', user.login + ':', payload);
-		return 'Hello world!';
+		const user = this.websocketsService.getClient(client.id);
+		console.log(`${NAMESPACE}-Gateway: ${user.login}: ${payload}`);
 	}
 }
