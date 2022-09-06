@@ -17,7 +17,7 @@ export class FriendsController {
         private readonly permissionService : PermissionService,
         private readonly prisma: PrismaService,
         private readonly friendsService: FriendsService
-    ) {this.prisma = new PrismaService({})}
+    ) {}
 
     @Post('add')
     async addFriend(@Body() friend : any, @Req() req) : Promise<void> {

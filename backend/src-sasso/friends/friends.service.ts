@@ -55,4 +55,5 @@ export class FriendsService {
 			ErrorDispatcher(e)
 		}
 	}
+
 }

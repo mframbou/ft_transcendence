@@ -148,6 +148,13 @@
 	// If the onMount callback returns a function, that function will be called when the component is destroyed.
 	onMount(() =>
 	{
+		const canvasDoubleClickListener = (e: MouseEvent) =>
+		{
+			alert('test');
+			e.preventDefault();
+			e.stopPropagation();
+		};
+
 		const canvasClickListener = (e: MouseEvent) =>
 		{
 			const rect = canvas.getBoundingClientRect();

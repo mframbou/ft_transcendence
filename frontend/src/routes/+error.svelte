@@ -45,6 +45,7 @@
 	.content
 	{
 		z-index: 1; // So that text is above the particles, but we can still click the background (if we put the whole wrapper we only click wrapper)
+		user-select: none;
 
 		display: flex;
 		flex-direction: column;

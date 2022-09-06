@@ -12,7 +12,6 @@ const statusSocket = ioClient(BASE_ENDPOINT + '/status', {
 	autoConnect: false,
 });
 
-console.log('test');
 const chatSocket = ioClient(BASE_ENDPOINT + '/chat', {
 	autoConnect: true,
 });

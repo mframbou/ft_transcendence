@@ -9,6 +9,7 @@ import { IJwtPayload } from '../interfaces/interfaces';
 import { JwtService } from '@nestjs/jwt';
 import { PermissionsService } from '../permissions/permissions.service';
 import { AuthService } from '../auth/auth.service';
+import { toDataURL } from 'qrcode';
 
 @Injectable()
 export class TwoFactorService
@@ -132,6 +133,10 @@ export class TwoFactorService
 
 	private async generateQrFromUri(uri: string, size: number = 160): Promise<string>
 	{
+		const qr = await toDataURL(uri, {width: size, errorCorrectionLevel: 'low', margin: 0});
+		return qr;
+
+		/* USING GOOGLE API (OLD, might fail for robot verification)
 		// max pixels is 300000 (so around 540x540)
 		if (size > 540)
 			size = 540;
@@ -140,6 +145,7 @@ export class TwoFactorService
 		const res = await fetch(`https://chart.googleapis.com/chart?chs=${size}x${size}&chld=L|0&cht=qr&chl=${uri}`);
 
 		return res.url;
+		*/
 	}
 
 	async verifyCode(login: string, code: string): Promise<boolean>
