@@ -1,0 +1,68 @@
+<script lang="ts">
+	export let glowing: boolean = true;
+	export let border: boolean = true;
+</script>
+
+<style lang="scss">
+
+	.button
+	{
+		position: relative;
+
+		//width: fit-content;
+		padding: 15px 20px;
+		font-family: Lato;
+		font-size: 1em;
+		font-weight: bolder;
+		color: white;
+		vertical-align: middle;
+		text-align: center;
+		border-radius: 100vw;
+		margin: 10px;
+		cursor: pointer;
+		z-index: 10;
+		transform-style: preserve-3d; // https://stackoverflow.com/a/51432213
+		outline: none;
+		border: none;
+		box-shadow: inset 0 -16px 16px rgba(0, 0, 0, 0.2);
+
+		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
+	}
+
+	.glowing:before
+	{
+		content: '';
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+		background: inherit;
+		border-radius: inherit;
+		transform: scale(0.8) translateY(5px) translateZ(-2px);
+		filter: blur(48px);
+		opacity: 0.6;
+	}
+
+	.border:after
+	{
+		$border-width: var(--border-width, 2px);
+
+		content: '';
+		position: absolute;
+		top: -$border-width;
+		bottom: -$border-width;
+		left: -$border-width;
+		right: -$border-width;
+		background: inherit;
+		filter: brightness(1.1);
+		border-radius: inherit;
+		transform: translateZ(-1px);
+	}
+
+</style>
+
+<!--	forward click event to parent -->
+<button on:click class="button" class:glowing={glowing} class:border={border}>
+	<slot/>
+</button>
