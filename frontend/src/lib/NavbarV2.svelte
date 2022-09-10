@@ -87,6 +87,10 @@
 			font-weight: 500;
 			text-decoration: inherit;
 			color: white;
+			&:hover
+			{
+				color: #d0cfd3;
+			}
 		}
 
 		.current
@@ -132,7 +136,12 @@
 	let navItems: NavItem[] = navigation.map((name) => ({ name: name, elt: null }));
 	let navPoint;
 	let navDiv;
+	let navPointRadius = 0;
 
+	onMount(async () => {
+		navPointRadius = navPoint.getBoundingClientRect().width / 2;
+		changeCurrent(navigation[0]); // to position point
+	});
 
 	function changeCurrent(newCurrent: string)
 	{
@@ -144,12 +153,8 @@
 		// make position relative to the nav element
 		// use percentage instead of fixed px to make it responsive without adding resize listener
 		let percentage = navElement.offsetLeft / navDiv.offsetWidth + navElement.offsetWidth / navDiv.offsetWidth / 2;
-		navPoint.style.left = `calc(${percentage * 100}% - 4px)`;
+		navPoint.style.left = `calc(${percentage * 100}% - ${navPointRadius}px)`;
 	}
-
-	onMount(async () => {
-		changeCurrent(navigation[0]); // to position point
-	});
 
 </script>
 
