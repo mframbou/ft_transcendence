@@ -6,7 +6,6 @@
 		flex-direction: row;
 		justify-content: center;
 		align-items: center;
-		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
@@ -26,6 +25,7 @@
 		{
 			height: 45%;
 			cursor: pointer;
+			position: relative;
 
 			&:hover
 			{
@@ -119,6 +119,21 @@
 			background: #5b45b9;
 			transition: left $nav-transition;
 		}
+
+		.nav-item
+		{
+			cursor: pointer;
+		}
+	}
+
+	.absolute
+	{
+		position: absolute;
+	}
+
+	.relative
+	{
+		position: relative;
 	}
 
 </style>
@@ -127,6 +142,7 @@
 <script lang="ts">
 
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
 	interface NavItem
 	{
@@ -134,7 +150,8 @@
 		elt: HTMLElement;
 	}
 
-	export let navigation: string[] = ['play', 'chat', 'friends', 'settings'];
+	export let navigation: string[] = ['home', 'chat', 'friends', 'settings'];
+	export let relativePos: boolean = false;
 	let current: string = navigation[0];
 	let navItems: NavItem[] = navigation.map((name) => ({ name: name, elt: null }));
 	let navPoint;
@@ -143,7 +160,20 @@
 
 	onMount(async () => {
 		navPointRadius = navPoint.getBoundingClientRect().width / 2;
-		changeCurrent(navigation[0]); // to position point
+
+		// Set the initial position of the nav point (if user goes directly to 'chat' dont stay on 'home'
+		if (window.location.pathname.length > 1 && window.location.pathname.charAt(0) === '/')
+		{
+			const currentPage = window.location.pathname.substring(1);
+			if (navigation.includes(currentPage))
+			{
+				changeCurrent(currentPage);
+			}
+		}
+		else
+		{
+			changeCurrent(navigation[0]); // to position point
+		}
 	});
 
 	function changeCurrent(newCurrent: string)
@@ -159,9 +189,14 @@
 		navPoint.style.left = `calc(${percentage * 100}% - ${navPointRadius}px)`;
 	}
 
+	async function redirectLogout()
+	{
+		window.location.replace('/api/auth/logout');
+	}
+
 </script>
 
-<div class="wrapper">
+<div class="wrapper" class:absolute={!relativePos} class:relative={relativePos}>
 	<div class="logo">
 		<img src="/images/bellopongo-white.png">
 	</div>
@@ -169,8 +204,10 @@
 
 		{#each navItems as nav}
 			<a on:click={() => changeCurrent(nav.name)}
-				 href="#" class:current={nav.name === current}
+				 class:current={nav.name === current}
+				 class="nav-item"
 				 bind:this={nav.elt}
+				 on:click|stopPropagation|preventDefault={async () => { await goto (`/${nav.name}`); }}
 			>
 				{nav.name}
 			</a>
@@ -180,6 +217,6 @@
 
 	</div>
 	<div class="profile">
-		<button>Log out</button>
+		<button on:click={redirectLogout}>Log out</button>
 	</div>
 </div>

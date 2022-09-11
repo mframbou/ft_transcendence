@@ -1,11 +1,3 @@
-<script lang="ts">
-
-	import Pong from '$lib/Pong.svelte';
-	import Button from '$lib/Button.svelte';
-	import NavbarV2 from '$lib/NavbarV2.svelte';
-
-</script>
-
 <style lang="scss">
 	.wrapper
 	{
@@ -27,7 +19,7 @@
 		position: relative;
 		width: 100%;
 		height: 20em;
-		background:linear-gradient($dim-color, $dim-color), url('/images/default-banner.png');
+		background :linear-gradient($dim-color, $dim-color), url("/images/default-banner.png");
 
 		background-size: cover;
 		background-position: center;
@@ -57,7 +49,7 @@
 		h1
 		{
 			font-family: NexaBlack;
-			font-size: 1.5em;
+			font-size: 1.6em;
 			color: white;
 		}
 
@@ -66,7 +58,7 @@
 			font-family: Montserrat;
 			font-size: 1em;
 			font-weight: 400;
-			color: #a29aaf;
+			color: #958ebe;
 		}
 	}
 
@@ -93,13 +85,120 @@
 		font-size: .9em;
 	}
 
+	.stats
+	{
+		$bg-color: #1c132a;
+
+		max-width: 1920px;
+
+		.stats-title
+		{
+			font-family: Montserrat;
+			font-weight: 800;
+			font-size: 2em;
+
+			color: white;
+			width: 100%;
+			border-bottom: 1px solid #6d647a;
+			padding-bottom: 10px;
+		}
+
+		margin: 20px;
+		padding: 15px;
+		gap: 20px;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+		background-color: $bg-color;
+		border-radius: 10px;
+
+		.stats-wrapper
+		{
+			width: 100%;
+
+			//display: flex;
+			//flex-direction: row;
+			//justify-content: flex-start;
+			//align-items: center;
+
+			// Copypasta https://battlefieldtracker.com/bfv/profile/origin/Zekoyuu/overview
+			// because flexbox make wrapped item fill the space
+			display: grid;
+			grip-gap: .75em;
+			grid-template-columns: repeat(auto-fit, minmax(9rem,1fr));
+
+
+			gap: 15px;
+
+			.stat
+			{
+				padding: 10px;
+				//flex-grow: 1;
+				background-color: $bg-color;
+				transition: background-color .2s;
+				border-radius: 10px;
+
+				&:hover
+				{
+					background-color: desaturate(lighten($bg-color, 15%), 10%);
+				}
+			}
+
+			.stat-name
+			{
+				color: #958ebe;
+				font-family: Montserrat;
+				font-weight: 700;
+				font-size: 1.2em;
+			}
+
+			.stat-value
+			{
+				color: white;
+				font-family: NexaBlack;
+				font-size: 1.5em;
+			}
+		}
+
+	}
+
 </style>
+
+<script lang="ts">
+
+	import Pong from '$lib/Pong.svelte';
+	import Button from '$lib/Button.svelte';
+	import NavbarV2 from '$lib/NavbarV2.svelte';
+
+	interface IStat
+	{
+		name: string;
+		value: string | number;
+	}
+
+	let stats: IStat[] = [
+		{
+			name: 'Wins',
+			value: 152,
+		},
+		{
+			name: 'Losses',
+			value: 108,
+		},
+		{
+			name: 'Win %',
+			value: '71.05',
+		},
+	];
+
+</script>
 
 <NavbarV2/>
 <div class="wrapper">
 	<div class="content">
-		<div class="banner">
 
+		<div class="banner">
 			<img class="profile-picture" src="https://cdn.intra.42.fr/users/dsamain.jpg">
 
 			<div class="username-buttons">
@@ -122,9 +221,21 @@
 					</Button>
 				</div>
 			</div>
+		</div>
 
+		<div class="stats">
+			<h1 class="stats-title">Stats</h1>
+			<div class="stats-wrapper">
+				{#each stats as stat}
+					<div class="stat">
+						<h1 class="stat-name">{stat.name}</h1>
+						<span class="stat-value">{stat.value}</span>
+					</div>
+				{/each}
+			</div>
 
 		</div>
+
 	</div>
 </div>
 

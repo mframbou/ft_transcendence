@@ -18,8 +18,9 @@
 
 	.wrapper
 	{
+		height: 100%;
+		width: 100%;
 		position: relative;
-		flex-grow: 1;
 	}
 
 	.pouet

@@ -29,6 +29,11 @@
 		box-shadow: inset 0 -16px 16px rgba(0, 0, 0, 0.15);
 
 		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
+
+		&:hover, &:hover:after
+		{
+			box-shadow: inset 0 -16px 32px rgba(0, 0, 0, 0.2);
+		}
 	}
 
 	.glowing:before

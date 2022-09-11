@@ -1,6 +1,6 @@
 <script lang-="ts">
     import '$lib/assets/global.scss';
-    import Navbar from '$lib/Navbar.svelte';
+    import NavbarV2 from '$lib/NavbarV2.svelte';
     import { statusTrackerSocket } from "$lib/stores";
 
     statusTrackerSocket.subscribe(() => {});
@@ -8,8 +8,11 @@
 
 
 <div class="wrapper">
-	<Navbar/>
-	<slot/>
+	<!--	Relative pos with flex column so that we dont need margin top (so we can change navbar height without having to bother changing in layout) -->
+	<NavbarV2 relativePos={true}/>
+	<main>
+		<slot/>
+	</main>
 </div>
 
 
@@ -17,10 +20,21 @@
 
 	.wrapper
 	{
-		display: flex;
-		flex-direction: column;
+		position: absolute;
+		top: 0;
+		left: 0;
 		width: 100vw;
 		height: 100vh;
+		background-color: #0C0813;
+
+		display: flex;
+		flex-direction: column;
+	}
+
+	main
+	{
+		flex-grow: 1;
+		position: relative;
 	}
 
 </style>
