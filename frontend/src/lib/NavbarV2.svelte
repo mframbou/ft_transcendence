@@ -160,24 +160,27 @@
 
 	onMount(async () => {
 		navPointRadius = navPoint.getBoundingClientRect().width / 2;
+		let currentPage = null;
 
 		// Set the initial position of the nav point (if user goes directly to 'chat' dont stay on 'home'
 		if (window.location.pathname.length > 1 && window.location.pathname.charAt(0) === '/')
 		{
-			const currentPage = window.location.pathname.substring(1);
-			if (navigation.includes(currentPage))
-			{
-				changeCurrent(currentPage);
-			}
+			current = window.location.pathname.substring(1);
 		}
-		else
-		{
-			changeCurrent(navigation[0]); // to position point
-		}
+
+		changeCurrent(current);
 	});
 
 	function changeCurrent(newCurrent: string)
 	{
+		if (newCurrent === null || !navigation.includes(newCurrent))
+		{
+			navPoint.style.display = 'none';
+			return;
+		}
+
+		navPoint.style.display = 'block';
+
 		current = newCurrent;
 		navDiv.appendChild(navPoint);
 
