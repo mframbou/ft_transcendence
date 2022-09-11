@@ -2,7 +2,6 @@
 
 	.wrapper
 	{
-		position: relative;
 		display: flex;
 		flex-direction: row;
 		justify-content: center;
@@ -26,6 +25,12 @@
 		img
 		{
 			height: 45%;
+			cursor: pointer;
+
+			&:hover
+			{
+				filter: brightness(0.9);
+			}
 		}
 
 		height: 100%;
@@ -49,7 +54,7 @@
 		{
 			background-color: transparent;
 			border: 2px solid rgba(255, 255, 255, 0.85);
-			color: white;
+			color: inherit;
 			padding: 10px 20px;
 			border-radius: 100vw;
 			cursor: pointer;
@@ -86,7 +91,7 @@
 			font-family: Montserrat;
 			font-weight: 500;
 			text-decoration: inherit;
-			color: white;
+			color: inherit;
 			&:hover
 			{
 				color: #d0cfd3;
@@ -116,14 +121,12 @@
 		}
 	}
 
-
-
 </style>
 
 
 <script lang="ts">
 
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 
 	interface NavItem
 	{
@@ -165,9 +168,13 @@
 	<div class="navigation" bind:this={navDiv}>
 
 		{#each navItems as nav}
-			<a on:click={() => changeCurrent(nav.name)} href="#" class:current={nav.name === current}
-			bind:this={nav.elt}
-			>{nav.name}</a>
+			<a on:click={() => changeCurrent(nav.name)}
+				 href="#" class:current={nav.name === current}
+				 bind:this={nav.elt}
+			>
+				{nav.name}
+			</a>
+
 		{/each}
 		<div class="nav-point" bind:this={navPoint}/>
 
