@@ -5,6 +5,8 @@
 
 <style lang="scss">
 
+	$border-width: var(--border-width, 2px);
+
 	.button
 	{
 		position: relative;
@@ -18,13 +20,13 @@
 		vertical-align: middle;
 		text-align: center;
 		border-radius: 100vw;
-		margin: 10px;
+		margin: 2px	;
 		cursor: pointer;
 		z-index: 10;
 		transform-style: preserve-3d; // https://stackoverflow.com/a/51432213
 		outline: none;
 		border: none;
-		box-shadow: inset 0 -16px 16px rgba(0, 0, 0, 0.2);
+		box-shadow: inset 0 -16px 16px rgba(0, 0, 0, 0.15);
 
 		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
 	}
@@ -44,16 +46,22 @@
 		opacity: 0.6;
 	}
 
+	// to make button with border the same dimensions as without
+	.border
+	{
+		padding: 13px 18px;
+		position: relative;
+		bottom: calc($border-width);
+	}
+
 	.border:after
 	{
-		$border-width: var(--border-width, 2px);
-
 		content: '';
 		position: absolute;
-		top: -$border-width;
-		bottom: -$border-width;
-		left: -$border-width;
-		right: -$border-width;
+		top:    calc($border-width * -1);
+		bottom: calc($border-width * -1);
+		left:   calc($border-width * -1);
+		right:  calc($border-width * -1);
 		background: inherit;
 		filter: brightness(1.1);
 		border-radius: inherit;

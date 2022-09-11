@@ -34,7 +34,8 @@ function redirectTo(url: string, code = 302)
 // Will not redirect to home if user is not logged in AND redirect home if user is logged in
 const loginPages = [
 	'/',
-	'/otp-verify'
+	'/otp-verify',
+	'/pong',
 ];
 
 const jwtSecret = process.env.JWT_SECRET;
