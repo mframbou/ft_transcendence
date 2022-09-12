@@ -1,24 +1,47 @@
-<script lang="js">
+<script lang="ts">
 
-		import { onMount} from "svelte";
+	import { onMount} from "svelte";
 
-    let canvasElement;
-    let context = null;
+    import {pongSocket} from '$lib/socket-io';
+
+    pongSocket.emit('join', 'pong'); // join the room
+    console.log('pongSocket connected ?', pongSocket.connected);
+    
+    
+    let canvasElement:HTMLCanvasElement;
+    let context:CanvasRenderingContext2D;
 
     onMount(async () =>
     {
 			canvasElement.addEventListener("mousemove",movePaddle);
-			context = canvasElement.getContext("2d")
 
+            if(canvasElement.getContext("2d") != null)
+                context = canvasElement.getContext("2d") as CanvasRenderingContext2D;
+            else
+                console.log("context is null");
+			
+            // pongSocket.on('', (data) => {
+            //     console.log('pongSocket received pong', data);
+            // });
+
+            // pongSocket.on('onStartGameReceive', (data) => {
+            //     console.log('pongSocket received pong', data);
+            // });
+
+            // pongSocket.on('onStartGameReceive', (data) => {
+            //     console.log('pongSocket received pong', data);
+            // });
 			requestAnimationFrame(game);
-		})
+	})
 
+    const computerLevel = 50;
 
     const canvas_width = 600;
     const canvas_height = 400;
     const paddle_width =  10;
-    const paddle_height = 100
-    const paddle_color = "black"
+    const paddle_height = 100;
+    const paddle_color = "black";
+
 
     const framePerSecond = 50;
 
@@ -28,7 +51,7 @@
             y : (canvas_height/2) - (paddle_height/2),
             width : paddle_width,
             height : paddle_height,
-            color : "white",
+            color : "blue",
             score : 0
         }
     const com =
@@ -37,8 +60,9 @@
             y : (canvas_height/2) - (paddle_height/2),
             width : paddle_width,
             height : paddle_height,
-            color : "white",
+            color : "red",
             score : 0,
+            random : 0
         }
 
     const net =
@@ -63,23 +87,23 @@
         color : "white",
     }
 
-    function drawRect(x,y,w,h,color)
+    function drawRect(x:number, y:number, w:number, h:number, color:string)
     {
         context.fillStyle = color;
         context.fillRect(x,y,w,h);
     }
 
-    function drawCircle(x,y,r,color)
+    function drawCircle(x:number, y:number,r: number ,color:string)
     {
         context.fillStyle = color;
         context.beginPath();
-        context.arc(x,y,r,Math.PI*2,false)
+        context.arc(x,y,r,Math.PI*2,0,false);
         context.closePath();
         context.fill();
 
     }
 
-    function drawText(text,x,y,color)
+    function drawText(text:string, x:number,y:number,color:string)
     {
         context.fillStyle = color;
         context.font = "75px fantasy"
@@ -105,8 +129,8 @@
 
     function drawScore()
     {
-        drawText(user.score,canvas_width/4,canvas_height/5,"white");
-        drawText(com.score,3*canvas_width/4,canvas_height/5,"white");
+        drawText(user.score.toString(),canvas_width/4,canvas_height/5,"white");
+        drawText(com.score.toString(),3*canvas_width/4,canvas_height/5,"white");
     }
 
     function resetBall()
@@ -115,19 +139,29 @@
         ball.y = canvas_height/2;
         ball.speed = 5;
         ball.velocityX = -ball.velocityX;
+        com.random = 0;
     }
 
-    function movePaddle(evt)
+    function movePaddle(event:MouseEvent)
     {
         let rect = canvasElement.getBoundingClientRect();
-        user.y = evt.clientY - rect.top - user.height/2;``
+        user.y = event.clientY - rect.top - user.height/2;
+        if(user.y + paddle_height > canvas_height)
+            user.y = canvas_height - paddle_height;
+        if(user.y < 0)
+            user.y = 0;
+         
     }
 
     function Update()
     {
-        //com.y = ball.y - (com.y + com.height/2);
-        const computerLevel = 0.1;
-        com.y = (ball.y - (com.height/2) * computerLevel); ;
+        com.y = ball.y -  com.height/2 + com.random;
+
+        if(com.y + paddle_height > canvas_height)
+            com.y = canvas_height - paddle_height;
+        if(com.y < 0)
+            com.y = 0;
+
         if(ball.x + ball.radius > canvas_width)
         {
             user.score++;
@@ -157,11 +191,14 @@
             let direction = (ball.x < canvas_width/2) ? 1 : -1;
             ball.velocityX = direction * ball.speed * Math.cos(angleRad);
             ball.velocityY = direction * ball.speed * Math.sin(angleRad);
-            ball.speed += 0.1;
+            ball.speed += 0.2;
+
+            if(player == com)
+                com.random = Math.random()  * computerLevel ;
         }
     }
 
-    function collision(ball,player)
+    function collision(ball:any, player:any)
     {
         ball.top = ball.y - ball.radius;
         ball.bottom = ball.y + ball.radius;
@@ -188,7 +225,9 @@
 
     function game()
     {
+
         Update();
+        //UpdateClient();
         render();
         requestAnimationFrame(game);
     }

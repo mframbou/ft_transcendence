@@ -1,5 +1,9 @@
 <script>
     import ParticlesBackground from "$lib/ParticlesBackground.svelte";
+
+
+
+
 </script>
 
 <!--<Navbar></Navbar>-->
@@ -8,9 +12,8 @@
 		<ParticlesBackground --background-color="transparent" --z-index="1" properties={ {lineColor: '#00ff00'} }/>
 	</div>
 
-	<div class="pouet">
-		<h1>Pouet pouet</h1>
-	</div>
+
+    <a href="/bellopongo"> BELLO PONGO </a>
 
 </div>
 
@@ -43,6 +46,18 @@
 		//text-transform: uppercase;
 		//z-index: 2;
 	}
+
+    a{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 8vw;
+        font-family: NexaBlack;
+        text-decoration: none;
+        color: white;
+    }
+
 
 
 </style>
