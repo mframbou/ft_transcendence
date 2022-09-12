@@ -8,28 +8,8 @@
 	/** @type {import('./$types').PageData} */
 	export let data;
 
-	let targetUser = null;
+	let targetUser = data.user;
 	let error = null;
-
-	async function loadUser(login: string)
-	{
-		const res = await fetch(`/api/users/${login}`);
-
-		if (!res.ok)
-		{
-			error = res.statusText;
-			console.log("cannot find user", login);
-			return;
-		}
-
-		const json = await res.json();
-		targetUser = json;
-	}
-
-	onMount(() => {
-		loadUser(data.login);
-	});
-
 
 	interface IStat
 	{

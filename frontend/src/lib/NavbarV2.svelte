@@ -208,7 +208,7 @@
 				 class:current={nav.name === current}
 				 class="nav-item"
 				 bind:this={nav.elt}
-				 on:click|stopPropagation|preventDefault={async () => { await goto (`/${nav.name}`); }}
+				 href={`/${nav.name}`}
 			>
 				{nav.name}
 			</a>

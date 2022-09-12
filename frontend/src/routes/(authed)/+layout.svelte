@@ -35,7 +35,7 @@
 	{
 		flex-grow: 1;
 		position: relative;
-		transform-style: preserve-3d;
+		//transform-style: preserve-3d;
 	}
 
 </style>

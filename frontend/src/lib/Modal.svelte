@@ -57,7 +57,7 @@
 		min-width: 300px;
 		max-width: 500px;
 		min-height: 100px;
-		background-color: var(--background-color, white);
+		background-color: var(--background-color, #0C0813);
 		border-radius: 10px;
 		padding: 20px;
 

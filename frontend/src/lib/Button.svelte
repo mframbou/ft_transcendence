@@ -1,6 +1,7 @@
 <script lang="ts">
 	export let glowing: boolean = true;
 	export let border: boolean = true;
+	export let disabled = false;
 </script>
 
 <style lang="scss">
@@ -24,7 +25,6 @@
 		border-radius: var(--border-radius, 100vw);
 		margin: 2px	;
 		cursor: pointer;
-		z-index: 10;
 		transform-style: preserve-3d; // https://stackoverflow.com/a/51432213
 		outline: none;
 		border: none;
@@ -32,7 +32,16 @@
 
 		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
 
-		&:hover, &:hover:after
+		&:disabled
+		{
+			cursor: default;
+			$overlay-color: rgba(80, 80, 80, 0.85);
+			background:  linear-gradient(to right bottom, $overlay-color, $overlay-color), var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
+			//box-shadow: none;
+		}
+
+		// https://stackoverflow.com/questions/11600687/hover-and-active-only-when-not-disabled
+		&:hover:enabled, &:hover:after:enabled
 		{
 			box-shadow: inset 0 -16px 32px rgba(255, 255, 255, 0.05);
 		}
@@ -75,9 +84,10 @@
 		transform: translateZ(-1px);
 	}
 
+
 </style>
 
 <!--	forward click event to parent -->
-<button on:click class="button" class:glowing={glowing} class:border={border}>
+<button on:click class="button" class:glowing={!disabled && glowing} class:border={border} disabled={disabled}>
 	<slot/>
 </button>
