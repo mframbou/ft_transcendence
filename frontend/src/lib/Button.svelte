@@ -6,20 +6,22 @@
 <style lang="scss">
 
 	$border-width: var(--border-width, 2px);
+	$vertical-padding: var(--vertical-padding, 15px);
+	$horizontal-padding: var(--horizontal-padding, 20px);
 
 	.button
 	{
 		position: relative;
 
 		//width: fit-content;
-		padding: 15px 20px;
+		padding: $vertical-padding $horizontal-padding;
 		font-family: Lato;
 		font-size: 1em;
 		font-weight: bolder;
 		color: white;
 		vertical-align: middle;
 		text-align: center;
-		border-radius: 100vw;
+		border-radius: var(--border-radius, 100vw);
 		margin: 2px	;
 		cursor: pointer;
 		z-index: 10;
@@ -32,7 +34,7 @@
 
 		&:hover, &:hover:after
 		{
-			box-shadow: inset 0 -16px 32px rgba(0, 0, 0, 0.2);
+			box-shadow: inset 0 -16px 32px rgba(255, 255, 255, 0.05);
 		}
 	}
 
@@ -54,7 +56,7 @@
 	// to make button with border the same dimensions as without
 	.border
 	{
-		padding: 13px 18px;
+		padding: calc($vertical-padding - 2px) calc($horizontal-padding - 2px);
 		position: relative;
 		bottom: calc($border-width);
 	}

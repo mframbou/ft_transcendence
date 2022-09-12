@@ -141,8 +141,7 @@
 
 <script lang="ts">
 
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, afterNavigate } from '$app/navigation';
 
 	interface NavItem
 	{
@@ -150,7 +149,7 @@
 		elt: HTMLElement;
 	}
 
-	export let navigation: string[] = ['home', 'chat', 'friends', 'settings'];
+	export let navigation: string[] = ['home', 'chat', 'friends', 'profile', 'settings'];
 	export let relativePos: boolean = false;
 	let current: string = navigation[0];
 	let navItems: NavItem[] = navigation.map((name) => ({ name: name, elt: null }));
@@ -158,7 +157,8 @@
 	let navDiv;
 	let navPointRadius = 0;
 
-	onMount(async () => {
+	// after navigate runs on mount and every time we navigate, see doc
+	afterNavigate(async () => {
 		navPointRadius = navPoint.getBoundingClientRect().width / 2;
 		let currentPage = null;
 
@@ -182,7 +182,6 @@
 		navPoint.style.display = 'block';
 
 		current = newCurrent;
-		navDiv.appendChild(navPoint);
 
 		let navElement = navItems.find((item) => item.name === current).elt;
 
@@ -196,7 +195,6 @@
 	{
 		window.location.replace('/api/auth/logout');
 	}
-
 </script>
 
 <div class="wrapper" class:absolute={!relativePos} class:relative={relativePos}>
