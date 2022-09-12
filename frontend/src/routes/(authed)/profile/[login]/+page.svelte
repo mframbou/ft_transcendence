@@ -255,6 +255,8 @@
 
 	.background
 	{
+		opacity: 0.6;
+
 		transform: translateZ(-1px);
 		position: absolute;
 		top: 0;

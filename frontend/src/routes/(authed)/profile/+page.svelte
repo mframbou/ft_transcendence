@@ -86,7 +86,6 @@
 	.stats
 	{
 		$bg-color: rgba(28, 19, 42, 0.9);
-
 		backdrop-filter: blur(5px);
 
 		max-width: 1920px;
@@ -177,6 +176,8 @@
 
 	.background
 	{
+		opacity: 0.6;
+
 		transform: translateZ(-1px);
 		position: absolute;
 		top: 0;
