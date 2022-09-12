@@ -8,19 +8,16 @@ const host = browser ? window.location.hostname : 'backend';
 // This means at the end there will only be one websocket (on path '/') listening on different namespaces to separate usages
 const BASE_ENDPOINT = `http://${host}:3002`;
 
-const statusSocket = ioClient(BASE_ENDPOINT + '/status', 
-{
+const statusSocket = ioClient(BASE_ENDPOINT + '/status', {
 	autoConnect: false,
 });
 
-const chatSocket = ioClient(BASE_ENDPOINT + '/chat', 
-{
+const chatSocket = ioClient(BASE_ENDPOINT + '/chat', {
 	autoConnect: true,
 });
 
-const pongSocket = ioClient(BASE_ENDPOINT + '/pong',
-{
-    autoConnect: true,
+const pongSocket = ioClient(BASE_ENDPOINT + '/pong', {
+   autoConnect: true,
 });
 
 statusSocket.on('connect', () => 
@@ -40,5 +37,4 @@ pongSocket.on('connect', () =>
 });
 
 
-
-export { statusSocket, chatSocket, pongSocket};
+export { statusSocket, chatSocket, pongSocket };

@@ -1,6 +1,6 @@
 import { get, readable, writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { statusSocket } from '$lib/socket-io';
+import { chatSocket, pongSocket, statusSocket } from '$lib/socket-io';
 
 export const user = writable(undefined);
 export const otpVerifyAndClear = writable(undefined);
@@ -16,6 +16,32 @@ export const statusTrackerSocket = readable({}, set => {
 	return () => {
 		socket.close();
 		console.log("status socket disconnected");
+	};
+})
+
+export const pongSocketStore = readable(pongSocket, set => {
+	if (!browser) return;
+
+	const socket = pongSocket;
+	socket.open();
+	console.log("pong socket connected");
+
+	return () => {
+		socket.close();
+		console.log("pong socket disconnected");
+	};
+})
+
+export const chatSocketStore = readable(chatSocket, set => {
+	if (!browser) return;
+
+	const socket = pongSocket;
+	socket.open();
+	console.log("chat socket connected");
+
+	return () => {
+		socket.close();
+		console.log("chat socket disconnected");
 	};
 })
 

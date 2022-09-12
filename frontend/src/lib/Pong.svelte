@@ -2,11 +2,6 @@
 
 	import { onMount} from "svelte";
 
-    import {pongSocket} from '$lib/socket-io';
-
-    pongSocket.emit('join', 'pong'); // join the room
-    console.log('pongSocket connected ?', pongSocket.connected);
-    
     
     let canvasElement:HTMLCanvasElement;
     let context:CanvasRenderingContext2D;
