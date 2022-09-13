@@ -165,6 +165,30 @@ export class PongGateway implements OnGatewayDisconnect
     // this.server.to(opponent.client.id).emit('onOpponentPaddleMove', {y: payload.y});
   }
 
+  @SubscribeMessage('onPlayerScored')
+  async handleOnPlayerScored(client: any, payload: any)
+  {
+    const user = this.websocketsService.getClient(client.id);
+
+    if (!user)
+      return;
+
+
+    this.gameService.resetBall(this.gameService.getClientGameRoom(user), this.server);
+  }
+
+  @SubscribeMessage('onOpponentScored')
+  async handleOnOpponentScored(client: any, payload: any)
+  {
+    const user = this.websocketsService.getClient(client.id);
+
+    if (!user)
+      return;
+
+
+    this.gameService.resetBall(this.gameService.getClientGameRoom(user), this.server);
+  }
+
 
   // async handleConnection(client: any, ...args: any[])
   // {

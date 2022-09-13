@@ -30,7 +30,7 @@ export class GameService {
 			this.gameRooms.push(room);
 
 			server.to([player1.clientId, player2.clientId]).emit('onMatchFound', room);
-			console.log(`Starting game between ${player1.login} and ${player2.login} (total game rooms: ${this.gameRooms.length})`);
+			console.log(`Creating game between ${player1.login} and ${player2.login} (total game rooms: ${this.gameRooms.length})`);
 		}
 	}
 
@@ -56,7 +56,12 @@ export class GameService {
 
 		if (room.player1.ready && room.player2.ready)
 		{
-			server.to([room.player1.clientId, room.player2.clientId]).emit('onMatchConfirmed', room);
+			server.to(room.player1.clientId).emit('onStartGame', {isPlayer1: true});
+			server.to(room.player2.clientId).emit('onStartGame', {isPlayer1: false});
+			// server.to([room.player1.clientId, room.player2.clientId]).emit('onStartGame', room);
+			server.to([room.player1.clientId, room.player2.clientId]).emit('onScoreChange', {player1Score: 0, player2Score: 0});
+			this.resetBall(room, server);
+			this.resetPaddles(room, server);
 			console.log(`Game between ${room.player1.login} and ${room.player2.login} started`);
 		}
 	}
@@ -89,21 +94,38 @@ export class GameService {
 			return;
 
 		let player = null;
-		let oponnent = null;
+		let opponent = null;
 
 		if (room.player1.clientId === client.id)
 		{
 			player = room.player1;
-			oponnent = room.player2;
+			opponent = room.player2;
 		}
 		else if (room.player2.clientId === client.id)
 		{
 			player = room.player2;
-			oponnent = room.player1;
+			opponent = room.player1;
 		}
 		else
 			return;
 
-		server.to(oponnent.clientId).emit('onOpponentPaddleMove', payload);
+		server.to(opponent.clientId).emit('onOpponentPaddleMove', payload);
+	}
+
+	resetPaddles(room: IGameRoom, server: Server)
+	{
+		server.to([room.player1.clientId, room.player2.clientId]).emit('onResetPaddles');
+	}
+
+	resetBall(room: IGameRoom, server: Server)
+	{
+		const ball = {velocityX: 5, velocityY: Math.random() * 5};
+
+		server.to([room.player1.clientId, room.player2.clientId]).emit('onBallReset', ball);
+	}
+
+	getClientGameRoom(client: IWebsocketClient): IGameRoom
+	{
+		return this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
 	}
 }
