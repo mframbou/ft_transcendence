@@ -173,8 +173,22 @@ export class PongGateway implements OnGatewayDisconnect
     if (!user)
       return;
 
+    const room = this.gameService.getClientGameRoom(user);
 
-    this.gameService.resetBall(this.gameService.getClientGameRoom(user), this.server);
+    if (!room)
+      return;
+
+    // change score
+
+    const isPlayer1: boolean = room.player1.login === user.login;
+
+    if (isPlayer1)
+      room.player1.score++;
+    else
+      room.player2.score++;
+
+    this.server.to([room.player1.clientId, room.player2.clientId]).emit('onScoreChange', {player1Score: room.player1.score, player2Score: room.player2.score});
+    this.gameService.resetBall(room, this.server);
   }
 
   @SubscribeMessage('onOpponentScored')
@@ -185,14 +199,22 @@ export class PongGateway implements OnGatewayDisconnect
     if (!user)
       return;
 
+    const room = this.gameService.getClientGameRoom(user);
 
-    this.gameService.resetBall(this.gameService.getClientGameRoom(user), this.server);
+    if (!room)
+      return;
+
+    // change score
+
+    const isPlayer1: boolean = room.player1.login === user.login;
+
+    if (isPlayer1)
+      room.player2.score++;
+    else
+      room.player2.score++;
+
+    this.server.to([room.player1.clientId, room.player2.clientId]).emit('onScoreChange', {player1Score: room.player1.score, player2Score: room.player2.score});
+    this.gameService.resetBall(room, this.server);
   }
-
-
-  // async handleConnection(client: any, ...args: any[])
-  // {
-  //     console.log(' pongPOUETPOUETPOEUJTIOHWOAFBIUOAEDIF join');
-  // }
 
 }

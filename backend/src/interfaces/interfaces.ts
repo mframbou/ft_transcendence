@@ -85,6 +85,7 @@ export interface IGamePlayer
 	clientId: string;
 	login: string;
 	ready: boolean;
+	score: number;
 }
 
 export interface IGameRoom

@@ -15,7 +15,7 @@ export class GameService {
 		if (this.matchmakingPlayers.find(player => player.clientId === client.id))
 			return;
 
-		const player: IGamePlayer = {clientId: client.id, login: client.login, ready: false};
+		const player: IGamePlayer = {clientId: client.id, login: client.login, ready: false, score: 0};
 		this.matchmakingPlayers.push(player);
 		console.log(`Starting matchmaking for ${client.login}-${client.id} (total matchmaking users: ${this.matchmakingPlayers.length})`);
 
@@ -59,6 +59,8 @@ export class GameService {
 			server.to(room.player1.clientId).emit('onStartGame', {isPlayer1: true});
 			server.to(room.player2.clientId).emit('onStartGame', {isPlayer1: false});
 			// server.to([room.player1.clientId, room.player2.clientId]).emit('onStartGame', room);
+			room.player1.score = 0;
+			room.player2.score = 0;
 			server.to([room.player1.clientId, room.player2.clientId]).emit('onScoreChange', {player1Score: 0, player2Score: 0});
 			this.resetBall(room, server);
 			this.resetPaddles(room, server);
@@ -119,7 +121,7 @@ export class GameService {
 
 	resetBall(room: IGameRoom, server: Server)
 	{
-		const ball = {velocityX: 5, velocityY: Math.random() * 5};
+		const ball = {velocityX: Math.random() < 0.5 ? -5 : 5, velocityY: Math.random() * 5};
 
 		server.to([room.player1.clientId, room.player2.clientId]).emit('onBallReset', ball);
 	}

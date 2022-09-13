@@ -11,7 +11,7 @@
 	});
 
 	$pongSocketStore.on('onBallReset', (data) => {
-		// console.log("BALL RESET:", data);
+		console.log("BALL RESET:", data);
 		ball.velocityY = data.velocityY;
 		ball.velocityX = data.velocityX;
 
@@ -26,8 +26,18 @@
 		if (!data || data.player1Score === undefined || data.player2Score === undefined)
 			return;
 
-		user.score = data.player1Score;
-		com.score = data.player2Score;
+		console.log("SCORE CHANGE:", data);
+
+		if (isPlayerOne)
+		{
+			user.score = data.player1Score;
+			com.score = data.player2Score;
+		}
+		else
+		{
+			user.score = data.player2Score;
+			com.score = data.player1Score;
+		}
 		drawScore();
 	});
 
@@ -197,14 +207,17 @@
 
         if(ball.x + ball.radius > canvas_width)
         {
-            user.score++;
+            // user.score++;
 						$pongSocketStore.emit('onPlayerScored', {score: user.score});
-            resetBall();
+            resetBall(); // reset so that next frame we dont accidentally resend message
         }
         else if(ball.x - ball.radius < 0)
         {
-            com.score++;
-						$pongSocketStore.emit('onOpponentScored', {score: com.score});
+            // com.score++;
+
+						// opponent will emit itself so no need
+						// $pongSocketStore.emit('onOpponentScored', {score: com.score});
+
             resetBall();
         }
 
@@ -218,14 +231,16 @@
 
 
         let player = (ball.x < canvas_width/2) ? user : com;
-        if(collision(ball,player))
+        if (collision(ball,player))
         {
             let collidPoint = (ball.y - (player.y + player.height/2));
             collidPoint = collidPoint/(player.height/2);
+
+
             let angleRad = (Math.PI/4) * collidPoint;
             let direction = (ball.x < canvas_width/2) ? 1 : -1;
             ball.velocityX = direction * ball.speed * Math.cos(angleRad);
-            ball.velocityY = direction * ball.speed * Math.sin(angleRad);
+            ball.velocityY = ball.speed * Math.sin(angleRad);
             ball.speed += 0.2;
 
             if(player == com)
