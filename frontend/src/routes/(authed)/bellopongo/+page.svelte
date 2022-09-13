@@ -9,10 +9,17 @@ import { pongSocketStore } from '$lib/stores';
 function setReady()
 {
     console.log("CLIENT READY");
-
-		$pongSocketStore.emit('onGameReady', '');
+		$pongSocketStore.emit('onStartMatchmaking', '');
 }
 
+$pongSocketStore.on('onMatchFound', (data) => {
+		console.log("MATCH FOUND, SENDING CONFIRMATION:", data);
+		$pongSocketStore.emit('onConfirmMatch', '');
+});
+
+$pongSocketStore.on('onStartGame', (data) => {
+		console.log("STARTING GAME:", data);
+});
 
 </script>
 

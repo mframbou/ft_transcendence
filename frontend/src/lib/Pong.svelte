@@ -1,10 +1,16 @@
 <script lang="ts">
 
-	import { onMount} from "svelte";
+	import { onMount } from "svelte";
+	import { pongSocketStore } from '$lib/stores';
 
-    
-    let canvasElement:HTMLCanvasElement;
-    let context:CanvasRenderingContext2D;
+	$pongSocketStore.on('onOpponentPaddleMove', (data) => {
+		console.log('opponent paddle move', data);
+		// console.log("OPPONENT PADDLE MOVE:", data);
+		com.y = data.y;
+	});
+
+	let canvasElement:HTMLCanvasElement;
+	let context:CanvasRenderingContext2D;
 
     onMount(async () =>
     {
@@ -139,7 +145,11 @@
 
     function movePaddle(event:MouseEvent)
     {
+
         let rect = canvasElement.getBoundingClientRect();
+
+				$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top});
+
         user.y = event.clientY - rect.top - user.height/2;
         if(user.y + paddle_height > canvas_height)
             user.y = canvas_height - paddle_height;
@@ -150,7 +160,7 @@
 
     function Update()
     {
-        com.y = ball.y -  com.height/2 + com.random;
+        // com.y = ball.y -  com.height/2 + com.random;
 
         if(com.y + paddle_height > canvas_height)
             com.y = canvas_height - paddle_height;

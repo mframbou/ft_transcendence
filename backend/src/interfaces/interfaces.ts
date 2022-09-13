@@ -79,3 +79,22 @@ export interface IWebsocketClient
 	login: string,
 	namespace: string,
 }
+
+export interface IGamePlayer
+{
+	clientId: string;
+	login: string;
+	ready: boolean;
+}
+
+export interface IGameRoom
+{
+	id: string;
+	player1: IGamePlayer;
+	player2: IGamePlayer;
+}
+
+export interface IGameMovePayload
+{
+	y: number;
+}

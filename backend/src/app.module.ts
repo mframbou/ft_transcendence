@@ -19,6 +19,7 @@ import { PermissionsService } from './permissions/permissions.service';
 import { ChatGateway } from './websockets/chat.gateway';
 import { WebsocketsService } from './websockets/websockets.service';
 import { PongGateway } from './websockets/pong.gateway';
+import { GameService } from './game/game.service';
 
 @Module({
 	controllers: [AppController, AuthController, UsersController, TwoFactorController],
@@ -28,7 +29,7 @@ import { PongGateway } from './websockets/pong.gateway';
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, PongGateway],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, PongGateway, GameService],
 })
 export class AppModule
 {}

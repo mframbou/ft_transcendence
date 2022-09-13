@@ -32,7 +32,6 @@ chatSocket.on('connect', () =>
 
 pongSocket.on('connect', () => 
 {
-    console.log('pongSocket connected');
     pongSocket.emit('first_connect', getCookie('cockies'));
 });
 
