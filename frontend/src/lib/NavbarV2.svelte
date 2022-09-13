@@ -204,7 +204,7 @@
 	<div class="navigation" bind:this={navDiv}>
 
 		{#each navItems as nav}
-			<a on:click={() => changeCurrent(nav.name)}
+			<a
 				 class:current={nav.name === current}
 				 class="nav-item"
 				 bind:this={nav.elt}
