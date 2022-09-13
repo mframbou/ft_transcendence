@@ -17,8 +17,11 @@ $pongSocketStore.on('onMatchFound', (data) => {
 		$pongSocketStore.emit('onConfirmMatch', '');
 });
 
+let isPlayer1 = true;
+
 $pongSocketStore.on('onStartGame', (data) => {
 		console.log("STARTING GAME:", data);
+		isPlayer1 = data.isPlayer1;
 });
 
 </script>
@@ -31,6 +34,6 @@ $pongSocketStore.on('onStartGame', (data) => {
 
 </style>
 
-<Pong />
+<Pong isPlayerOne={isPlayer1} />
 <Button on:click={setReady}>Ready</Button>
 

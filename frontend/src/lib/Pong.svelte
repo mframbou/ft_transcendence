@@ -3,10 +3,40 @@
 	import { onMount } from "svelte";
 	import { pongSocketStore } from '$lib/stores';
 
+	export let isPlayerOne = true;
+
 	$pongSocketStore.on('onOpponentPaddleMove', (data) => {
-		console.log('opponent paddle move', data);
 		// console.log("OPPONENT PADDLE MOVE:", data);
 		com.y = data.y;
+	});
+
+	$pongSocketStore.on('onBallReset', (data) => {
+		// console.log("BALL RESET:", data);
+		ball.velocityY = data.velocityY;
+		ball.velocityX = data.velocityX;
+
+		if (!isPlayerOne) {
+			ball.velocityX *= -1;
+		}
+
+		resetBall();
+	});
+
+	$pongSocketStore.on('onScoreChange', (data) => {
+		if (!data || data.player1Score === undefined || data.player2Score === undefined)
+			return;
+
+		user.score = data.player1Score;
+		com.score = data.player2Score;
+		drawScore();
+	});
+
+	$pongSocketStore.on('onResetPaddles', (data) => {
+		user.x = 0;
+		user.y = canvas_height / 2 - paddle_height / 2;
+
+		com.x = canvas_width - paddle_width;
+		com.y = canvas_height / 2 - paddle_height / 2;
 	});
 
 	let canvasElement:HTMLCanvasElement;
@@ -77,15 +107,13 @@
 
 
     const ball = {
-
-        x : canvas_width/2,
-        y : canvas_height/2,
-        radius : 10,
-        speed : 5,
-
-        velocityX : 5,
-        velocityY : 5,
-        color : "white",
+        x: canvas_width/2,
+        y: canvas_height/2,
+        radius: 10,
+        speed: 5,
+        velocityX: 5,
+        velocityY: 0,
+        color: "white",
     }
 
     function drawRect(x:number, y:number, w:number, h:number, color:string)
@@ -170,11 +198,13 @@
         if(ball.x + ball.radius > canvas_width)
         {
             user.score++;
+						$pongSocketStore.emit('onPlayerScored', {score: user.score});
             resetBall();
         }
         else if(ball.x - ball.radius < 0)
         {
             com.score++;
+						$pongSocketStore.emit('onOpponentScored', {score: com.score});
             resetBall();
         }
 
