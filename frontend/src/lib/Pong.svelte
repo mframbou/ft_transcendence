@@ -8,7 +8,12 @@
 	$pongSocketStore.on('onOpponentPaddleMove', (data) =>
 	{
 		// console.log("OPPONENT PADDLE MOVE:", data);
-		com.y = data.y;
+		player2.paddle.y = data.y - player2.paddle.height / 2;
+
+		if (player2.paddle.y < 0)
+			player2.paddle.y = 0;
+		else if (player2.paddle.y > canvas_height - player2.paddle.height)
+			player2.paddle.y = canvas_height - player2.paddle.height;
 	});
 
 	$pongSocketStore.on('onBallReset', (data) =>
@@ -139,26 +144,6 @@
 		score: 0
 	};
 
-	const user =
-			{
-				x: 0,
-				y: (canvas_height / 2) - (paddle_height / 2),
-				width: paddle_width,
-				height: paddle_height,
-				color: 'blue',
-				score: 0
-			};
-	const com =
-			{
-				x: canvas_width - paddle_width,
-				y: (canvas_height / 2) - (paddle_height / 2),
-				width: paddle_width,
-				height: paddle_height,
-				color: 'red',
-				score: 0,
-				random: 0
-			};
-
 	const net =
 			{
 				x: canvas_width / 2 - 2,
@@ -185,6 +170,15 @@
 		context.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
 	}
 
+	function drawBall(ball: IBall)
+	{
+		context.beginPath();
+		context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, true);
+		context.closePath();
+		context.fillStyle = ball.color;
+		context.fill();
+	}
+
 	function drawRect(x: number, y: number, w: number, h: number, color: string)
 	{
 		context.fillStyle = color;
@@ -198,7 +192,6 @@
 		context.arc(x, y, r, Math.PI * 2, 0, false);
 		context.closePath();
 		context.fill();
-
 	}
 
 	function drawText(text: string, x: number, y: number, color: string)
@@ -209,9 +202,9 @@
 	}
 
 
-	function reset_canvas()
+	function clearCanvas()
 	{
-		drawRect(0, 0, 600, 400, 'black');
+		drawRect(0, 0, canvas_width, canvas_height, 'black');
 	}
 
 	function drawNet()
@@ -220,10 +213,10 @@
 			drawRect(net.x, net.y + i, net.width, net.height, net.color);
 	}
 
-	function drawBall()
-	{
-		drawCircle(ball.x, ball.y, ball.radius, ball.color);
-	}
+	// function drawBall()
+	// {
+	// 	drawCircle(ball.x, ball.y, ball.radius, ball.color);
+	// }
 
 	function drawScore()
 	{
@@ -237,7 +230,6 @@
 		ball.y = canvas_height / 2;
 		ball.speed = 5;
 		ball.velocityX = -ball.velocityX;
-		com.random = 0;
 	}
 
 	function movePaddle(event: MouseEvent)
@@ -255,14 +247,14 @@
 			player1.paddle.y = canvas_height - player1.paddle.height;
 	}
 
-	function Update()
+	function update()
 	{
 		// com.y = ball.y -  com.height/2 + com.random;
 
-		if (com.y + paddle_height > canvas_height)
-			com.y = canvas_height - paddle_height;
-		if (com.y < 0)
-			com.y = 0;
+		// if (player2.paddle.y + paddle_height > canvas_height)
+		// 	player2.paddle.y = canvas_height - paddle_height;
+		// else if (player2.paddle.y < 0)
+		// 	player2.paddle.y = 0;
 
 		if (ball.x + ball.radius > canvas_width)
 		{
@@ -290,7 +282,7 @@
 
 
 		let player = (ball.x < canvas_width / 2) ? player1 : player2;
-		if (collision(ball, player.paddle))
+		if (checkCollision(ball, player.paddle))
 		{
 			let collisionPoint = ball.y - (player.paddle.y + player.paddle.height / 2);
 			collisionPoint = collisionPoint / (player.paddle.height / 2);
@@ -303,7 +295,7 @@
 		}
 	}
 
-	function collision(ball: IBall, paddle: IPaddle)
+	function checkCollision(ball: IBall, paddle: IPaddle)
 	{
 		const ballTop = ball.y - ball.radius;
 		const ballBottom = ball.y + ball.radius;
@@ -320,17 +312,17 @@
 
 	function render()
 	{
-		reset_canvas();
+		clearCanvas();
 		drawScore();
 		drawNet();
 		drawPaddle(player1.paddle);
 		drawPaddle(player2.paddle);
-		drawBall();
+		drawBall(ball);
 	}
 
 	function loop()
 	{
-		Update();
+		update();
 		render();
 		requestAnimationFrame(loop);
 	}

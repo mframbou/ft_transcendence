@@ -180,7 +180,7 @@ export class PongGateway implements OnGatewayDisconnect
 
     // change score
 
-    const isPlayer1: boolean = room.player1.login === user.login;
+    const isPlayer1: boolean = room.player1.clientId === user.id;
 
     if (isPlayer1)
       room.player1.score++;
