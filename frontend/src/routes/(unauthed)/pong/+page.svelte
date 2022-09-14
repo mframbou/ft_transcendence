@@ -85,13 +85,13 @@
 		font-size: .9em;
 	}
 
-	.stats
+	.user-section
 	{
 		$bg-color: #1c132a;
 
 		max-width: 1920px;
 
-		.stats-title
+		.user-section-title
 		{
 			font-family: Montserrat;
 			font-weight: 800;
@@ -223,8 +223,8 @@
 			</div>
 		</div>
 
-		<div class="stats">
-			<h1 class="stats-title">Stats</h1>
+		<div class="user-section">
+			<h1 class="user-section-title">Stats</h1>
 			<div class="stats-wrapper">
 				{#each stats as stat}
 					<div class="stat">

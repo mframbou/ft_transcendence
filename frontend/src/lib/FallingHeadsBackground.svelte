@@ -16,7 +16,9 @@
 			'/images/dsamain-transparent.png',
 			'/images/oronda-transparent.png',
 			'/images/sspina-transparent.png',
-			'/images/mframbou-transparent.png'],
+			'/images/mframbou-transparent.png',
+			'/images/imoutaab-transparent.png',
+		],
 	};
 
 	class Point
@@ -27,9 +29,9 @@
 		private vy: number;
 		private opacity: number;
 		private opacity: number;
-		private height: number;
-		private width: number;
-		private img: HTMLImageElement;
+		public height: number;
+		public width: number;
+		public img: HTMLImageElement;
 
 		constructor(x: number, y: number, images: HTMLImageElement[])
 		{
@@ -41,7 +43,19 @@
 			this.width = properties.imgWidth * scale;
 			this.opacity = scale;
 			this.vy = Math.random() * (properties.maxVelocity - properties.minVelocity) + properties.minVelocity;
-			this.img = images[Math.floor(Math.random() * images.length)];
+
+			// cehck if 'imoutaab' present in images
+			const ismaImage = images.find((image) => image.src.includes('imoutaab'));
+			if (ismaImage && Math.random() < 0.05) {
+				// if yes, replace it with the current image
+				this.img = ismaImage;
+			} else {
+				// if no, pick a random image
+				if (ismaImage)
+					images = images.filter((image) => image.src !== ismaImage.src);
+
+				this.img = images[Math.floor(Math.random() * images.length)];
+			}
 		}
 
 		update(canvasWidth: number, canvasHeight: number, elapsedTime: number)
@@ -102,6 +116,29 @@
 	let lastUpdate: number = performance.now();
 	let canvas: HTMLCanvasElement;
 
+	function handleClick(e)
+	{
+		if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A')
+			return;
+
+		const rect = canvas.getBoundingClientRect();
+		const x = e.clientX - rect.left;
+		const y = e.clientY - rect.top;
+
+		for (let point of points)
+		{
+			if (x > point.x - point.width / 2 && x < point.x + point.width / 2 &&
+				y > point.y - point.height / 2 && y < point.y + point.height / 2)
+			{
+				if (point.img.src.includes('imoutaab'))
+				{
+					window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank');
+				}
+				return;
+			}
+		}
+	}
+
 	onMount(() =>
 	{
 		const windowResizeListener = () => updateCanvasSize(canvas);
@@ -126,12 +163,14 @@
 
 
 		window.addEventListener('resize', windowResizeListener);
+		window.addEventListener('click', handleClick);
 
 		render(canvas, context);
 
 		return () =>
 		{
 			window.removeEventListener('resize', windowResizeListener);
+			window.addEventListener('click', handleClick);
 		};
 	});
 

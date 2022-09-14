@@ -12,7 +12,7 @@
 		$dim-color: rgba(0, 0, 0, 0.1);
 		position: relative;
 		width: 100%;
-		height: 20em;
+		height: 15em;
 		background :linear-gradient($dim-color, $dim-color), url("/images/default-banner.png");
 
 		background-size: cover;
@@ -83,14 +83,24 @@
 		font-size: .9em;
 	}
 
-	.stats
+	$section-bg-color: rgba(28, 19, 42, 0.9);
+
+	.user-section
 	{
-		$bg-color: rgba(28, 19, 42, 0.9);
 		backdrop-filter: blur(5px);
 
 		max-width: 1920px;
+		margin: 20px;
+		padding: 15px;
+		gap: 20px;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+		background-color: $section-bg-color;
+		border-radius: 10px;
 
-		.stats-title
+		.user-section-title
 		{
 			font-family: Montserrat;
 			font-weight: 800;
@@ -102,15 +112,6 @@
 			padding-bottom: 10px;
 		}
 
-		margin: 20px;
-		padding: 15px;
-		gap: 20px;
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-start;
-		align-items: flex-start;
-		background-color: $bg-color;
-		border-radius: 10px;
 
 		.stats-wrapper
 		{
@@ -138,7 +139,7 @@
 
 				&:hover
 				{
-					background-color: desaturate(lighten($bg-color, 15%), 10%);
+					background-color: desaturate(lighten($section-bg-color, 15%), 10%);
 				}
 			}
 
@@ -172,6 +173,9 @@
 		position: relative;
 		flex-grow: 1;
 		transform-style: preserve-3d;
+
+		display: flex;
+		flex-direction: column;
 	}
 
 	.background
@@ -184,6 +188,34 @@
 		left: 0;
 		height: 100%;
 		width: 100%;
+	}
+
+	.match-history-wrapper
+	{
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		width: 100%;
+		overflow: auto;
+		flex: 1 1 5em;
+
+		.match
+		{
+			padding: 10px;
+			transition: background-color .2s;
+			border-radius: 10px;
+			width: 100%;
+
+			&:hover
+			{
+				background-color: desaturate(lighten($section-bg-color, 15%), 10%);
+			}
+		}
+	}
+
+	.flex-grow
+	{
+		flex-grow: 1;
 	}
 
 </style>
@@ -221,6 +253,8 @@
 		},
 	];
 
+	let matchHistory: any[] = [];
+
 	$: if($user)
 	{
 		let winPercentage = Math.round(($user.wins / ($user.wins + $user.losses)) * 100);
@@ -238,6 +272,18 @@
 				value: (isNaN(winPercentage) || !isFinite(winPercentage)) ? 'Ø' : winPercentage,
 			},
 		];
+
+		for (let i = 0; i < 100; i++)
+		{
+			matchHistory.push({
+				oponnent: 'someone',
+				score: {
+					you: 100,
+					opponent: 0,
+				},
+			});
+		}
+
 	}
 
 	async function redirectSettings()
@@ -291,8 +337,8 @@
 					<ParticlesBackground properties={{minVelocity: 0.35, maxVelocity: 0.5, lineColor: '#958ebe'}}/>
 				</div>
 
-				<div class="stats">
-					<h1 class="stats-title">Stats</h1>
+				<section class="user-section">
+					<h1 class="user-section-title">Stats</h1>
 					<div class="stats-wrapper">
 						{#each stats as stat}
 							<div class="stat">
@@ -301,7 +347,21 @@
 							</div>
 						{/each}
 					</div>
-				</div>
+				</section>
+
+				<section class="user-section flex-grow">
+					<h1 class="user-section-title">Match history</h1>
+					<div class="match-history-wrapper">
+						{#each matchHistory as match}
+							<div class="match">
+								<h1 class="match-name">{$user.username} - {match.oponnent}</h1>
+								<span class="your-score">{match.score.you}</span>
+								<span class="score-separator">-</span>
+								<span class="opponent-score">{match.score.opponent}</span>
+							</div>
+						{/each}
+					</div>
+				</section>
 			</div>
 
 		</div>

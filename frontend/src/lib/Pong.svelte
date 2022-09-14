@@ -1,100 +1,9 @@
 <script lang="ts">
 
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { pongSocketStore } from '$lib/stores';
 
 	export let isPlayerOne = true;
-
-	$pongSocketStore.on('onOpponentPaddleMove', (data) =>
-	{
-		// console.log("OPPONENT PADDLE MOVE:", data);
-		player2.paddle.y = data.y - player2.paddle.height / 2;
-
-		if (player2.paddle.y < 0)
-			player2.paddle.y = 0;
-		else if (player2.paddle.y > canvas_height - player2.paddle.height)
-			player2.paddle.y = canvas_height - player2.paddle.height;
-	});
-
-	$pongSocketStore.on('onBallReset', (data) =>
-	{
-		console.log('BALL RESET:', data);
-		ball.velocityY = data.velocityY;
-		ball.velocityX = data.velocityX;
-
-		if (!isPlayerOne)
-		{
-			ball.velocityX *= -1;
-		}
-
-		resetBall();
-	});
-
-	$pongSocketStore.on('onScoreChange', (data) =>
-	{
-		if (!data || data.player1Score === undefined || data.player2Score === undefined)
-			return;
-
-		console.log('SCORE CHANGE:', data);
-
-		if (isPlayerOne)
-		{
-			player1.score = data.player1Score;
-			player2.score = data.player2Score;
-		}
-		else
-		{
-			player1.score = data.player2Score;
-			player2.score = data.player1Score;
-		}
-		drawScore();
-	});
-
-	$pongSocketStore.on('onResetPaddles', (data) =>
-	{
-		player1.paddle.x = 0;
-		player1.paddle.y = canvas_height / 2 - player1.paddle.height / 2;
-
-		player2.paddle.x = canvas_width - player2.paddle.width;
-		player2.paddle.y = canvas_height / 2 - player2.paddle.height / 2;
-	});
-
-	let canvasElement: HTMLCanvasElement;
-	let context: CanvasRenderingContext2D;
-
-	onMount(async () =>
-	{
-		canvasElement.addEventListener('mousemove', movePaddle);
-
-		if (canvasElement.getContext('2d') != null)
-			context = canvasElement.getContext('2d') as CanvasRenderingContext2D;
-		else
-			console.log('context is null');
-
-		// pongSocket.on('', (data) => {
-		//     console.log('pongSocket received pong', data);
-		// });
-
-		// pongSocket.on('onStartGameReceive', (data) => {
-		//     console.log('pongSocket received pong', data);
-		// });
-
-		// pongSocket.on('onStartGameReceive', (data) => {
-		//     console.log('pongSocket received pong', data);
-		// });
-		requestAnimationFrame(loop);
-	});
-
-	const computerLevel = 50;
-
-	const canvas_width = 600;
-	const canvas_height = 400;
-	const paddle_width = 10;
-	const paddle_height = 100;
-	const paddle_color = 'black';
-
-
-	const framePerSecond = 50;
 
 	interface IBall
 	{
@@ -122,47 +31,131 @@
 		score: number;
 	}
 
-	const player1: IPLayer = {
-		paddle: {
-			x: 0,
-			y: canvas_height / 2 - paddle_height / 2,
-			width: paddle_width,
-			height: paddle_height,
-			color: 'blue',
-		},
-		score: 0
-	};
+	if ($pongSocketStore)
+	{
+		$pongSocketStore.on('onOpponentPaddleMove', (data) =>
+		{
+			// console.log("OPPONENT PADDLE MOVE:", data);
+			player2.paddle.y = data.y - player2.paddle.height / 2;
 
-	const player2: IPLayer = {
-		paddle: {
-			x: canvas_width - paddle_width,
-			y: canvas_height / 2 - paddle_height / 2,
-			width: paddle_width,
-			height: paddle_height,
-			color: 'red',
-		},
-		score: 0
-	};
+			if (player2.paddle.y < 0)
+				player2.paddle.y = 0;
+			else if (player2.paddle.y > canvas.height - player2.paddle.height)
+				player2.paddle.y = canvas.height - player2.paddle.height;
+		});
 
-	const net =
+		$pongSocketStore.on('onBallReset', (data) =>
+		{
+			console.log('BALL RESET:', data);
+			ball.velocityY = data.velocityY;
+			ball.velocityX = data.velocityX;
+
+			if (!isPlayerOne)
 			{
-				x: canvas_width / 2 - 2,
-				y: 0,
-				width: 4,
-				height: 10,
-				color: 'white',
-			};
+				ball.velocityX *= -1;
+			}
 
+			resetBall();
+		});
 
-	const ball: IBall = {
-		x: canvas_width / 2,
-		y: canvas_height / 2,
-		radius: 10,
-		speed: 5,
-		velocityX: 5,
-		velocityY: 0,
-		color: 'white',
-	};
+		$pongSocketStore.on('onScoreChange', (data) =>
+		{
+			if (!data || data.player1Score === undefined || data.player2Score === undefined)
+				return;
+
+			console.log('SCORE CHANGE:', data);
+
+			if (isPlayerOne)
+			{
+				player1.score = data.player1Score;
+				player2.score = data.player2Score;
+			}
+			else
+			{
+				player1.score = data.player2Score;
+				player2.score = data.player1Score;
+			}
+			drawScore();
+		});
+
+		$pongSocketStore.on('onResetPaddles', (data) =>
+		{
+			player1.paddle.x = 0;
+			player1.paddle.y = canvas.height / 2 - player1.paddle.height / 2;
+
+			player2.paddle.x = canvas.width - player2.paddle.width;
+			player2.paddle.y = canvas.height / 2 - player2.paddle.height / 2;
+		});
+	}
+
+	const paddle_width = 10;
+	const paddle_height = 100;
+
+	let canvas: HTMLCanvasElement;
+	let context: CanvasRenderingContext2D;
+
+	let player1: IPLayer;
+	let player2: IPLayer;
+	let ball: IBall;
+	let net;
+	let lastUpdate = null;
+	let animationFrameId: number;
+
+	let inGame = false;
+
+	onMount(async () =>
+	{
+		canvas.addEventListener('mousemove', movePaddle);
+		context = canvas.getContext('2d');
+
+		player1 = {
+			paddle: {
+				x: 0,
+				y: canvas.height / 2 - paddle_height / 2,
+				width: paddle_width,
+				height: paddle_height,
+				color: 'blue',
+			},
+			score: 0
+		};
+
+		player2 = {
+			paddle: {
+				x: canvas.width - paddle_width,
+				y: canvas.height / 2 - paddle_height / 2,
+				width: paddle_width,
+				height: paddle_height,
+				color: 'red',
+			},
+			score: 0
+		};
+
+		net = {
+			x: canvas.width / 2 - 2,
+			y: 0,
+			width: 4,
+			height: 10,
+			color: 'white',
+		};
+
+		ball = {
+			x: canvas.width / 2,
+			y: canvas.height / 2,
+			radius: 10,
+			speed: 5,
+			velocityX: 5,
+			velocityY: 0,
+			color: 'white',
+		};
+
+		animationFrameId = requestAnimationFrame(loop);
+	});
+
+	onDestroy(() => {
+		canvas.removeEventListener('mousemove', movePaddle);
+		cancelAnimationFrame(animationFrameId);
+	})
+
 
 	function drawPaddle(paddle: IPaddle)
 	{
@@ -204,12 +197,12 @@
 
 	function clearCanvas()
 	{
-		drawRect(0, 0, canvas_width, canvas_height, 'black');
+		drawRect(0, 0, canvas.width, canvas.height, 'black');
 	}
 
 	function drawNet()
 	{
-		for (let i = 0; i < canvas_height; i += 20)
+		for (let i = 0; i < canvas.height; i += 20)
 			drawRect(net.x, net.y + i, net.width, net.height, net.color);
 	}
 
@@ -220,14 +213,14 @@
 
 	function drawScore()
 	{
-		drawText(player1.score.toString(), canvas_width / 4, canvas_height / 5, 'white');
-		drawText(player2.score.toString(), 3 * canvas_width / 4, canvas_height / 5, 'white');
+		drawText(player1.score.toString(), canvas.width / 4, canvas.height / 5, 'white');
+		drawText(player2.score.toString(), 3 * canvas.width / 4, canvas.height / 5, 'white');
 	}
 
 	function resetBall()
 	{
-		ball.x = canvas_width / 2;
-		ball.y = canvas_height / 2;
+		ball.x = canvas.width / 2;
+		ball.y = canvas.height / 2;
 		ball.speed = 5;
 		ball.velocityX = -ball.velocityX;
 	}
@@ -235,7 +228,7 @@
 	function movePaddle(event: MouseEvent)
 	{
 
-		let rect = canvasElement.getBoundingClientRect();
+		let rect = canvas.getBoundingClientRect();
 
 		$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top});
 
@@ -243,20 +236,20 @@
 
 		if (player1.paddle.y < 0)
 			player1.paddle.y = 0;
-		else if (player1.paddle.y > canvas_height - player1.paddle.height)
-			player1.paddle.y = canvas_height - player1.paddle.height;
+		else if (player1.paddle.y > canvas.height - player1.paddle.height)
+			player1.paddle.y = canvas.height - player1.paddle.height;
 	}
 
 	function update()
 	{
-		// com.y = ball.y -  com.height/2 + com.random;
+		// com.y = ball.y -  com.height/2 + com.random
 
-		// if (player2.paddle.y + paddle_height > canvas_height)
-		// 	player2.paddle.y = canvas_height - paddle_height;
+		// if (player2.paddle.y + paddle_height > canvas.height)
+		// 	player2.paddle.y = canvas.height - paddle_height;
 		// else if (player2.paddle.y < 0)
 		// 	player2.paddle.y = 0;
 
-		if (ball.x + ball.radius > canvas_width)
+		if (ball.x + ball.radius > canvas.width)
 		{
 			// user.score++;
 			$pongSocketStore.emit('onPlayerScored', {score: player1.score});
@@ -272,23 +265,32 @@
 			resetBall();
 		}
 
-		ball.x += ball.velocityX;
-		ball.y += ball.velocityY;
+		if (!lastUpdate)
+			lastUpdate = performance.now();
 
-		if (ball.y + ball.radius > canvas_height || ball.y - ball.radius < 0)
+		let now = performance.now();
+		let dt = (now - lastUpdate);
+		lastUpdate = now;
+
+		// make velDelta = 1 at 60 fps, 2 at 30fps, etc
+		let velDelta = dt / 16.666666666666668;
+
+		ball.x += ball.velocityX * velDelta;
+		ball.y += ball.velocityY * velDelta;
+
+		if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0)
 		{
 			ball.velocityY = -ball.velocityY;
 		}
 
-
-		let player = (ball.x < canvas_width / 2) ? player1 : player2;
+		let player = (ball.x < canvas.width / 2) ? player1 : player2;
 		if (checkCollision(ball, player.paddle))
 		{
 			let collisionPoint = ball.y - (player.paddle.y + player.paddle.height / 2);
 			collisionPoint = collisionPoint / (player.paddle.height / 2);
 
 			let angleRad = (Math.PI / 4) * collisionPoint;
-			let direction = (ball.x < canvas_width / 2) ? 1 : -1;
+			let direction = (ball.x < canvas.width / 2) ? 1 : -1;
 			ball.velocityX = direction * ball.speed * Math.cos(angleRad);
 			ball.velocityY = ball.speed * Math.sin(angleRad);
 			ball.speed += 0.2;
@@ -324,9 +326,20 @@
 	{
 		update();
 		render();
-		requestAnimationFrame(loop);
+		animationFrameId = requestAnimationFrame(loop);
 	}
 
 </script>
 
-<canvas bind:this={canvasElement} width="600" height="400"/>
+<div class="pong-wrapper">
+	<canvas bind:this={canvas} width="600" height="400"/>
+</div>
+
+<style lang="scss">
+
+	.pong-wrapper
+	{
+
+	}
+
+</style>
