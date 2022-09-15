@@ -1,3 +1,6 @@
+
+all: dev
+
 prod: down
 	docker-compose -f docker-compose.yml up
 
