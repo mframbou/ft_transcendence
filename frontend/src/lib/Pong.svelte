@@ -237,8 +237,12 @@
 
 		if (player1.paddle.y < 0)
 			player1.paddle.y = 0;
-		else if (player1.paddle.y > canvas.height - player1.paddle.height)
+		else if (player1.paddle.y > canvas.height - player2.paddle.height)
 			player1.paddle.y = canvas.height - player1.paddle.height;
+		if (player2.paddle.y < 0)
+			player2.paddle.y = 0;
+		else if (player2.paddle.y > canvas.height - player2.paddle.height)
+			player2.paddle.y = canvas.height - player2.paddle.height;
 	}
 
 	function update()
