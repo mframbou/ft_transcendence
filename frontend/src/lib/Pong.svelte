@@ -233,16 +233,11 @@
 		$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top});
 
 		player1.paddle.y = event.clientY - rect.top - player1.paddle.height / 2;
-		player2.paddle.y = event.clientY - rect.top - player2.paddle.height / 2;
 
 		if (player1.paddle.y < 0)
 			player1.paddle.y = 0;
-		else if (player1.paddle.y > canvas.height - player2.paddle.height)
+		else if (player1.paddle.y > canvas.height - player1.paddle.height)
 			player1.paddle.y = canvas.height - player1.paddle.height;
-		if (player2.paddle.y < 0)
-			player2.paddle.y = 0;
-		else if (player2.paddle.y > canvas.height - player2.paddle.height)
-			player2.paddle.y = canvas.height - player2.paddle.height;
 	}
 
 	function update()
