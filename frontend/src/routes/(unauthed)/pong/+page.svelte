@@ -12,7 +12,6 @@
 		margin-top: 85px;
 	}
 
-
 	.banner
 	{
 		$dim-color: rgba(0, 0, 0, 0.1);

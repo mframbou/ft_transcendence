@@ -233,6 +233,7 @@
 		$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top});
 
 		player1.paddle.y = event.clientY - rect.top - player1.paddle.height / 2;
+		player2.paddle.y = event.clientY - rect.top - player2.paddle.height / 2;
 
 		if (player1.paddle.y < 0)
 			player1.paddle.y = 0;
