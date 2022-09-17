@@ -57,7 +57,7 @@ export class UsersService
 					isOwner: true,
 					isAdmin: true,
 					isOnline: true,
-					onlineStatus: true,
+					status: true,
 				}
 			});
 		}
@@ -87,7 +87,7 @@ export class UsersService
 					isAdmin: true,
 					isOnline: true,
 					twoFactorEnabled: true,
-					onlineStatus: true,
+					status: true,
 				}
 			});
 		}
@@ -113,7 +113,7 @@ export class UsersService
 					isOwner: true,
 					isAdmin: true,
 					isOnline: true,
-					onlineStatus: true,
+					status: true,
 				}
 			});
 		}

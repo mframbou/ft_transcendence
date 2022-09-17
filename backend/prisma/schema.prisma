@@ -30,7 +30,9 @@ model User {
 	isOwner          Boolean         @default(false)
 	isAdmin          Boolean         @default(false)
 	isOnline         Boolean         @default(false)
-	onlineStatus     Status          @default(ONLINE)
+	status           Status          @default(OFFLINE)
+	friends          String[]
+	blocked          String[]
 }
 
 enum Status {

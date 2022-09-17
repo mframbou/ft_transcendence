@@ -282,7 +282,7 @@
 </style>
 
 <script lang="ts">
-	import { user } from '$lib/stores';
+	import { user, fetchUser } from '$lib/stores';
 	import { goto } from '$app/navigation';
 	import Button from '$lib/Button.svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
@@ -292,6 +292,20 @@
 	{
 
 	}
+
+	// fetchUser every second
+	onMount(() =>
+	{
+		// const interval = setInterval(() =>
+		// {
+		// 	// fetchUser();
+		// }, 1000);
+		//
+		// return () =>
+		// {
+		// 	clearInterval(interval);
+		// }
+	});
 
 	interface IStat
 	{
@@ -363,7 +377,6 @@
 	// 	if (user)
 	// 		await goto(`/profile/${user.login}`)
 	// }
-
 </script>
 
 
@@ -379,6 +392,7 @@
 					<div class="username">
 						<h1 on:click={redirectSettings}>{$user.username}</h1>
 						<h2>@{$user.login}</h2>
+						<h2>{$user.status}</h2>
 					</div>
 
 					<div class="buttons">

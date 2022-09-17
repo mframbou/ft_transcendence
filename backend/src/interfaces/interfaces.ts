@@ -26,7 +26,7 @@ export interface IUser
 	otpUri: string;
 	isOwner: boolean;
 	isAdmin: boolean;
-	onlineStatus: Status;
+	status: Status;
 }
 
 export interface IPublicUser
@@ -40,7 +40,7 @@ export interface IPublicUser
 	elo: number;
 	isOwner: boolean;
 	isAdmin: boolean;
-	onlineStatus: Status;
+	status: Status;
 }
 
 export interface ISelfUser extends IPublicUser
@@ -98,4 +98,11 @@ export interface IGameRoom
 export interface IGameMovePayload
 {
 	y: number;
+}
+
+export enum EUserStatus
+{
+	ONLINE = 'online',
+	OFFLINE = 'offline',
+	IN_GAME = 'in-game',
 }

@@ -32,7 +32,7 @@ export class WebsocketsService {
 		if (!client)
 			return;
 
-		console.log(`Client ${client.login} disconnected from '${client.namespace}'`);
+		console.log(`Client ${client.login}:${client.id}  disconnected from '${client.namespace}'`);
 
 		this.clients = this.clients.filter(client => client.id !== clientId);
 	}

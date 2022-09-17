@@ -3,8 +3,9 @@ import { getCookie } from '../utils/utils';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { AuthService } from '../auth/auth.service';
-import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
+import { EUserStatus, IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
 import { WebsocketsService } from './websockets.service';
+import { StatusService } from '../status/status.service';
 
 
 const NAMESPACE = 'status';
@@ -21,6 +22,7 @@ export class StatusGateway implements OnGatewayDisconnect
 	constructor(
 			private authService: AuthService,
 			private websocketsService: WebsocketsService,
+			private statusService: StatusService,
 	) {}
 
 
@@ -35,6 +37,7 @@ export class StatusGateway implements OnGatewayDisconnect
 
 		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload);
 
+		await this.statusService.setStatus(jwtPayload.login, EUserStatus.ONLINE);
 		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
 	}
 
@@ -44,7 +47,7 @@ export class StatusGateway implements OnGatewayDisconnect
 		if (!clientToRemove)
 			return;
 
+		await this.statusService.setStatus(clientToRemove.login, EUserStatus.OFFLINE);
 		this.websocketsService.removeClient(client.id);
 	}
-
 }
