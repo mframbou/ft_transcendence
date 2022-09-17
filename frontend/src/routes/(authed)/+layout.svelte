@@ -57,7 +57,7 @@
 	{
 		flex-grow: 1;
 		position: relative;
-		overflow: hidden;
+		overflow: auto;
 		//transform-style: preserve-3d;
 	}
 

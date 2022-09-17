@@ -97,6 +97,7 @@
 	let player1: IPLayer;
 	let player2: IPLayer;
 	let ball: IBall;
+	const ballLastPos: { x: number, y: number } = {};
 	let net;
 	let lastUpdate = null;
 	let animationFrameId: number;
@@ -147,6 +148,9 @@
 			velocityY: 0,
 			color: 'white',
 		};
+
+		ballLastPos.x = ball.x;
+		ballLastPos.y = ball.y;
 
 		animationFrameId = requestAnimationFrame(loop);
 	});
@@ -278,13 +282,14 @@
 		ball.x += ball.velocityX * velDelta;
 		ball.y += ball.velocityY * velDelta;
 
+
 		if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0)
 		{
 			ball.velocityY = -ball.velocityY;
 		}
 
 		let player = (ball.x < canvas.width / 2) ? player1 : player2;
-		if (checkCollision(ball, player.paddle))
+		if (checkCollision(ball, ballLastPos, player.paddle))
 		{
 			let collisionPoint = ball.y - (player.paddle.y + player.paddle.height / 2);
 			collisionPoint = collisionPoint / (player.paddle.height / 2);
@@ -295,10 +300,49 @@
 			ball.velocityY = ball.speed * Math.sin(angleRad);
 			ball.speed += 0.2;
 		}
+
+		ballLastPos.x = ball.x;
+		ballLastPos.y = ball.y;
 	}
 
-	function checkCollision(ball: IBall, paddle: IPaddle)
+	function pointDistToSegment(point: {x: number, y: number}, p1: {x: number, y: number}, p2: {x: number, y: number})
 	{
+		let A = point.x - p1.x;
+		let B = point.y - p1.y;
+		let C = p2.x - p1.x;
+		let D = p2.y - p1.y;
+
+		let dot = A * C + B * D;
+		let len_sq = C * C + D * D;
+		let param = -1;
+		if (len_sq != 0) //in case of 0 length line
+			param = dot / len_sq;
+
+		let xx, yy;
+
+		if (param < 0) {
+			xx = p1.x;
+			yy = p1.y;
+		}
+		else if (param > 1) {
+			xx = p2.x;
+			yy = p2.y;
+		}
+		else {
+			xx = p1.x + param * C;
+			yy = p1.y + param * D;
+		}
+
+		let dx = point.x - xx;
+		let dy = point.y - yy;
+		return Math.sqrt(dx * dx + dy * dy);
+	}
+
+	// https://stackoverflow.com/questions/43615547/collision-detection-for-2d-capsule-or-swept-sphere
+	function checkCollision(ball: { x: number, y: number, radius: number }, ballLastPos: { x: number, y : number }, paddle: IPaddle)
+	{
+		// const dist = pointDistToSegment({x: paddle.x, y: paddle.y}, ball, ballLastPos);
+
 		const ballTop = ball.y - ball.radius;
 		const ballBottom = ball.y + ball.radius;
 		const ballLeft = ball.x - ball.radius;

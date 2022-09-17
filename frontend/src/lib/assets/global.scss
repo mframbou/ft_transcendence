@@ -16,4 +16,26 @@
 	margin: 0;
 	padding: 0;
 	color: white;
+
+	// custom scrollbar style
+	&::-webkit-scrollbar
+	{
+		width: 10px;
+	}
+
+	&::-webkit-scrollbar-track
+	{
+		background: #0C0813;
+	}
+
+	&::-webkit-scrollbar-thumb
+	{
+		background: #958ebe;
+		border-radius: 10px;
+	}
+
+	&::-webkit-scrollbar-thumb:hover
+	{
+		background: desaturate(darken(#958ebe, 15%), 10%);
+	}
 }

@@ -4,7 +4,7 @@
 		height: 100%;
 		width: 100%;
 		background-color: #0C0813;
-		overflow: hidden;
+		overflow: auto;
 	}
 
 	.banner
@@ -17,6 +17,7 @@
 
 		background-size: cover;
 		background-position: center;
+		overflow: auto;
 
 		display: flex;
 		justify-items: start;
@@ -90,6 +91,7 @@
 		backdrop-filter: blur(5px);
 
 		max-width: 1920px;
+		min-height: 10em;
 		margin: 20px;
 		padding: 15px;
 		gap: 20px;
@@ -176,6 +178,7 @@
 
 		display: flex;
 		flex-direction: column;
+		overflow: auto;
 	}
 
 	.background
@@ -197,28 +200,6 @@
 		gap: 20px;
 		width: 100%;
 		overflow: auto;
-
-		// custom scrollbar style
-		&::-webkit-scrollbar
-		{
-			width: 10px;
-		}
-
-		&::-webkit-scrollbar-track
-		{
-			background: #0C0813;
-		}
-
-		&::-webkit-scrollbar-thumb
-		{
-			background: #958ebe;
-			border-radius: 10px;
-		}
-
-		&::-webkit-scrollbar-thumb:hover
-		{
-			background: desaturate(darken(#958ebe, 15%), 10%);
-		}
 
 		.match
 		{
@@ -296,12 +277,6 @@
 			text-align: center;
 		}
 
-	}
-
-
-	.overflow-hidden
-	{
-		overflow: hidden;
 	}
 
 </style>
@@ -424,7 +399,7 @@
 				{/if}
 			</div>
 
-			<div class="profile-content overflow-hidden">
+			<div class="profile-content">
 				<div class="background">
 					<ParticlesBackground properties={{minVelocity: 0.35, maxVelocity: 0.5, lineColor: '#958ebe'}}/>
 				</div>
@@ -441,7 +416,7 @@
 					</div>
 				</section>
 
-				<section class="user-section overflow-hidden">
+				<section class="user-section">
 					<h1 class="user-section-title">Match history</h1>
 					<div class="match-history-wrapper">
 						{#if matchHistory.length === 0}
