@@ -132,7 +132,7 @@
 			{
 				if (point.img.src.includes('imoutaab'))
 				{
-					window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank');
+					window.open('https://www.youtube.com/watch?v=VQ7lKPSUc2g', '_blank');
 				}
 				return;
 			}

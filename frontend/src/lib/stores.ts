@@ -1,6 +1,7 @@
 import { get, readable, writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { chatSocket, pongSocket, statusSocket } from '$lib/socket-io';
+import { goto } from '$app/navigation';
 
 export const user = writable(undefined);
 export const otpVerifyAndClear = writable(undefined);
@@ -67,7 +68,8 @@ export async function fetchUser()
 		if (res.status === 404)
 		{
 			// 404 = user not found, probably removed from DB (or DB reset), so delete coookie by logging out
-			await fetch('/api/auth/logout');
+			// await fetch('/api/auth/logout');
+			await goto('/api/auth/logout');
 		}
 	}
 	catch (e)

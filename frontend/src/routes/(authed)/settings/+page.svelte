@@ -227,7 +227,7 @@
 <!-- Outside of settings wrapper because filter: blur mess with position fixed -->
 {#if qr}
 	<div class="qr-modal">
-		<Modal closeOnClickOutside={false}>
+		<Modal closeOnClickOutside={true} modalShown={true} on:close-modal={() => { qr = null } }>
 			<h1>Enable Two-Factor Authentication</h1>
 			<ol class="steps">
 				<li>Download a 2FA app such as <strong>Google Authenticator</strong> or <strong>Auhty</strong>.</li>

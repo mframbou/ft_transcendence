@@ -197,7 +197,28 @@
 		gap: 20px;
 		width: 100%;
 		overflow: auto;
-		flex: 1 1 5em;
+
+		// custom scrollbar style
+		&::-webkit-scrollbar
+		{
+			width: 10px;
+		}
+
+		&::-webkit-scrollbar-track
+		{
+			background: #0C0813;
+		}
+
+		&::-webkit-scrollbar-thumb
+		{
+			background: #958ebe;
+			border-radius: 10px;
+		}
+
+		&::-webkit-scrollbar-thumb:hover
+		{
+			background: desaturate(darken(#958ebe, 15%), 10%);
+		}
 
 		.match
 		{
@@ -206,16 +227,81 @@
 			border-radius: 10px;
 			width: 100%;
 
+			display: flex;
+			flex-direction: row;
+			gap: 10px;
+			align-items: baseline;
+			justify-content: flex-start;
+
 			&:hover
 			{
 				background-color: desaturate(lighten($section-bg-color, 15%), 10%);
 			}
 		}
+
+		.match-name
+		{
+			font-family: Montserrat;
+			font-weight: 500;
+			font-size: 1.2em;
+			color: white;
+
+			strong
+			{
+				font-weight: 700;
+			}
+		}
+
+		.match-score
+		{
+			font-family: Montserrat;
+			font-weight: 500;
+			font-size: 1.2em;
+			color: white;
+
+			strong
+			{
+				font-weight: 700;
+			}
+		}
+
+		.user-separator, .score-separator
+		{
+			font-family: Montserrat;
+			color: white;
+			padding: 0 5px;
+		}
+
+		.match-victory
+		{
+			//background-color: desaturate(lighten($section-bg-color, 15%), 10%);
+		}
+
+		.match-defeat
+		{
+			//background-color: desaturate(lighten($section-bg-color, 10%), 10%);
+		}
+
+		.match-draw
+		{
+			//background-color: desaturate($section-bg-color, 10%);
+		}
+
+		.no-match-history
+		{
+			font-family: Montserrat;
+			font-weight: 500;
+			font-size: 1.2em;
+			color: white;
+			text-align: center;
+		}
+
 	}
 
-	.flex-grow
+
+	.overflow-hidden
 	{
-		flex-grow: 1;
+		overflow: hidden;
 	}
 
 </style>
@@ -255,6 +341,8 @@
 
 	let matchHistory: any[] = [];
 
+	// $:
+
 	$: if($user)
 	{
 		let winPercentage = Math.round(($user.wins / ($user.wins + $user.losses)) * 100);
@@ -273,17 +361,21 @@
 			},
 		];
 
-		for (let i = 0; i < 100; i++)
+		let tmp = []
+		for (let i = 0; i < 10; i++)
 		{
-			matchHistory.push({
+			tmp.push({
 				oponnent: 'someone',
 				score: {
 					you: 100,
 					opponent: 0,
 				},
+				// random outcome 'win' 'lose' or 'draw'
+				outcome: ['victory', 'defeat', 'draw'][Math.floor(Math.random() * 3)],
 			});
 		}
 
+		matchHistory = tmp; // for svelte
 	}
 
 	async function redirectSettings()
@@ -332,7 +424,7 @@
 				{/if}
 			</div>
 
-			<div class="profile-content">
+			<div class="profile-content overflow-hidden">
 				<div class="background">
 					<ParticlesBackground properties={{minVelocity: 0.35, maxVelocity: 0.5, lineColor: '#958ebe'}}/>
 				</div>
@@ -349,19 +441,24 @@
 					</div>
 				</section>
 
-				<section class="user-section flex-grow">
+				<section class="user-section overflow-hidden">
 					<h1 class="user-section-title">Match history</h1>
 					<div class="match-history-wrapper">
-						{#each matchHistory as match}
-							<div class="match">
-								<h1 class="match-name">{$user.username} - {match.oponnent}</h1>
-								<span class="your-score">{match.score.you}</span>
-								<span class="score-separator">-</span>
-								<span class="opponent-score">{match.score.opponent}</span>
+						{#if matchHistory.length === 0}
+							<div class="no-match-history">
+								<h1>No match history</h1>
 							</div>
-						{/each}
+						{:else}
+							{#each matchHistory as match}
+								<div class="match" class:match-victory={match.outcome === 'victory'} class:match-defeat={match.outcome === 'defeat'} class:match-draw={match.outcome === 'draw'}>
+									<h1 class="match-name"><strong>{$user.username}</strong><span class="user-separator">-</span>{match.oponnent}</h1>
+									<span class="match-score"><strong>{match.score.you}</strong><span class="score-separator">-</span>{match.score.opponent}</span>
+								</div>
+							{/each}
+						{/if}
 					</div>
 				</section>
+<!--				</div>-->
 			</div>
 
 		</div>

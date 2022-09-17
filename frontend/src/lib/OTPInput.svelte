@@ -105,7 +105,10 @@
 		{#if i !== 0 && (i) % OTP_SPLIT_EVERY == 0}
 			<span class="splitter">&ndash;</span>
 		{/if}
-		<input autofocus={i === 0 ? true : null} class="digit" id={`digit-${i}`} maxlength="1" on:keydown={(e) => {handleKeyDown(e, i); if (i === OTP_DIGITS - 1) { checkCompletion(e) }}}>
+		<input autofocus={i === 0 ? true : null} class="digit" id={`digit-${i}`} maxlength="1" on:keydown={(e) => {
+            handleKeyDown(e, i);
+            checkCompletion(e);
+       }}>
 	{/each}
 </form>
 

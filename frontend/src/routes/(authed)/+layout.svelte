@@ -9,7 +9,9 @@
 
 <div class="wrapper">
 	<!--	Relative pos with flex column so that we dont need margin top (so we can change navbar height without having to bother changing in layout) -->
-	<NavbarV2 relativePos={true}/>
+	<div class="navbar-wrapper">
+		<NavbarV2 relativePos={true}/>
+	</div>
 	<main>
 		<slot/>
 	</main>
@@ -17,6 +19,27 @@
 
 
 <style lang="scss">
+
+	@media (min-width: 860px)
+	{
+		.wrapper
+		{
+			flex-direction: column;
+		}
+	}
+
+	@media (max-width: 860px)
+	{
+		.wrapper
+		{
+			flex-direction: row;
+		}
+	}
+
+	.navbar-wrapper
+	{
+		flex: 0 0 auto;
+	}
 
 	.wrapper
 	{
@@ -28,13 +51,13 @@
 		background-color: #0C0813;
 
 		display: flex;
-		flex-direction: column;
 	}
 
 	main
 	{
 		flex-grow: 1;
 		position: relative;
+		overflow: hidden;
 		//transform-style: preserve-3d;
 	}
 

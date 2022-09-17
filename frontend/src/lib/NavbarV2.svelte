@@ -1,21 +1,116 @@
 <style lang="scss">
 
+
+	@media (min-width: 860px)
+	{
+		.wrapper
+		{
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			width: 100%;
+			height: 85px;
+		}
+
+		.logo
+		{
+			height: 100%;
+			left: 35px;
+		}
+
+		.profile
+		{
+			height: 100%;
+			right: 35px;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.navigation
+		{
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			gap: 25px;
+		}
+	}
+
+	@media (max-width: 860px)
+	{
+		$elements-padding-left: 15px;
+
+		.wrapper
+		{
+			flex-direction: column;
+			justify-content: center;
+			align-items: start;
+			width: min(100vw, 240px);
+			height: 100%;
+		}
+
+		.logo
+		{
+			width: 80%;
+			left: 0;
+			top: 35px;
+
+			img
+			{
+				width: 75%;
+			}
+		}
+
+		.profile
+		{
+			width: 100%;
+			bottom: 35px;
+			justify-content: left;
+			align-items: center;
+			padding-left: $elements-padding-left;
+		}
+
+		.nav-point
+		{
+			opacity: 0;
+		}
+
+		.navigation
+		{
+			flex-direction: column;
+			justify-content: center;
+			align-items: start;
+			width: 100%;
+			padding-left: $elements-padding-left;
+
+			a
+			{
+				// minimum mobile height
+				height: 50px;
+				width: 100%;
+				display: flex;
+				justify-content: left;
+				align-items: center;
+			}
+
+			gap: 10px;
+		}
+	}
+
 	.wrapper
 	{
 		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		align-items: center;
+
 		top: 0;
 		left: 0;
-		width: 100%;
-		height: 85px;
 		background: transparent;
 		color: white;
 	}
 
 	.logo
 	{
+		position: absolute;
+		vertical-align: middle;
+
 		display: flex;
 		flex-direction: row;
 		justify-content: center;
@@ -32,23 +127,13 @@
 				filter: brightness(0.9);
 			}
 		}
-
-		height: 100%;
-		position: absolute;
-		left: 35px;
-		vertical-align: middle;
 	}
 
 	.profile
 	{
 		display: flex;
 		flex-direction: row;
-		justify-content: center;
-		align-items: center;
-
-		height: 100%;
 		position: absolute;
-		right: 35px;
 
 		button
 		{
@@ -65,7 +150,6 @@
 			font-family: Montserrat;
 			font-weight: 400;
 
-
 			&:hover
 			{
 				background-color: rgba(255, 255, 255, 0.1);
@@ -79,10 +163,6 @@
 
 		position: relative;
 		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		align-items: center;
-		gap: 25px;
 
 		a
 		{

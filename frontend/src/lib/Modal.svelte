@@ -1,7 +1,12 @@
 <script lang="ts">
 
+	import { createEventDispatcher } from 'svelte';
+
 	export let modalShown = true;
 	export let closeOnClickOutside = true;
+
+	const dispatch = createEventDispatcher();
+
 
 	let wrapperElement;
 
@@ -9,6 +14,8 @@
 	{
 		console.log('closing modal')
 		modalShown = false;
+
+		dispatch('close-modal', undefined);
 	}
 
 	function handleClick(e)
@@ -17,7 +24,9 @@
 			return;
 
 		if (e.target === wrapperElement)
+		{
 			closeModal();
+		}
 	}
 
 </script>
