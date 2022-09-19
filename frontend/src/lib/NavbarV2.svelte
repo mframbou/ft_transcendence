@@ -44,13 +44,13 @@
 			flex-direction: column;
 			justify-content: center;
 			align-items: start;
-			width: min(100vw, 240px);
+			width: min(30vw, 200px);
 			height: 100%;
 		}
 
 		.logo
 		{
-			width: 80%;
+			width: 100%;
 			left: 0;
 			top: 35px;
 
