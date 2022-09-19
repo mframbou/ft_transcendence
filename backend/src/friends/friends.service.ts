@@ -192,23 +192,25 @@ export class FriendsService {
 		}
 	}
 
-	async getFriends(login: string)
+	async getFriends(login: string): Promise<IPublicUser[]>
 	{
 		try
 		{
-			const user = await this.prismaService.user.findUnique({
+			const friendsLogin = await this.prismaService.friends.findMany({
 				where: {
 					login: login,
+					pending: false,
+				},
+				select: {
+					friendLogin: true,
 				}
 			});
-			if (!user)
-				throw new NotFoundException(`User with login ${login} not found`);
 
-			const friends = await this.prismaService.friends.findMany({
-				where: {
-					login: login,
-				}
-			});
+			// Since map returns an array of promises, we need to await it, to await an array, use Promise.all
+			const friends: IPublicUser[] = await Promise.all(friendsLogin.map(async (friend) => {
+				const user: IPublicUser = await this.usersService.getUser(friend.friendLogin);
+				return user;
+			}));
 
 			return friends;
 		}
