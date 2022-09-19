@@ -91,7 +91,8 @@
 		backdrop-filter: blur(5px);
 
 		max-width: 1920px;
-		min-height: 10em;
+		//min-height: 12em;
+		//overflow: hidden;
 		margin: 20px;
 		padding: 15px;
 		gap: 20px;
@@ -277,6 +278,14 @@
 			text-align: center;
 		}
 
+
+	}
+
+	// Since it should scroll behavior is a bit different from normal user-section
+	.match-history-section
+	{
+		overflow: hidden;
+		min-height: 12em;
 	}
 
 </style>
@@ -287,24 +296,24 @@
 	import Button from '$lib/Button.svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
 	import { onMount } from 'svelte';
-
-	function showProfilePictureModal(e)
-	{
-
-	}
+	import { statusSocket } from '$lib/socket-io';
 
 	// fetchUser every second
 	onMount(() =>
 	{
-		// const interval = setInterval(() =>
-		// {
-		// 	// fetchUser();
-		// }, 1000);
-		//
-		// return () =>
-		// {
-		// 	clearInterval(interval);
-		// }
+		statusSocket.on('userStatusChanged', (data) =>
+		{
+			console.log('userStatusChanged', data);
+			if ($user.login === data.login)
+			{
+				$user.status = data.status;
+			}
+		});
+
+		return () =>
+		{
+			statusSocket.off('userStatusChanged');
+		};
 	});
 
 	interface IStat
@@ -430,7 +439,7 @@
 					</div>
 				</section>
 
-				<section class="user-section">
+				<section class="user-section match-history-section">
 					<h1 class="user-section-title">Match history</h1>
 					<div class="match-history-wrapper">
 						{#if matchHistory.length === 0}

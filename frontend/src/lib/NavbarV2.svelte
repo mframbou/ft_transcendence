@@ -35,7 +35,7 @@
 		}
 	}
 
-	@media (max-width: 860px)
+	@media (max-width: 859px)
 	{
 		$elements-padding-left: 15px;
 

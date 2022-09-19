@@ -28,7 +28,7 @@
 		}
 	}
 
-	@media (max-width: 860px)
+	@media (max-width: 859px)
 	{
 		.wrapper
 		{

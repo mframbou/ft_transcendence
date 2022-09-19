@@ -3,6 +3,7 @@ import { EUserStatus } from '../interfaces/interfaces';
 import { PrismaService } from '../prisma/prisma.service';
 import { Status } from '@prisma/client';
 import error_dispatcher from '../../src-sasso/error-dispatcher/error-dispatcher';
+import { Server } from 'socket.io';
 
 @Injectable()
 export class StatusService {
@@ -10,7 +11,10 @@ export class StatusService {
 			private prismaService: PrismaService,
 	) {}
 
-	async setStatus(login: string, status: EUserStatus)
+	/**
+	 * Set the status of a user, if server is provided, the new status will be emitted to all connected clients
+	 */
+	async setStatus(login: string, status: EUserStatus, server?: Server)
 	{
 		try
 		{
@@ -31,11 +35,22 @@ export class StatusService {
 			}
 
 			await this.prismaService.user.update({
-				where: {login},
+				where: {
+					login: login
+				},
 				data: {
 					status: userStatus,
 				},
 			});
+
+			if (typeof server !== 'undefined')
+			{
+				// https://socket.io/docs/v3/emit-cheatsheet/
+				server.emit('userStatusChanged', {
+					login: login,
+					status: status,
+				});
+			}
 		}
 		catch (e)
 		{

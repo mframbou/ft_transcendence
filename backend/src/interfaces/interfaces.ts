@@ -102,7 +102,7 @@ export interface IGameMovePayload
 
 export enum EUserStatus
 {
-	ONLINE = 'online',
-	OFFLINE = 'offline',
-	IN_GAME = 'in-game',
+	ONLINE = 'ONLINE',
+	OFFLINE = 'OFFLINE',
+	IN_GAME = 'IN_GAME',
 }

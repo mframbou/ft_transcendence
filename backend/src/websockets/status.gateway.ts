@@ -1,4 +1,4 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect } from '@nestjs/websockets';
+import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
 import { getCookie } from '../utils/utils';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
@@ -6,6 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import { EUserStatus, IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
 import { WebsocketsService } from './websockets.service';
 import { StatusService } from '../status/status.service';
+import { Server } from 'socket.io';
 
 
 const NAMESPACE = 'status';
@@ -25,6 +26,9 @@ export class StatusGateway implements OnGatewayDisconnect
 			private statusService: StatusService,
 	) {}
 
+	@WebSocketServer()
+	server: Server;
+
 
 	@SubscribeMessage('first_connect')
 	async handleFirstConnect(client: any, payload: any)
@@ -37,7 +41,7 @@ export class StatusGateway implements OnGatewayDisconnect
 
 		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload);
 
-		await this.statusService.setStatus(jwtPayload.login, EUserStatus.ONLINE);
+		await this.statusService.setStatus(jwtPayload.login, EUserStatus.ONLINE, this.server);
 		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
 	}
 

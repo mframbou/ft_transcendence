@@ -31,8 +31,12 @@ model User {
 	isAdmin          Boolean         @default(false)
 	isOnline         Boolean         @default(false)
 	status           Status          @default(OFFLINE)
-	friends          String[]
-	blocked          String[]
+
+	// https://stackoverflow.com/questions/65162657/one-to-many-self-relation-in-prisma-schema
+	friends          User[]          @relation("Friends")
+	friendsRelation  User[]          @relation("Friends")
+	blocked          User[]          @relation("Blocked")
+	blockedRelation  User[]          @relation("Blocked")
 }
 
 enum Status {
