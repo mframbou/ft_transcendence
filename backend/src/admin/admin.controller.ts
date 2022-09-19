@@ -1,10 +1,11 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { IUser } from '../interfaces/interfaces';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAdminAuthGuard } from '../auth/jwt-admin-auth.guard';
 import errorDispatcher from '../utils/error-dispatcher';
+import { FriendsService } from '../friends/friends.service';
 
 @UseGuards(JwtAdminAuthGuard)
 @Controller('admin')
@@ -13,12 +14,13 @@ export class AdminController {
 	constructor(
 			private usersService: UsersService,
 			private prismaService: PrismaService,
+			private friendsService: FriendsService,
 	)
 	{}
 
 	@Get('create_random_user')
-	async createRandomUser() {
-
+	async createRandomUser()
+	{
 		let randomUsername = '';
 		try
 		{
@@ -44,6 +46,24 @@ export class AdminController {
 		}
 
 		return `User ${randomUsername} created`;
+	}
+
+	@Get('add_friend')
+	async sendFriendRequest(@Query('userLogin') userLogin: string, @Query('friendLogin') friendLogin: string)
+	{
+		await this.friendsService.addFriend(userLogin, friendLogin);
+	}
+
+	@Get('remove_friend')
+	async removeFriend(@Query('userLogin') userLogin: string, @Query('friendLogin') friendLogin: string)
+	{
+		await this.friendsService.removeFriend(userLogin, friendLogin);
+	}
+
+	@Get('show_all_friends')
+	async showAllFriends()
+	{
+		return await this.prismaService.friends.findMany();
 	}
 
 }

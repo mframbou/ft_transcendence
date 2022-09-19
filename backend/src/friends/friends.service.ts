@@ -39,14 +39,41 @@ export class FriendsService {
 			});
 
 			if (alreadyFriend)
-				throw new BadRequestException(`User with login ${userLogin} is already friend with user with login ${friendLogin}`);
+				throw new BadRequestException(`User with login ${userLogin} is already ${alreadyFriend.pending ? 'pending' : 'friend'} with user with login ${friendLogin}`);
 
+			const pendingAcceptFromFriend = await this.prismaService.friends.findUnique({
+				where: {
+					login_friendLogin: {
+						login: friendLogin,
+						friendLogin: userLogin,
+					}
+				}
+			});
+
+			// If other user has already sent friend request, then acceept directly instead of pending
+			// And set other user not pending if so
 			await this.prismaService.friends.create({
 				data: {
 					login: userLogin,
 					friendLogin: friendLogin,
+					pending: pendingAcceptFromFriend ? false : true,
 				}
 			});
+
+			if (pendingAcceptFromFriend)
+			{
+				await this.prismaService.friends.update({
+					where: {
+						login_friendLogin: {
+							login: friendLogin,
+							friendLogin: userLogin,
+						}
+					},
+					data: {
+						pending: false,
+					}
+				});
+			}
 		}
 		catch (e)
 		{
@@ -85,6 +112,20 @@ export class FriendsService {
 					}
 				}
 			});
+
+			if (!alreadyFriend.pending)
+			{
+				// delete the reverse friendship
+				await this.prismaService.friends.delete({
+					where: {
+						login_friendLogin: {
+							login: friendLogin,
+							friendLogin: userLogin,
+						}
+					}
+				});
+			}
+
 		}
 		catch (e)
 		{
