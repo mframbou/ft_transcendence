@@ -8,7 +8,9 @@ import { UpdateUserDto } from './updateUser.dto';
 @Injectable()
 export class UsersService
 {
-	constructor(private prismaService: PrismaService) {}
+	constructor(
+			private prismaService: PrismaService
+	) {}
 
 	async getUser(login: string): Promise<IUser>
 	{
@@ -125,8 +127,7 @@ export class UsersService
 
 	async addUser(userData: any): Promise<IUser>
 	{
-
-		const isOwner: boolean = userData.login === 'sspina' || userData.login === 'dsamain' || userData.login === 'oronda' || userData.login === 'mframbou';
+		const isOwner = userData.login === 'sspina' || userData.login === 'dsamain' || userData.login === 'oronda' || userData.login === 'mframbou';
 
 		if (isOwner)
 			console.log(`Hello master ${userData.login} UwU`);

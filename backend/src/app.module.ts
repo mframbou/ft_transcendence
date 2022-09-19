@@ -21,16 +21,20 @@ import { WebsocketsService } from './websockets/websockets.service';
 import { PongGateway } from './websockets/pong.gateway';
 import { GameService } from './game/game.service';
 import { StatusService } from './status/status.service';
+import { AdminController } from './admin/admin.controller';
+import { JwtAdminStrategy } from './auth/jwt-admin.strategy.ts';
+import { FriendsController } from './friends/friends.controller';
+import { FriendsService } from './friends/friends.service';
 
 @Module({
-	controllers: [AppController, AuthController, UsersController, TwoFactorController],
+	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController],
 	imports: [
 		PrismaModule,
 		JwtModule.register({
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, PongGateway, GameService, StatusService],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, PongGateway, GameService, StatusService, FriendsService],
 })
 export class AppModule
 {}

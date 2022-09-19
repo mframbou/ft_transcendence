@@ -32,15 +32,22 @@ model User {
 	isOnline         Boolean         @default(false)
 	status           Status          @default(OFFLINE)
 
-	// https://stackoverflow.com/questions/65162657/one-to-many-self-relation-in-prisma-schema
-	friends          User[]          @relation("Friends")
-	friendsRelation  User[]          @relation("Friends")
-	blocked          User[]          @relation("Blocked")
-	blockedRelation  User[]          @relation("Blocked")
+    userFriends      Friends[]       @relation(name: "userFriends")
+    friendUsers      Friends[]       @relation(name: "friendsUser")
 }
 
 enum Status {
     ONLINE
     OFFLINE
     IN_GAME
+}
+
+model   Friends {
+    login       String
+    friendLogin String
+    Users       User     @relation(name: "userFriends", fields: [login], references: [login])
+    Friends     User     @relation(name: "friendsUser", fields: [friendLogin], references: [login])
+    pending     Boolean  @default(true)
+
+    @@id([login, friendLogin])
 }

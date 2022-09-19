@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { EUserStatus } from '../interfaces/interfaces';
 import { PrismaService } from '../prisma/prisma.service';
 import { Status } from '@prisma/client';
-import error_dispatcher from '../../src-sasso/error-dispatcher/error-dispatcher';
 import { Server } from 'socket.io';
+import errorDispatcher from '../utils/error-dispatcher';
 
 @Injectable()
 export class StatusService {
@@ -54,7 +54,7 @@ export class StatusService {
 		}
 		catch (e)
 		{
-			error_dispatcher(e);
+			errorDispatcher(e);
 		}
 	}
 }

@@ -15,6 +15,7 @@ import { SessionModule } from './session/session.module';
 import { MySessionService } from './session/session.service';
 import { PermissionModule } from './permission/permission.module';
 import {JwtModule} from "@nestjs/jwt";
+import { PermissionService } from './permission/permission.service';
 
 @Module({
   controllers: [AppController, AuthController],
@@ -30,6 +31,6 @@ import {JwtModule} from "@nestjs/jwt";
       port: 6379,
     }),
   ],
-  providers: [AppService, MySessionService, AuthService, UserService],
+  providers: [AppService, MySessionService, AuthService, UserService, PermissionService],
 })
 export class AppModule {}

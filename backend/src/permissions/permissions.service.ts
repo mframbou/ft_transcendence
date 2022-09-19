@@ -19,6 +19,10 @@ export class PermissionsService {
 					login: login
 				},
 			});
+
+			if (!user)
+				return false;
+
 			return user.isOwner;
 		}
 		catch (e: any) {
@@ -36,6 +40,10 @@ export class PermissionsService {
 					login: login
 				},
 			});
+
+			if (!user)
+				return false;
+
 			return user.isAdmin;
 		}
 		catch (e: any)
