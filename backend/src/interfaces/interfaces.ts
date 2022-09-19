@@ -1,5 +1,6 @@
 import { Request } from 'express';
 import { Status } from '@prisma/client';
+import ServerSidePong from '../game/pong';
 
 export interface ISession
 {
@@ -93,6 +94,7 @@ export interface IGameRoom
 	id: string;
 	player1: IGamePlayer;
 	player2: IGamePlayer;
+    gameInstance ?:  ServerSidePong;
 }
 
 export interface IGameMovePayload

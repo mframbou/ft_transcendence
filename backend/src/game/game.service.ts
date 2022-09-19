@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IGameMovePayload, IGamePlayer, IGameRoom, IWebsocketClient } from '../interfaces/interfaces';
 import { Server } from 'socket.io';
+import  ServerSidePong  from './pong';
 
 @Injectable()
 export class GameService {
@@ -65,6 +66,8 @@ export class GameService {
 			this.resetBall(room, server);
 			this.resetPaddles(room, server);
 			console.log(`Game between ${room.player1.login} and ${room.player2.login} started`);
+            room.gameInstance = new ServerSidePong(room, server);
+           
 		}
 	}
 
@@ -77,6 +80,7 @@ export class GameService {
 
 		if (!gameRoom.player1 || !gameRoom.player2)
 		{
+            gameRoom.gameInstance.pause();
 			this.gameRooms = this.gameRooms.filter(room => room.id !== gameRoom.id);
 			console.log(`Game room ${gameRoom.id} removed because user left (total game rooms: ${this.gameRooms.length})`);
 		}
@@ -130,4 +134,7 @@ export class GameService {
 	{
 		return this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
 	}
+
+    
+
 }

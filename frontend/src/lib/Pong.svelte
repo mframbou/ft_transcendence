@@ -5,10 +5,17 @@
 
 	export let isPlayerOne = true;
 
+    interface position
+    {
+        client_x: number;
+		client_y: number;
+        server_x: number;
+        server_y: number;
+    }
+
 	interface IBall
 	{
-		x: number;
-		y: number;
+		position: position;
 		radius: number;
 		velocityX: number;
 		velocityY: number;
@@ -18,8 +25,7 @@
 
 	interface IPaddle
 	{
-		x: number;
-		y: number;
+		position: position;
 		width: number;
 		height: number;
 		color: string;
@@ -35,30 +41,22 @@
 	{
 		$pongSocketStore.on('onOpponentPaddleMove', (data) =>
 		{
-			// console.log("OPPONENT PADDLE MOVE:", data);
-			player2.paddle.y = data.y - player2.paddle.height / 2;
+			//console.log("OPPONENT PADDLE MOVE:", data);
+			player2.paddle.position.client_y = data.y - player2.paddle.height / 2;
 
-			if (player2.paddle.y < 0)
-				player2.paddle.y = 0;
-			else if (player2.paddle.y > canvas.height - player2.paddle.height)
-				player2.paddle.y = canvas.height - player2.paddle.height;
+			if (player2.paddle.position.client_y < 0)
+				player2.paddle.position.client_y = 0;
+			else if (player2.paddle.position.client_y > canvas.height - player2.paddle.height)
+				player2.paddle.position.client_y = canvas.height - player2.paddle.height;
 		});
 
-		$pongSocketStore.on('onBallReset', (data) =>
+		$pongSocketStore.on('OnBallReset', (data) =>
 		{
 			console.log('BALL RESET:', data);
-			ball.velocityY = data.velocityY;
-			ball.velocityX = data.velocityX;
-
-			if (!isPlayerOne)
-			{
-				ball.velocityX *= -1;
-			}
-
 			resetBall();
 		});
 
-		$pongSocketStore.on('onScoreChange', (data) =>
+		$pongSocketStore.on('OnScoreUpdate', (data) =>
 		{
 			if (!data || data.player1Score === undefined || data.player2Score === undefined)
 				return;
@@ -80,11 +78,21 @@
 
 		$pongSocketStore.on('onResetPaddles', (data) =>
 		{
-			player1.paddle.x = 0;
-			player1.paddle.y = canvas.height / 2 - player1.paddle.height / 2;
+			player1.paddle.position.client_x = 0;
+			player1.paddle.position.client_y = canvas.height / 2 - player1.paddle.height / 2;
 
-			player2.paddle.x = canvas.width - player2.paddle.width;
-			player2.paddle.y = canvas.height / 2 - player2.paddle.height / 2;
+			player2.paddle.position.client_x = canvas.width - player2.paddle.width;
+			player2.paddle.position.client_y = canvas.height / 2 - player2.paddle.height / 2;
+		});
+
+        $pongSocketStore.on('OnBallUpdate', (data) =>
+		{
+			ball.position.client_x = data.x;
+            ball.position.client_y = data.y;
+
+            // ball.position.server_x = data.x;
+            // ball.position.server_y = data.y;
+
 		});
 	}
 
@@ -97,9 +105,9 @@
 	let player1: IPLayer;
 	let player2: IPLayer;
 	let ball: IBall;
-	const ballLastPos: { x: number, y: number } = {};
-	let net;
-	let lastUpdate = null;
+	//const ballLastPos: { x: number, y: number } = {};
+	let net:any;
+	//let lastUpdate = null;
 	let animationFrameId: number;
 
 	let inGame = false;
@@ -107,12 +115,16 @@
 	onMount(async () =>
 	{
 		canvas.addEventListener('mousemove', movePaddle);
-		context = canvas.getContext('2d');
+		context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
 		player1 = {
 			paddle: {
-				x: 0,
-				y: canvas.height / 2 - paddle_height / 2,
+				position: {
+                    client_x: 0,
+                    client_y: canvas.height / 2 - paddle_height / 2,
+                    server_x: 0,
+                    server_y: canvas.height / 2 - paddle_height / 2
+                },
 				width: paddle_width,
 				height: paddle_height,
 				color: 'blue',
@@ -122,8 +134,12 @@
 
 		player2 = {
 			paddle: {
-				x: canvas.width - paddle_width,
-				y: canvas.height / 2 - paddle_height / 2,
+                position: {
+                    client_x: canvas.width - paddle_width,
+                    client_y: canvas.height / 2 - paddle_height / 2,
+                    server_x: canvas.width - paddle_width,
+                    server_y: canvas.height / 2 - paddle_height / 2
+                },
 				width: paddle_width,
 				height: paddle_height,
 				color: 'red',
@@ -140,17 +156,18 @@
 		};
 
 		ball = {
-			x: canvas.width / 2,
-			y: canvas.height / 2,
+            position: {
+                client_x: canvas.width / 2,
+                client_y: canvas.height / 2,
+                server_x: canvas.width / 2,
+                server_y: canvas.height / 2
+            },
 			radius: 10,
 			speed: 5,
 			velocityX: 5,
 			velocityY: 0,
 			color: 'white',
 		};
-
-		ballLastPos.x = ball.x;
-		ballLastPos.y = ball.y;
 
 		animationFrameId = requestAnimationFrame(loop);
 	});
@@ -164,13 +181,13 @@
 	function drawPaddle(paddle: IPaddle)
 	{
 		context.fillStyle = paddle.color;
-		context.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+		context.fillRect(paddle.position.client_x, paddle.position.client_y, paddle.width, paddle.height);
 	}
 
 	function drawBall(ball: IBall)
 	{
 		context.beginPath();
-		context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, true);
+		context.arc(ball.position.client_x, ball.position.client_y, ball.radius, 0, Math.PI * 2, true);
 		context.closePath();
 		context.fillStyle = ball.color;
 		context.fill();
@@ -210,10 +227,6 @@
 			drawRect(net.x, net.y + i, net.width, net.height, net.color);
 	}
 
-	// function drawBall()
-	// {
-	// 	drawCircle(ball.x, ball.y, ball.radius, ball.color);
-	// }
 
 	function drawScore()
 	{
@@ -223,8 +236,8 @@
 
 	function resetBall()
 	{
-		ball.x = canvas.width / 2;
-		ball.y = canvas.height / 2;
+		ball.position.client_x = canvas.width / 2;
+		ball.position.client_y = canvas.height / 2;
 		ball.speed = 5;
 		ball.velocityX = -ball.velocityX;
 	}
@@ -236,73 +249,44 @@
 
 		$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top});
 
-		player1.paddle.y = event.clientY - rect.top - player1.paddle.height / 2;
+		player1.paddle.position.client_y = event.clientY - rect.top - player1.paddle.height / 2;
 
-		if (player1.paddle.y < 0)
-			player1.paddle.y = 0;
-		else if (player1.paddle.y > canvas.height - player1.paddle.height)
-			player1.paddle.y = canvas.height - player1.paddle.height;
+		if (player1.paddle.position.client_y < 0)
+			player1.paddle.position.client_y = 0;
+		else if (player1.paddle.position.client_y > canvas.height - player1.paddle.height)
+			player1.paddle.position.client_y = canvas.height - player1.paddle.height;
 	}
+
+    function lerp(start:number, end:number, time:number) 
+    {
+        return start * (1 - time) + end * time;
+    }
 
 	function update()
 	{
-		// com.y = ball.y -  com.height/2 + com.random
 
-		// if (player2.paddle.y + paddle_height > canvas.height)
-		// 	player2.paddle.y = canvas.height - paddle_height;
-		// else if (player2.paddle.y < 0)
-		// 	player2.paddle.y = 0;
-
-		if (ball.x + ball.radius > canvas.width)
-		{
-			// user.score++;
-			$pongSocketStore.emit('onPlayerScored', {score: player1.score});
-			resetBall(); // reset so that next frame we dont accidentally resend message
-		}
-		else if (ball.x - ball.radius < 0)
-		{
-			// com.score++;
-
-			// opponent will emit itself so no need
-			// $pongSocketStore.emit('onOpponentScored', {score: com.score});
-
-			resetBall();
-		}
-
-		if (!lastUpdate)
-			lastUpdate = performance.now();
-
-		let now = performance.now();
-		let dt = (now - lastUpdate);
-		lastUpdate = now;
-
-		// make velDelta = 1 at 60 fps, 2 at 30fps, etc
-		let velDelta = dt / 16.666666666666668;
-
-		ball.x += ball.velocityX * velDelta;
-		ball.y += ball.velocityY * velDelta;
+		ball.position.client_x += ball.velocityX;
+		ball.position.client_y += ball.velocityY;
 
 
-		if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0)
+		if (ball.position.client_y + ball.radius > canvas.height || ball.position.client_y - ball.radius < 0)
 		{
 			ball.velocityY = -ball.velocityY;
 		}
 
-		let player = (ball.x < canvas.width / 2) ? player1 : player2;
-		if (checkCollision(ball, ballLastPos, player.paddle))
+		let player = (ball.position.client_x < canvas.width / 2) ? player1 : player2;
+		if (checkCollision(ball, player.paddle))
 		{
-			let collisionPoint = ball.y - (player.paddle.y + player.paddle.height / 2);
+			let collisionPoint = ball.position.client_y - (player.paddle.position.client_y + player.paddle.height / 2);
 			collisionPoint = collisionPoint / (player.paddle.height / 2);
 
 			let angleRad = (Math.PI / 4) * collisionPoint;
-			let direction = (ball.x < canvas.width / 2) ? 1 : -1;
+			let direction = (ball. position.client_x < canvas.width / 2) ? 1 : -1;
 			ball.velocityX = direction * ball.speed * Math.cos(angleRad);
 			ball.velocityY = ball.speed * Math.sin(angleRad);
 			ball.speed += 0.2;
 		}
 
-		ballLastPos.x = ball.x;
-		ballLastPos.y = ball.y;
 	}
 
 	function pointDistToSegment(point: {x: number, y: number}, p1: {x: number, y: number}, p2: {x: number, y: number})
@@ -339,19 +323,19 @@
 	}
 
 	// https://stackoverflow.com/questions/43615547/collision-detection-for-2d-capsule-or-swept-sphere
-	function checkCollision(ball: { x: number, y: number, radius: number }, ballLastPos: { x: number, y : number }, paddle: IPaddle)
+	function checkCollision(ball: IBall, paddle: IPaddle)
 	{
 		// const dist = pointDistToSegment({x: paddle.x, y: paddle.y}, ball, ballLastPos);
 
-		const ballTop = ball.y - ball.radius;
-		const ballBottom = ball.y + ball.radius;
-		const ballLeft = ball.x - ball.radius;
-		const ballRight = ball.x + ball.radius;
+		const ballTop = ball.position.client_y - ball.radius;
+		const ballBottom = ball.position.client_y + ball.radius;
+		const ballLeft = ball.position.client_x- ball.radius;
+		const ballRight = ball.position.client_x + ball.radius;
 
-		const paddleTop = paddle.y;
-		const paddleBottom = paddle.y + paddle.height;
-		const paddleLeft = paddle.x;
-		const paddleRight = paddle.x + paddle.width;
+		const paddleTop = paddle.position.client_y;
+		const paddleBottom = paddle.position.client_y + paddle.height;
+		const paddleLeft = paddle.position.client_x;
+		const paddleRight = paddle.position.client_x + paddle.width;
 
 		return ballLeft < paddleRight && ballTop < paddleBottom && ballRight > paddleLeft && ballBottom > paddleTop;
 	}
