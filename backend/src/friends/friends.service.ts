@@ -2,6 +2,7 @@ import { BadRequestException, HttpException, Injectable, NotFoundException } fro
 import { PrismaService } from '../prisma/prisma.service';
 import errorDispatcher from '../utils/error-dispatcher';
 import { UsersService } from '../users/users.service';
+import { IPublicUser } from '../interfaces/interfaces';
 
 @Injectable()
 export class FriendsService {
@@ -10,6 +11,64 @@ export class FriendsService {
 			private prismaService: PrismaService,
 			private usersService: UsersService,
 	) {}
+
+	async getPendingFriendsSent(userLogin: string): Promise<IPublicUser[]>
+	{
+		try
+		{
+			const user = await this.usersService.getUser(userLogin);
+			const pendingFriendsLogin = await this.prismaService.friends.findMany({
+				where: {
+					login: user.login,
+					pending: true,
+				},
+				select: {
+					friendLogin: true,
+				}
+			});
+
+			// Since map returns an array of promises, we need to await it, to await an array, use Promise.all
+			const pendingFriends: IPublicUser[] = await Promise.all(pendingFriendsLogin.map(async (friend) => {
+				const user: IPublicUser = await this.usersService.getUser(friend.friendLogin);
+				return user;
+			}));
+
+			return pendingFriends;
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
+	}
+
+	async getPendingFriendsReceived(userLogin: string): Promise<IPublicUser[]>
+	{
+		try
+		{
+			const user = await this.usersService.getUser(userLogin);
+			const pendingFriendsLogin = await this.prismaService.friends.findMany({
+				where: {
+					friendLogin: user.login,
+					pending: true,
+				},
+				select: {
+					login: true,
+				}
+			});
+
+			// Since map returns an array of promises, we need to await it, to await an array, use Promise.all
+			const pendingFriends: IPublicUser[] = await Promise.all(pendingFriendsLogin.map(async (friend) => {
+				const user: IPublicUser = await this.usersService.getUser(friend.login);
+				return user;
+			}));
+
+			return pendingFriends;
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
+	}
 
 	async addFriend(userLogin: string, friendLogin: string)
 	{

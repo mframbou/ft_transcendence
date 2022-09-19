@@ -58,7 +58,6 @@ export class UsersService
 					elo: true,
 					isOwner: true,
 					isAdmin: true,
-					isOnline: true,
 					status: true,
 				}
 			});
@@ -87,7 +86,6 @@ export class UsersService
 					elo: true,
 					isOwner: true,
 					isAdmin: true,
-					isOnline: true,
 					twoFactorEnabled: true,
 					status: true,
 				}
@@ -114,7 +112,6 @@ export class UsersService
 					elo: true,
 					isOwner: true,
 					isAdmin: true,
-					isOnline: true,
 					status: true,
 				}
 			});

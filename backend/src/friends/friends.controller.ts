@@ -35,4 +35,21 @@ export class FriendsController {
 		await this.friendsService.removeFriend(payload.login, body.friendLogin);
 	}
 
+	@Get('pending_received')
+	async getPendingFriendRequests(@Req() req: IUserRequest)
+	{
+		const payload: IJwtPayload = req.jwtPayload;
+
+		return await this.friendsService.getPendingFriendsReceived(payload.login);
+	}
+
+	@Get('pending_sent')
+	async getPendingFriendRequestsSent(@Req() req: IUserRequest)
+	{
+		const payload: IJwtPayload = req.jwtPayload;
+
+		return await this.friendsService.getPendingFriendsSent(payload.login);
+	}
+
+
 }
