@@ -29,7 +29,6 @@ model User {
 	otpUri           String          @default("")
 	isOwner          Boolean         @default(false)
 	isAdmin          Boolean         @default(false)
-	isOnline         Boolean         @default(false)
 	status           Status          @default(OFFLINE)
 
     userFriends      Friends[]       @relation(name: "userFriends")

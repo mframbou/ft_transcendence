@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import { Status } from '@prisma/client';
 import ServerSidePong from '../game/pong';
+import { User, Friends } from '@prisma/client';
 
 export interface ISession
 {
@@ -8,27 +9,12 @@ export interface ISession
 	socketId: string;
 }
 
-export interface IUser
-{
-	id: number;
-	email: string;
-	phone: string;
-	profilePicture: string;
-	firstName: string;
-	lastName: string;
-	username: string;
-	login: string;
-	campus: string;
-	wins: number;
-	losses: number;
-	elo: number;
-	twoFactorEnabled: boolean;
-	otpSecret: string;
-	otpUri: string;
-	isOwner: boolean;
-	isAdmin: boolean;
-	status: Status;
-}
+// make interface IUser = User from prisma
+export interface IUser extends User
+{}
+
+export interface IFriend extends Friends
+{}
 
 export interface IPublicUser
 {
@@ -43,6 +29,7 @@ export interface IPublicUser
 	isAdmin: boolean;
 	status: Status;
 }
+
 
 export interface ISelfUser extends IPublicUser
 {

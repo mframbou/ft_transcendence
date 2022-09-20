@@ -110,7 +110,7 @@
 		{
 			$user = await response.json();
 			formSuccess = true;
-			setTimeout(() => formSuccess = false, 3000);
+			// setTimeout(() => formSuccess = false, 3000);
 		}
 
 		if (response.status === 422)
@@ -237,7 +237,7 @@
 			</ol>
 			<OTPInput --color="white" --background-color='#333'/>
 			{#if wrongCode}
-				<div class="wrong-code" transition:fly={{duration: 800}}>
+				<div class="wrong-code" transition:fly|local={{duration: 800}}>
 					<strong>{errorMessage}</strong>
 				</div>
 			{/if}
@@ -278,7 +278,8 @@
 
 
 			{#if formSuccess}
-				<div class="form-success" transition:fly={{duration: 800}}>
+				<!--https://github.com/sveltejs/kit/issues/628 -->
+				<div class="form-success" transition:fly|local={{duration: 800}}>
 					<strong>Profile updated successfully!</strong>
 				</div>
 			{/if}
@@ -401,7 +402,7 @@
 			{
 				font-family: Montserrat;
 				font-weight: 700;
-				border-bottom: 1px solid black;
+				border-bottom: 1px solid #565060;
 				width: 80%;
 				text-align: center;
 				margin: 20px;

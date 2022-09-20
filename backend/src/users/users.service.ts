@@ -152,7 +152,7 @@ export class UsersService
 		}
 	}
 
-	async updateUser(login: string, data: UpdateUserDto): Promise<IUser>
+	async updateUser(login: string, data: UpdateUserDto): Promise<ISelfUser>
 	{
 		try
 		{

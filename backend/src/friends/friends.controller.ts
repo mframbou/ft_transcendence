@@ -51,5 +51,21 @@ export class FriendsController {
 		return await this.friendsService.getPendingFriendsSent(payload.login);
 	}
 
+	@Get('all')
+	async getAllFriends(@Req() req: IUserRequest)
+	{
+		const payload: IJwtPayload = req.jwtPayload;
+
+		const friends = await this.friendsService.getFriends(payload.login);
+		const pendingFriendsSent = await this.friendsService.getPendingFriendsSent(payload.login);
+		const pendingFriendsReceived = await this.friendsService.getPendingFriendsReceived(payload.login);
+
+		return {
+			friends: friends,
+			pendingFriendsSent: pendingFriendsSent,
+			pendingFriendsReceived: pendingFriendsReceived,
+		};
+	}
+
 
 }

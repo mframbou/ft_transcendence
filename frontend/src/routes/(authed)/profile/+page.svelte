@@ -111,7 +111,7 @@
 
 			color: white;
 			width: 100%;
-			border-bottom: 1px solid #6d647a;
+			border-bottom: 1px solid #565060;
 			padding-bottom: 10px;
 		}
 
