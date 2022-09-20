@@ -54,11 +54,6 @@
 		}
 	}
 
-	async function showProfile(friend)
-	{
-		await goto(`/profile/${friend.login}`);
-	}
-
 </script>
 
 <style lang="scss">
@@ -105,7 +100,9 @@
 
 			.friend
 			{
-				cursor: pointer;
+				// remove link style
+				text-decoration: none;
+				color: inherit;
 
 				padding: 10px;
 				transition: background-color .2s;
@@ -200,13 +197,13 @@
 		<div class="friends-list-wrapper">
 			{#if friends.length > 0}
 				{#each friends as friend}
-					<div class="friend" on:click={async () => await showProfile(friend)}>
+					<a class="friend" href={`/profile/${friend.login}`}>
 						<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
 						<div class="friend-infos">
 							<span class="friend-username">{friend.username}</span>
 							<span class="friend-status">{friend.status}</span>
 						</div>
-					</div>
+					</a>
 				{/each}
 			{:else}
 				<div class="no-friends">
@@ -223,9 +220,13 @@
 			<div class="friends-list-wrapper">
 				{#if pendingFriendsReceived.length > 0}
 					{#each pendingFriendsReceived as friend}
-						<div class="friend">
-							{friend.username}
-						</div>
+						<a class="friend" href={`/profile/${friend.login}`}>
+							<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
+							<div class="friend-infos">
+								<span class="friend-username">{friend.username}</span>
+								<span class="friend-status">{friend.status}</span>
+							</div>
+						</a>
 					{/each}
 				{:else}
 					<div class="no-friends">
@@ -242,9 +243,13 @@
 		<div class="friends-list-wrapper">
 			{#if pendingFriendsSent.length > 0}
 				{#each pendingFriendsSent as friend}
-					<div class="friend">
-						<span class="username">{friend.username}</span>
-					</div>
+					<a class="friend" href={`/profile/${friend.login}`}>
+						<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
+						<div class="friend-infos">
+							<span class="friend-username">{friend.username}</span>
+							<span class="friend-status">{friend.status}</span>
+						</div>
+					</a>
 				{/each}
 			{:else}
 				<div class="no-friends">
