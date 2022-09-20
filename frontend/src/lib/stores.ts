@@ -36,7 +36,7 @@ export const pongSocketStore = readable(pongSocket, set => {
 export const chatSocketStore = readable(chatSocket, set => {
 	if (!browser) return;
 
-	const socket = pongSocket;
+	const socket = chatSocket;
 	socket.open();
 	console.log("chat socket connected");
 

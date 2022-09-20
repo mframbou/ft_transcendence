@@ -25,6 +25,7 @@ import { AdminController } from './admin/admin.controller';
 import { JwtAdminStrategy } from './auth/jwt-admin.strategy.ts';
 import { FriendsController } from './friends/friends.controller';
 import { FriendsService } from './friends/friends.service';
+import { ChatService } from './chat/chat.service';
 
 @Module({
 	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController],
@@ -34,7 +35,7 @@ import { FriendsService } from './friends/friends.service';
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, PongGateway, GameService, StatusService, FriendsService],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, PongGateway, GameService, StatusService, FriendsService, ChatService],
 })
 export class AppModule
 {}

@@ -1,10 +1,12 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect } from '@nestjs/websockets';
+import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
 import { AuthService } from '../auth/auth.service';
 import { getCookie } from '../utils/utils';
 import { WebsocketsService } from './websockets.service';
+import { Server } from 'socket.io';
+import { ChatService } from '../chat/chat.service';
 
 
 const NAMESPACE = 'chat';
@@ -18,8 +20,12 @@ export class ChatGateway implements OnGatewayDisconnect
 {
 	constructor(
 			private authService: AuthService,
+			private chatService: ChatService,
 			private websocketsService: WebsocketsService,
 	) {}
+
+  	@WebSocketServer()
+	server: Server;
 
 	@SubscribeMessage('first_connect')
 	async handleFirstConnect(client: any, payload: any)
@@ -49,5 +55,12 @@ export class ChatGateway implements OnGatewayDisconnect
 	{
 		const user = this.websocketsService.getClient(client.id);
 		console.log(`${NAMESPACE}-Gateway: ${user.login}: ${payload}`);
+	}
+
+	@SubscribeMessage('createRoom')
+	async handleCreateRoom(client: any, payload: any)
+	{
+		const user = this.websocketsService.getClient(client.id);
+		this.chatService.createRoom(user, payload);
 	}
 }

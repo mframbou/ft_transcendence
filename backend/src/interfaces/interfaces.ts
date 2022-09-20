@@ -97,6 +97,19 @@ export interface IGameRoom
     gameInstance ?:  ServerSidePong;
 }
 
+export interface IChatUser {
+	clientId: string;
+	login: string;
+	is_admin: boolean;
+	is_moderator: boolean;
+}
+
+export interface IChatRoom
+{
+	id: number;
+	users: IChatUser[];
+}
+
 export interface IGameMovePayload
 {
 	y: number;
