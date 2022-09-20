@@ -107,7 +107,10 @@ export interface IChatUser {
 export interface IChatRoom
 {
 	id: number;
+	name: string;
 	users: IChatUser[];
+	is_private: boolean;
+	password?: string;
 }
 
 export interface IGameMovePayload

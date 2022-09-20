@@ -11,15 +11,18 @@ export class ChatService {
     chatRooms: IChatRoom[] = [];
     cur_id: number = 0;
 
-    async createRoom(client: IWebsocketClient, server: Server) {
+    async createRoom(client: IWebsocketClient, server: Server, data: any){ //, data: any) {
         let user: IChatUser = {clientId: client.id, login: client.login, is_admin: true, is_moderator: true} ;
         const chatRoom: IChatRoom = {
             id: this.cur_id++,
-            users: [{clientId: client.id, login: client.login, is_admin: true, is_moderator: true}]
+            name: data.name,
+            users: [{clientId: client.id, login: client.login, is_admin: true, is_moderator: true}],
+            is_private: false,
+            password: data.password
         };
 
         this.chatRooms.push(chatRoom);
-        console.log("Creating chat room " + chatRoom.id + " for " + client.login + "-" + client.id + " (total chat rooms: " + this.chatRooms.length + ")");
+        console.log("Creating chat room " + chatRoom.name + " for " + client.login + "-" + client.id + " (total chat rooms: " + this.chatRooms.length + ")");
     }
 
 }
