@@ -2,25 +2,37 @@
 
 	import { onMount } from 'svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
+	import { statusSocket } from '../../../lib/socket-io';
+	import { user } from '../../../lib/stores';
+	import { goto } from '$app/navigation';
 
 	let friends = null;
 	let pendingFriendsSent = null;
 	let pendingFriendsReceived = null;
 
 	onMount(async () => {
+		statusSocket.on('userStatusChanged', (data) =>
+		{
+			for (let friend of friends)
+			{
+				if (friend.login === data.login)
+				{
+					console.log('friend user status changed', data);
+					friend.status = data.status;
+					break;
+				}
+			}
+		});
+
 		const { friends: friendsData, pendingFriendsSent: pendingFriendsSentData, pendingFriendsReceived: pendingFriendsReceivedData } = await getAllFriends();
 
 		friends = friendsData;
 		pendingFriendsSent = pendingFriendsSentData;
 		pendingFriendsReceived = pendingFriendsReceivedData;
 
-		if (friends[0])
+		return () =>
 		{
-			// duplicate friend 20 times
-			for (let i = 0; i < 8; i++)
-			{
-				friends.push(friends[0]);
-			}
+			statusSocket.off('userStatusChanged');
 		}
 	});
 
@@ -31,7 +43,7 @@
 
 			if (!response.ok)
 			{
-				throw new Error('Failed to get friends (status' + response.status + '): ' + data.message);
+				throw new Error('Failed to get friends (status' + response.status + '): ' + response.statusText);
 			}
 			const data = await response.json();
 			return data;
@@ -40,6 +52,11 @@
 		{
 			console.error('an error occured while fetching friends: ' + error);
 		}
+	}
+
+	async function showProfile(friend)
+	{
+		await goto(`/profile/${friend.login}`);
 	}
 
 </script>
@@ -88,6 +105,8 @@
 
 			.friend
 			{
+				cursor: pointer;
+
 				padding: 10px;
 				transition: background-color .2s;
 				border-radius: 10px;
@@ -95,13 +114,48 @@
 
 				display: flex;
 				flex-direction: row;
-				gap: 10px;
-				align-items: baseline;
+				gap: 15px;
 				justify-content: flex-start;
 
 				&:hover
 				{
 					background-color: desaturate(lighten($section-bg-color, 15%), 10%);
+				}
+
+				.friend-infos
+				{
+					display: flex;
+					flex-direction: column;
+					justify-content: center;
+					align-items: flex-start;
+				}
+
+				.friend-username
+				{
+					font-family: Montserrat;
+					font-weight: 600;
+					font-size: 1.2rem;
+				}
+
+				// To make status from ONLINE to Online (capitalize only changes first letter)
+				.friend-status
+				{
+					text-transform: lowercase;
+					color: #958ebe;
+
+					&::first-line
+					{
+						text-transform: capitalize;
+					}
+				}
+
+				.friend-profile-picture
+				{
+					height: 50px;
+					aspect-ratio: 1/1;
+					object-fit: cover;
+					border-radius: 20%;
+					background-color: #958ebe;
 				}
 			}
 		}
@@ -146,8 +200,12 @@
 		<div class="friends-list-wrapper">
 			{#if friends.length > 0}
 				{#each friends as friend}
-					<div class="friend">
-						{friend.username}
+					<div class="friend" on:click={async () => await showProfile(friend)}>
+						<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
+						<div class="friend-infos">
+							<span class="friend-username">{friend.username}</span>
+							<span class="friend-status">{friend.status}</span>
+						</div>
 					</div>
 				{/each}
 			{:else}
@@ -185,7 +243,7 @@
 			{#if pendingFriendsSent.length > 0}
 				{#each pendingFriendsSent as friend}
 					<div class="friend">
-						{friend.username}
+						<span class="username">{friend.username}</span>
 					</div>
 				{/each}
 			{:else}

@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 
-async function loadUser(login: string, fetch: any)
+async function loadUser(login: string)
 {
 	try
 	{
@@ -20,10 +20,10 @@ async function loadUser(login: string, fetch: any)
 	}
 }
 
-export async function load({params, fetch})
+export async function load({params})
 {
 	return {
 		login: params.login,
-		user: await loadUser(params.login, fetch),
+		user: await loadUser(params.login),
 	}
 }

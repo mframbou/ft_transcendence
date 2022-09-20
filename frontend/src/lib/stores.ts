@@ -1,9 +1,10 @@
-import { get, readable, writable } from 'svelte/store';
+import { readable, writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { chatSocket, pongSocket, statusSocket } from '$lib/socket-io';
 import { goto } from '$app/navigation';
 
-export const user = writable(undefined);
+export const user = writable(await fetchUserJson());
+export const friends = writable(await fetchFriendsJson());
 export const otpVerifyAndClear = writable(undefined);
 
 // https://svelte.dev/tutorial/readable-stores
@@ -46,21 +47,15 @@ export const chatSocketStore = readable(chatSocket, set => {
 	};
 })
 
-if (browser && get(user) === undefined) // otherwises it runs on the first request (and only first requestm weird)
-{
-	console.log("User is undefined, fetching it");
-	fetchUser();
-}
-
-export async function fetchUser()
+async function fetchUserJson()
 {
 	try
 	{
 		const res = await fetch('/api/users/me');
 		if (res.ok)
 		{
-			user.set(await res.json());
-			return;
+			const json = await res.json();
+			return json;
 		}
 
 		console.log("User fetch failed: ", res.status);
@@ -76,4 +71,47 @@ export async function fetchUser()
 	{
 		console.log("Encountered error while fetching user: ", e);
 	}
+	return null;
+}
+
+export async function fetchUser(): Promise<boolean>
+{
+	const json = await fetchUserJson();
+	if (json)
+	{
+		user.set(json);
+		return true;
+	}
+	return false;
+}
+
+async function fetchFriendsJson()
+{
+	try
+	{
+		const res = await fetch('/api/friends');
+		if (res.ok)
+		{
+			const json = await res.json();
+			return json;
+		}
+
+		console.log("Friends fetch failed: ", res.status);
+	}
+	catch (e)
+	{
+		console.log("Encountered error while fetching friends: ", e);
+	}
+	return null;
+}
+
+export async function fetchFriends(): Promise<boolean>
+{
+	const json = await fetchFriendsJson();
+	if (json)
+	{
+		friends.set(json);
+		return true;
+	}
+	return false;
 }

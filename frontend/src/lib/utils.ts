@@ -8,5 +8,5 @@ export function getCookie(cookie: string)
 	const value = `; ${document.cookie}`;
 	const parts = value.split(`; ${cookie}=`);
 	if (parts && parts.length === 2)
-		return parts.pop().split(';').shift();
+		return parts.pop()!.split(';').shift();
 }

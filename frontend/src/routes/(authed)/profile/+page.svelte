@@ -285,7 +285,7 @@
 	.match-history-section
 	{
 		overflow: hidden;
-		min-height: 12em;
+		min-height: 10em;
 	}
 
 </style>
@@ -358,22 +358,6 @@
 				value: (isNaN(winPercentage) || !isFinite(winPercentage)) ? 'Ø' : winPercentage,
 			},
 		];
-
-		let tmp = []
-		for (let i = 0; i < 10; i++)
-		{
-			tmp.push({
-				oponnent: 'someone',
-				score: {
-					you: 100,
-					opponent: 0,
-				},
-				// random outcome 'win' 'lose' or 'draw'
-				outcome: ['victory', 'defeat', 'draw'][Math.floor(Math.random() * 3)],
-			});
-		}
-
-		matchHistory = tmp; // for svelte
 	}
 
 	async function redirectSettings()
@@ -401,7 +385,7 @@
 					<div class="username">
 						<h1 on:click={redirectSettings}>{$user.username}</h1>
 						<h2>@{$user.login}</h2>
-						<h2>{$user.status}</h2>
+<!--						<h2>{$user.status}</h2>-->
 					</div>
 
 					<div class="buttons">

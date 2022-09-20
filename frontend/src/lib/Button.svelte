@@ -23,7 +23,6 @@
 		vertical-align: middle;
 		text-align: center;
 		border-radius: var(--border-radius, 100vw);
-		margin: 2px	;
 		cursor: pointer;
 		transform-style: preserve-3d; // https://stackoverflow.com/a/51432213
 		outline: none;
@@ -67,7 +66,7 @@
 	{
 		padding: calc($vertical-padding - 2px) calc($horizontal-padding - 2px);
 		position: relative;
-		bottom: calc($border-width);
+		margin: 2px	;
 	}
 
 	.border:after

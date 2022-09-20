@@ -1,12 +1,17 @@
-import { Body, Controller, Get, Post, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Get,
+	Post,
+	Req,
+	UseGuards,
+} from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { IJwtPayload, IUserRequest } from '../interfaces/interfaces';
-import { Request } from 'express';
 import { FriendsService } from './friends.service';
-import { AddFriendDto } from '../interfaces/dtos';
+import { AddFriendDto, UpdateUserDto } from '../interfaces/dtos';
 
 @UseGuards(JwtTwoFactorAuthGuard)
-@UsePipes(new ValidationPipe())
 @Controller('friends')
 export class FriendsController {
 
@@ -22,17 +27,20 @@ export class FriendsController {
 	}
 
 	@Post('add')
-	async addFriend(@Body() body: AddFriendDto, @Req() req: IUserRequest) {
+	async addFriend(@Body() body: any, @Req() req: IUserRequest) {
 		const payload: IJwtPayload = req.jwtPayload;
 
-		await this.friendsService.addFriend(payload.login, body.friendLogin);
+		console.log("BODY IS ", body.login, body);
+
+		await this.friendsService.addFriend(payload.login, body.login);
 	}
+
 
 	@Post('remove')
 	async removeFriend(@Body() body: AddFriendDto, @Req() req: IUserRequest) {
 		const payload: IJwtPayload = req.jwtPayload;
 
-		await this.friendsService.removeFriend(payload.login, body.friendLogin);
+		await this.friendsService.removeFriend(payload.login, body.login);
 	}
 
 	@Get('pending_received')

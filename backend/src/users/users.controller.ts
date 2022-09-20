@@ -12,7 +12,7 @@ import {
 import { IJwtPayload, IPublicUser, ISelfUser, IUserRequest } from '../interfaces/interfaces';
 import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
-import { UpdateUserDto } from './updateUser.dto';
+import { UpdateUserDto } from '../interfaces/dtos';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import * as Jimp from 'jimp';
 import { Buffer } from 'buffer';
@@ -62,21 +62,22 @@ export class UsersController
 		return user;
 	}
 
-
 	// Max body size is 10mb (see main.ts)
 	@Post('update/me')
 	async updateCurrentUser(@Req() req: IUserRequest, @Body() updateValues: UpdateUserDto): Promise<IPublicUser>
 	{
 		const payload: IJwtPayload = req.jwtPayload;
 
-		if (updateValues.username)
-		{
-			updateValues.username = updateValues.username.trim();
-			if (updateValues.username.length < 3)
-				throw new UnprocessableEntityException(`Usename must be at least 3 characters long`);
-			else if (updateValues.username.length > 20)
-				throw new UnprocessableEntityException(`Username cannot be longer than 20 characters`);
-		}
+		console.log("UPDATE VALUES", updateValues);
+
+		// if (updateValues.username)
+		// {
+		// 	updateValues.username = updateValues.username.trim();
+		// 	if (updateValues.username.length < 3)
+		// 		throw new UnprocessableEntityException(`Usename must be at least 3 characters long`);
+		// 	else if (updateValues.username.length > 20)
+		// 		throw new UnprocessableEntityException(`Username cannot be longer than 20 characters`);
+		// }
 
 		if (updateValues.profilePicture)
 		{
@@ -96,7 +97,12 @@ export class UsersController
 			}
 		}
 
-		const updatedUser = await this.usersService.updateUser(payload.login, updateValues);
+		const finalUpdateValues: UpdateUserDto = {
+			username: updateValues.username,
+			profilePicture: updateValues.profilePicture,
+		}
+
+		const updatedUser = await this.usersService.updateUser(payload.login, finalUpdateValues);
 
 		return updatedUser;
 	}

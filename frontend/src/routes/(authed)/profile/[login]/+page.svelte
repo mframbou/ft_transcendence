@@ -1,72 +1,10 @@
-<script lang="ts">
-	import { onMount } from 'svelte';
-	import { user } from '$lib/stores';
-	import { goto } from '$app/navigation';
-	import Button from '$lib/Button.svelte';
-	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
-
-	/** @type {import('./$types').PageData} */
-	export let data;
-
-	let targetUser = data.user;
-	let error = null;
-
-	interface IStat
-	{
-		name: string;
-		value: string | number;
-	}
-
-	let stats: IStat[] = [
-		{
-			name: 'Wins',
-			value: 'undefined',
-		},
-		{
-			name: 'Losses',
-			value: 'undefined',
-		},
-		{
-			name: 'Win %',
-			value: 'undefined',
-		},
-	];
-
-	// https://svelte.dev/docs#3_$_marks_a_statement_as_reactive
-	$: if($user && targetUser && $user.login === targetUser.login)
-	{
-		goto('/profile');
-	}
-
-	$: if(targetUser)
-	{
-		let winPercentage = Math.round(($user.wins / ($user.wins + $user.losses)) * 100);
-		stats = [
-			{
-				name: 'Wins',
-				value: $user.wins,
-			},
-			{
-				name: 'Losses',
-				value: $user.losses,
-			},
-			{
-				name: 'Win %',
-				value: (isNaN(winPercentage) || !isFinite(winPercentage)) ? 'Ø' : winPercentage,
-			},
-		];
-	}
-
-</script>
-
-
 <style lang="scss">
 	.wrapper
 	{
 		height: 100%;
 		width: 100%;
 		background-color: #0C0813;
-		overflow: hidden;
+		overflow: auto;
 	}
 
 	.banner
@@ -74,11 +12,12 @@
 		$dim-color: rgba(0, 0, 0, 0.1);
 		position: relative;
 		width: 100%;
-		height: 20em;
+		height: 15em;
 		background :linear-gradient($dim-color, $dim-color), url("/images/default-banner.png");
 
 		background-size: cover;
 		background-position: center;
+		overflow: auto;
 
 		display: flex;
 		justify-items: start;
@@ -141,13 +80,24 @@
 		font-size: .9em;
 	}
 
+	$section-bg-color: rgba(28, 19, 42, 0.9);
+
 	.user-section
 	{
-		$bg-color: rgba(28, 19, 42, 0.9);
-
 		backdrop-filter: blur(5px);
 
 		max-width: 1920px;
+		//min-height: 12em;
+		//overflow: hidden;
+		margin: 20px;
+		padding: 15px;
+		gap: 20px;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+		background-color: $section-bg-color;
+		border-radius: 10px;
 
 		.user-section-title
 		{
@@ -157,19 +107,10 @@
 
 			color: white;
 			width: 100%;
-			border-bottom: 1px solid #6d647a;
+			border-bottom: 1px solid #565060;
 			padding-bottom: 10px;
 		}
 
-		margin: 20px;
-		padding: 15px;
-		gap: 20px;
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-start;
-		align-items: flex-start;
-		background-color: $bg-color;
-		border-radius: 10px;
 
 		.stats-wrapper
 		{
@@ -197,7 +138,7 @@
 
 				&:hover
 				{
-					background-color: desaturate(lighten($bg-color, 15%), 10%);
+					background-color: desaturate(lighten($section-bg-color, 15%), 10%);
 				}
 			}
 
@@ -231,6 +172,10 @@
 		position: relative;
 		flex-grow: 1;
 		transform-style: preserve-3d;
+
+		display: flex;
+		flex-direction: column;
+		overflow: auto;
 	}
 
 	.background
@@ -245,7 +190,234 @@
 		width: 100%;
 	}
 
+	.match-history-wrapper
+	{
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		width: 100%;
+		overflow: auto;
+
+		.match
+		{
+			padding: 10px;
+			transition: background-color .2s;
+			border-radius: 10px;
+			width: 100%;
+
+			display: flex;
+			flex-direction: row;
+			gap: 10px;
+			align-items: baseline;
+			justify-content: flex-start;
+
+			&:hover
+			{
+				background-color: desaturate(lighten($section-bg-color, 15%), 10%);
+			}
+		}
+
+		.match-name
+		{
+			font-family: Montserrat;
+			font-weight: 500;
+			font-size: 1.2em;
+			color: white;
+
+			strong
+			{
+				font-weight: 700;
+			}
+		}
+
+		.match-score
+		{
+			font-family: Montserrat;
+			font-weight: 500;
+			font-size: 1.2em;
+			color: white;
+
+			strong
+			{
+				font-weight: 700;
+			}
+		}
+
+		.user-separator, .score-separator
+		{
+			font-family: Montserrat;
+			color: white;
+			padding: 0 5px;
+		}
+
+		.match-victory
+		{
+			//background-color: desaturate(lighten($section-bg-color, 15%), 10%);
+		}
+
+		.match-defeat
+		{
+			//background-color: desaturate(lighten($section-bg-color, 10%), 10%);
+		}
+
+		.match-draw
+		{
+			//background-color: desaturate($section-bg-color, 10%);
+		}
+
+		.no-match-history
+		{
+			font-family: Montserrat;
+			font-weight: 500;
+			font-size: 1.2em;
+			color: white;
+			text-align: center;
+		}
+
+
+	}
+
+	// Since it should scroll behavior is a bit different from normal user-section
+	.match-history-section
+	{
+		overflow: hidden;
+		min-height: 10em;
+	}
+
 </style>
+
+<script lang="ts">
+	import { user, friends, fetchFriends } from '$lib/stores';
+	import { goto } from '$app/navigation';
+	import Button from '$lib/Button.svelte';
+	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
+	import { onMount } from 'svelte';
+	import { statusSocket } from '$lib/socket-io';
+
+	export let data;
+	let targetUser = data.user;
+	let error = null;
+	let isFriend: boolean = false;
+
+	interface IStat
+	{
+		name: string;
+		value: string | number;
+	}
+
+	let stats: IStat[] = [
+		{
+			name: 'Wins',
+			value: 'undefined',
+		},
+		{
+			name: 'Losses',
+			value: 'undefined',
+		},
+		{
+			name: 'Win %',
+			value: 'undefined',
+		},
+	];
+
+	let matchHistory: any[] = [];
+
+	$: if($user && targetUser && $user.login === targetUser.login)
+	{
+		goto('/profile');
+	}
+
+	$: if(targetUser)
+	{
+		let winPercentage = Math.round((targetUser.wins / (targetUser.wins + targetUser.losses)) * 100);
+		stats = [
+			{
+				name: 'Wins',
+				value: targetUser.wins,
+			},
+			{
+				name: 'Losses',
+				value: targetUser.losses,
+			},
+			{
+				name: 'Win %',
+				value: (isNaN(winPercentage) || !isFinite(winPercentage)) ? 'Ø' : winPercentage,
+			},
+		];
+	}
+
+	if ($friends)
+	{
+		if ($friends.find(friend => friend.login === targetUser.login) !== undefined)
+		{
+			isFriend = true;
+		}
+	}
+
+	onMount(() =>
+	{
+		statusSocket.on('userStatusChanged', (data) =>
+		{
+			console.log('userStatusChanged', data);
+			if (targetUser && targetUser.login === data.login)
+			{
+				targetUser.status = data.status;
+			}
+		});
+
+		return () =>
+		{
+			statusSocket.off('userStatusChanged');
+		};
+	});
+
+	async function addFriend()
+	{
+		console.log(targetUser);
+		const res = await fetch('/api/friends/add', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				login: targetUser.login,
+			}),
+		});
+
+		if (!res.ok)
+		{
+			alert('An error occured while adding user as friend: ' + await res.text());
+			return;
+		}
+
+		fetchFriends();
+		isFriend = true;
+	}
+
+	async function removeFriend()
+	{
+		const res = await fetch('/api/friends/remove', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				login: targetUser.login,
+			}),
+		});
+
+		if (!res.ok)
+		{
+			alert('An error occured while reemoving friend: ' + await res.text());
+			return;
+		}
+
+		fetchFriends();
+		isFriend = false;
+	}
+
+</script>
+
 
 <div class="wrapper">
 
@@ -259,23 +431,36 @@
 					<div class="username">
 						<h1>{targetUser.username}</h1>
 						<h2>@{targetUser.login}</h2>
+						<h2>{targetUser.status}</h2>
 					</div>
 
 					<div class="buttons">
-						{#if $user && $user.login !== targetUser.login}
-							<Button on:click={() => alert('test')}>
-								<span class="banner-button">Add friend</span>
-							</Button>
+							{#if !isFriend}
+								<Button on:click={addFriend}>
+									<span class="banner-button">Add friend</span>
+								</Button>
 
-							<Button border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('test')}>
-								<span class="banner-button">Message</span>
-							</Button>
+<!--								<Button border={false} &#45;&#45;background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('test')}>-->
+<!--									<span class="banner-button">Message</span>-->
+<!--								</Button>-->
+							{:else}
+								<Button on:click={removeFriend}>
+									<span class="banner-button">Remove friend</span>
+								</Button>
+
+								<Button border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('message')}>
+									<span class="banner-button">Message</span>
+								</Button>
+
+
+							{/if}
+
 
 							<Button border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('test')}>
 								<span>...</span>
 							</Button>
-						{/if}
 					</div>
+
 				</div>
 			{/if}
 		</div>
@@ -285,7 +470,7 @@
 				<ParticlesBackground properties={{minVelocity: 0.35, maxVelocity: 0.5, lineColor: '#958ebe'}}/>
 			</div>
 
-			<div class="user-section">
+			<section class="user-section">
 				<h1 class="user-section-title">Stats</h1>
 				<div class="stats-wrapper">
 					{#each stats as stat}
@@ -295,7 +480,26 @@
 						</div>
 					{/each}
 				</div>
-			</div>
+			</section>
+
+			<section class="user-section match-history-section">
+				<h1 class="user-section-title">Match history</h1>
+				<div class="match-history-wrapper">
+					{#if matchHistory.length === 0}
+						<div class="no-match-history">
+							<h1>No match history</h1>
+						</div>
+					{:else}
+						{#each matchHistory as match}
+							<div class="match" class:match-victory={match.outcome === 'victory'} class:match-defeat={match.outcome === 'defeat'} class:match-draw={match.outcome === 'draw'}>
+								<h1 class="match-name"><strong>{targetUser.username}</strong><span class="user-separator">-</span>{match.oponnent}</h1>
+								<span class="match-score"><strong>{match.score.you}</strong><span class="score-separator">-</span>{match.score.opponent}</span>
+							</div>
+						{/each}
+					{/if}
+				</div>
+			</section>
+			<!--				</div>-->
 		</div>
 
 	</div>

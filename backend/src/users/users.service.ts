@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { IUser, IPublicUser, ISelfUser } from '../interfaces/interfaces';
 import errorDispatcher from '../utils/error-dispatcher';
-import { UpdateUserDto } from './updateUser.dto';
+import { UpdateUserDto } from '../interfaces/dtos';
 
 @Injectable()
 export class UsersService

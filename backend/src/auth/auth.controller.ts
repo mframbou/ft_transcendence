@@ -64,7 +64,7 @@ export class AuthController
 		})
 
 		if (!response.ok)
-			throw new HttpException('An error occured while fetching user data', response.status);
+			throw new HttpException('An error occured while fetching user data (from 42 server not us, most likely invalid api key)', response.status);
 
 		response = await response.json();
 
