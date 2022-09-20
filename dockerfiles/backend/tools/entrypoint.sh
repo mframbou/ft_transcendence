@@ -9,10 +9,10 @@ npx prisma generate
 
 # https://stackoverflow.com/questions/6405127/how-do-i-specify-a-password-to-psql-non-interactively
 until PGPASSWORD="$POSTGRES_PASSWORD" psql --no-password --host="$POSTGRES_HOST" --username="$POSTGRES_USER" --command="\q" "$POSTGRES_DB"; do
-  >&2 echo "Postgres is unavailable - sleeping"
+  >&2 echo "Waiting for Postgres..."
   sleep 1
 done
 
->&2 echo "Postgres is up - starting nest"
+>&2 echo "Postgres is up, starting NestJS... (Prod)"
 
 exec node ./dist/main.js

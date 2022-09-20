@@ -11,6 +11,6 @@ until curl -s http://backend:3000/ &> /dev/null; do
   sleep 1
 done
 
-echo "Backend is up, starting frontend..."
+echo "Backend is up, starting frontend... (Prod)"
 
 exec node ./build/index.js
