@@ -297,7 +297,7 @@
 	export let data;
 	let targetUser = data.user;
 	let error = null;
-	let isFriend: boolean = false;
+	let friendLoading: boolean = false;
 
 	interface IStat
 	{
@@ -346,14 +346,6 @@
 		];
 	}
 
-	if ($friends)
-	{
-		if ($friends.find(friend => friend.login === targetUser.login) !== undefined)
-		{
-			isFriend = true;
-		}
-	}
-
 	onMount(() =>
 	{
 		statusSocket.on('userStatusChanged', (data) =>
@@ -373,7 +365,8 @@
 
 	async function addFriend()
 	{
-		console.log(targetUser);
+		friendLoading = true;
+
 		const res = await fetch('/api/friends/add', {
 			method: 'POST',
 			headers: {
@@ -390,12 +383,14 @@
 			return;
 		}
 
-		fetchFriends();
-		isFriend = true;
+		await fetchFriends();
+		friendLoading = false;
 	}
 
 	async function removeFriend()
 	{
+		friendLoading = true;
+
 		const res = await fetch('/api/friends/remove', {
 			method: 'POST',
 			headers: {
@@ -412,8 +407,8 @@
 			return;
 		}
 
-		fetchFriends();
-		isFriend = false;
+		await fetchFriends();
+		friendLoading = false;
 	}
 
 </script>
@@ -435,16 +430,25 @@
 					</div>
 
 					<div class="buttons">
-							{#if !isFriend}
-								<Button on:click={addFriend}>
-									<span class="banner-button">Add friend</span>
-								</Button>
+							{#if $friends.friends.find(friend => friend.login === targetUser.login) === undefined}
+								<!-- Not friend -->
+								{#if $friends.pendingSent.find(friend => friend.login === targetUser.login) !== undefined}
+									<Button disabled={friendLoading} on:click={removeFriend}>
+										<span class="banner-button">Cancel friend request</span>
+									</Button>
+								{:else}
+									<Button disabled={friendLoading} on:click={addFriend}>
+										{#if $friends.pendingReceived.find(friend => friend.login === targetUser.login) !== undefined}
+											<span class="banner-button">Accept friend request</span>
+										{:else}
+											<span class="banner-button">Add friend</span>
+										{/if}
+									</Button>
+								{/if}
 
-<!--								<Button border={false} &#45;&#45;background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('test')}>-->
-<!--									<span class="banner-button">Message</span>-->
-<!--								</Button>-->
 							{:else}
-								<Button on:click={removeFriend}>
+								<!-- Friend -->
+								<Button disabled={friendLoading} on:click={removeFriend}>
 									<span class="banner-button">Remove friend</span>
 								</Button>
 

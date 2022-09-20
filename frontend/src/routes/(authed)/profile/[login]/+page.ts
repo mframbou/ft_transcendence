@@ -20,6 +20,7 @@ async function loadUser(login: string, fetch: any)
 	}
 }
 
+// @ts-ignore
 export async function load({params, fetch})
 {
 	return {

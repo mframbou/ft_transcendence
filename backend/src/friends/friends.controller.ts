@@ -70,8 +70,8 @@ export class FriendsController {
 
 		return {
 			friends: friends,
-			pendingFriendsSent: pendingFriendsSent,
-			pendingFriendsReceived: pendingFriendsReceived,
+			pendingSent: pendingFriendsSent,
+			pendingReceived: pendingFriendsReceived,
 		};
 	}
 

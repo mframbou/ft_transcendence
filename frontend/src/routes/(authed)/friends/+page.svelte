@@ -24,11 +24,11 @@
 			}
 		});
 
-		const { friends: friendsData, pendingFriendsSent: pendingFriendsSentData, pendingFriendsReceived: pendingFriendsReceivedData } = await getAllFriends();
+		const { friends: friendsData, pendingSent, pendingReceived } = await getAllFriends();
 
 		friends = friendsData;
-		pendingFriendsSent = pendingFriendsSentData;
-		pendingFriendsReceived = pendingFriendsReceivedData;
+		pendingFriendsSent = pendingSent;
+		pendingFriendsReceived = pendingReceived;
 
 		return () =>
 		{

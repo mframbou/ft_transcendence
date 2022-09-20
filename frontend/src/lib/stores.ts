@@ -89,7 +89,7 @@ async function fetchFriendsJson()
 {
 	try
 	{
-		const res = await fetch('/api/friends');
+		const res = await fetch('/api/friends/all');
 		if (res.ok)
 		{
 			const json = await res.json();
