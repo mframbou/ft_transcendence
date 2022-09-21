@@ -7,6 +7,8 @@ export const user = writable(await fetchUserJson());
 export const friends = writable(await fetchFriendsJson());
 export const otpVerifyAndClear = writable(undefined);
 
+export const chatRooms: any = writable([]);
+
 // https://svelte.dev/tutorial/readable-stores
 export const statusTrackerSocket = readable({}, set => {
 	if (!browser) return;
