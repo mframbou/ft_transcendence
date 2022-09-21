@@ -11,14 +11,14 @@ import { UsersService } from './users/users.service';
 import { UsersController } from './users/users.controller';
 import { TwoFactorService } from './two-factor/two-factor.service';
 import { TwoFactorController } from './two-factor/two-factor.controller';
-import { StatusGateway } from './websockets/status.gateway';
+import { StatusGateway } from './status/status.gateway';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { JwtTwoFactorStrategy } from './auth/jwt-two-factor.strategy';
 import { PermissionsService } from './permissions/permissions.service';
-import { ChatGateway } from './websockets/chat.gateway';
+import { ChatGateway } from './chat/chat.gateway';
 import { WebsocketsService } from './websockets/websockets.service';
-import { PongGateway } from './websockets/pong.gateway';
+import { GameGateway } from './game/game.gateway';
 import { GameService } from './game/game.service';
 import { StatusService } from './status/status.service';
 import { AdminController } from './admin/admin.controller';
@@ -35,7 +35,7 @@ import { ChatService } from './chat/chat.service';
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, PongGateway, GameService, StatusService, FriendsService, ChatService],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, GameGateway, GameService, StatusService, FriendsService, ChatService],
 })
 export class AppModule
 {}

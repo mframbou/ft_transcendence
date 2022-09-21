@@ -66,8 +66,8 @@ export class GameService {
 			this.resetBall(room, server);
 			this.resetPaddles(room, server);
 			console.log(`Game between ${room.player1.login} and ${room.player2.login} started`);
-            room.gameInstance = new ServerSidePong(room, server);
-           
+			room.gameInstance = new ServerSidePong(room, server);
+			room.gameInstance.start();
 		}
 	}
 
@@ -96,26 +96,20 @@ export class GameService {
 	{
 		const room = this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
 
-		if (!room)
+		if (!room || !room.gameInstance)
 			return;
 
 		let player = null;
-		let opponent = null;
 
 		if (room.player1.clientId === client.id)
-		{
-			player = room.player1;
-			opponent = room.player2;
-		}
+			player = room.gameInstance.player1;
 		else if (room.player2.clientId === client.id)
-		{
-			player = room.player2;
-			opponent = room.player1;
-		}
+			player = room.gameInstance.player2;
 		else
 			return;
 
-		server.to(opponent.clientId).emit('onOpponentPaddleMove', payload);
+		room.gameInstance.handlePlayerPaddleMove(player, payload);
+		// server.to(opponent.clientId).emit('onOpponentPaddleMove', payload);
 	}
 
 	resetPaddles(room: IGameRoom, server: Server)

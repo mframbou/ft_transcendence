@@ -4,9 +4,9 @@ import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
 import { AuthService } from '../auth/auth.service';
 import { getCookie } from '../utils/utils';
-import { WebsocketsService } from './websockets.service';
+import { WebsocketsService } from '../websockets/websockets.service';
 import { Server } from 'socket.io';
-import { ChatService } from '../chat/chat.service';
+import { ChatService } from './chat.service';
 
 
 const NAMESPACE = 'chat';

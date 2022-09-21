@@ -4,8 +4,8 @@ import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { AuthService } from '../auth/auth.service';
 import { EUserStatus, IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
-import { WebsocketsService } from './websockets.service';
-import { StatusService } from '../status/status.service';
+import { WebsocketsService } from '../websockets/websockets.service';
+import { StatusService } from './status.service';
 import { Server } from 'socket.io';
 
 

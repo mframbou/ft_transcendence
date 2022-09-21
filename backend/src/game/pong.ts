@@ -1,157 +1,152 @@
-
-import {IGameRoom} from '../interfaces/interfaces';
-import {Server} from 'socket.io';
+import { IGameMovePayload, IGameRoom } from '../interfaces/interfaces';
+import { Server } from 'socket.io';
 
 interface IBall
-	{
-		x: number;
-		y: number;
-		radius: number;
-		velocityX: number;
-		velocityY: number;
-		speed: number;
-		color: string;
-	}
+{
+	x: number;
+	y: number;
+	radius: number;
+	velocityX: number;
+	velocityY: number;
+	speed: number;
+	color: string;
+}
 
-	interface IPaddle
-	{
-		x: number;
-		y: number;
-		width: number;
-		height: number;
-		color: string;
-	}
+interface IPaddle
+{
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	color: string;
+}
 
-	interface IPLayer
-	{
-		paddle: IPaddle;
-		score: number;
-	}
+interface IPLayer
+{
+	paddle: IPaddle;
+	score: number;
+}
 
+const PADDLE_WIDTH = 10;
+const PADDLE_HEIGHT = 100;
+const UPDATES_PER_SECOND = 30;
+
+// Basis for width / height, but in the end only the ratio matters
+const CANVAS_WIDTH = 600;
+const CANVAS_HEIGHT = 400;
 
 export default class ServerSidePong
 {
-    private player1 : IPLayer;
-    private player2 : IPLayer;
-    private readonly room: IGameRoom
-    private readonly server: Server
-    private paddle_width = 10;
-    private paddle_height = 100;
-    private ball: IBall;
-    private net;
-    private lastUpdate = null;
-    private animationFrameId: number;
-    private inGame = false;
-    private updateInterval = 30;
-    private updateCounter = 0;
+	public readonly player1: IPLayer;
+	public readonly player2: IPLayer;
+	private readonly ball: IBall;
 
-    private paused = false;
-    
-    private canvas = {
-        width: 600,
-        height: 400
-    }
-    
-    constructor(_room: IGameRoom , _server : Server)
-    {
-        this.room = _room;
-        this.server = _server;
-        this.player1 = 
-        {
-            paddle: 
-            {
-                x: 0,
-                y: this.canvas.height / 2 - this.paddle_height / 2,
-                width: this.paddle_width,
-                height: this.paddle_height,
-                color: 'blue',
-            },
+	private readonly room: IGameRoom;
+	private readonly server: Server;
+
+	private paused: boolean = true;
+	private net;
+
+	constructor(room: IGameRoom, server: Server)
+	{
+		this.room = room;
+		this.server = server;
+		this.player1 = {
+			paddle: {
+				x: 0,
+				y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
+				width: PADDLE_WIDTH,
+				height: PADDLE_HEIGHT,
+				color: 'blue',
+			},
 			score: 0
 		};
-        
-        
-        this.player2 = 
-        {
-            paddle: 
-            {
-                x: this.canvas.width - this.paddle_width,
-                y: this.canvas.height / 2 - this.paddle_height / 2,
-                width: this.paddle_width,
-                height: this.paddle_height,
-                color: 'red',
-            },
-            score: 0
-        };
 
-        this.net = 
-        {
-            x: this.canvas.width / 2 - 2,
-            y: 0,
-            width: 4,
-            height: 10,
-            color: 'white',
-        };
 
-        this.ball = 
-        {
-            x: this.canvas.width / 2,
-            y: this.canvas.height / 2,
-            radius: 10,
-            speed: 5,
-            velocityX: 5,
-            velocityY: 0,
-            color: 'white',
-        };
+		this.player2 = {
+			paddle: {
+				x: CANVAS_WIDTH - PADDLE_WIDTH,
+				y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
+				width: PADDLE_WIDTH,
+				height: PADDLE_HEIGHT,
+				color: 'red',
+			},
+			score: 0
+		};
 
-        setInterval(() => this.update(), 1000 / this.updateInterval);
-    }
+		this.net = {
+			x: CANVAS_WIDTH / 2 - 2,
+			y: 0,
+			width: 4,
+			height: 10,
+			color: 'white',
+		};
+
+		this.ball = {
+			x: CANVAS_WIDTH / 2,
+			y: CANVAS_HEIGHT / 2,
+			radius: 10,
+			speed: 5,
+			velocityX: 5,
+			velocityY: 0,
+			color: 'white',
+		};
+
+		// to pass this to the setInterval function
+		setInterval(this.update.bind(this), 1000 / UPDATES_PER_SECOND);
+	}
 
 
 	resetBall()
 	{
-		this.ball.x = this.canvas.width / 2;
-		this.ball.y = this.canvas.height / 2;
+		this.ball.x = CANVAS_WIDTH / 2;
+		this.ball.y = CANVAS_HEIGHT / 2;
 		this.ball.speed = 5;
 		this.ball.velocityX = -this.ball.velocityX;
 	}
 
+	broadcastToRoom(message: string, data: any, exclude?: IPLayer)
+	{
+		this.server.to([this.room.player1.clientId, this.room.player2.clientId]).emit(message, data);
+	}
 
-    Broadcast(message :string,  data:any)
-    {
-        this.server.to([this.room.player1.clientId, this.room.player2.clientId]).emit(message, data)
-    }
-    SendBallUpdate(ball: IBall)
-    {
-        this.Broadcast("OnBallUpdate", ball);
-    }
+	sendBallUpdate(ball: IBall)
+	{
+		this.broadcastToRoom('OnBallUpdate', ball);
+	}
 
-    SendBallReset()
-    {
-        this.Broadcast("OnBallReset", "");
-    }
+	sendBallReset()
+	{
+		this.broadcastToRoom('OnBallReset', '');
+	}
 
-    SendScoreUpdate()
-    {
-        this.Broadcast("OnScoreUpdate", {player1: this.player1.score, player2: this.player2.score});
-    }
+	sendScoreUpdate()
+	{
+		this.broadcastToRoom('OnScoreUpdate', {player1: this.player1.score, player2: this.player2.score});
+	}
+
+	// send move to everyone except the player who made the move
+	sendPaddleMove(movedPlayer: IPLayer)
+	{
+		this.broadcastToRoom('OnPaddleMove', movedPlayer.paddle.y, movedPlayer);
+	}
 
 
 	update()
 	{
-		if(this.paused)
-            return;
+		if (this.paused)
+			return;
 
-      
-		if (this.ball.x + this.ball.radius > this.canvas.width)
+		if (this.ball.x + this.ball.radius > CANVAS_WIDTH)
 		{
-            this.player1.score++;
-            this.SendBallReset();
+			this.player1.score++;
+			this.sendBallReset();
 			this.resetBall(); // reset so that next frame we dont accidentally resend message
 		}
 		else if (this.ball.x - this.ball.radius < 0)
 		{
-            this.player2.score++;
-            this.SendBallReset();
+			this.player2.score++;
+			this.sendBallReset();
 			this.resetBall();
 		}
 
@@ -159,33 +154,33 @@ export default class ServerSidePong
 		this.ball.y += this.ball.velocityY;
 
 
-		if (this.ball.y + this.ball.radius > this.canvas.height || this.ball.y - this.ball.radius < 0)
+		if (this.ball.y + this.ball.radius > CANVAS_HEIGHT || this.ball.y - this.ball.radius < 0)
 		{
 			this.ball.velocityY = -this.ball.velocityY;
 		}
 
-		let player = (this.ball.x < this.canvas.width / 2) ? this.player1 : this.player2;
+		let player = (this.ball.x < CANVAS_WIDTH / 2) ? this.player1 : this.player2;
 
 
 		if (this.checkCollision(this.ball, player.paddle))
 		{
-			// let collisionPoint = this.ball.y - (player.paddle.y + player.paddle.height / 2);
-			// collisionPoint = collisionPoint / (player.paddle.height / 2);
+			let collisionPoint = this.ball.y - (player.paddle.y + player.paddle.height / 2);
+			collisionPoint = collisionPoint / (player.paddle.height / 2);
+			console.log(collisionPoint);
 
-			// let angleRad = (Math.PI / 4) * collisionPoint;
-			// let direction = (this.ball.x < this.canvas.width / 2) ? 1 : -1;
-			// this.ball.velocityX = direction * this.ball.speed * Math.cos(angleRad);
-			// this.ball.velocityY = this.ball.speed * Math.sin(angleRad);
-			// this.ball.speed += 0.2;
-
+			let angleRad = (Math.PI / 4) * collisionPoint;
+			let direction = (this.ball.x < CANVAS_WIDTH / 2) ? 1 : -1;
+			this.ball.velocityX = direction * this.ball.speed * Math.cos(angleRad);
+			this.ball.velocityY = this.ball.speed * Math.sin(angleRad);
+			this.ball.speed += 0.2;
 		}
 
-        console.log(this.ball.x, this.ball.y);
-        this.SendBallUpdate(this.ball);
-    }
-	
+		// console.log(this.ball.x, this.ball.y);
+		this.sendBallUpdate(this.ball);
+	}
 
-	pointDistToSegment(point: {x: number, y: number}, p1: {x: number, y: number}, p2: {x: number, y: number})
+
+	pointDistToSegment(point: { x: number, y: number }, p1: { x: number, y: number }, p2: { x: number, y: number })
 	{
 		let A = point.x - p1.x;
 		let B = point.y - p1.y;
@@ -200,15 +195,18 @@ export default class ServerSidePong
 
 		let xx, yy;
 
-		if (param < 0) {
+		if (param < 0)
+		{
 			xx = p1.x;
 			yy = p1.y;
 		}
-		else if (param > 1) {
+		else if (param > 1)
+		{
 			xx = p2.x;
 			yy = p2.y;
 		}
-		else {
+		else
+		{
 			xx = p1.x + param * C;
 			yy = p1.y + param * D;
 		}
@@ -219,7 +217,7 @@ export default class ServerSidePong
 	}
 
 	// https://stackoverflow.com/questions/43615547/collision-detection-for-2d-capsule-or-swept-sphere
-	checkCollision(ball: { x: number, y: number, radius: number },  paddle: IPaddle)
+	checkCollision(ball: { x: number, y: number, radius: number }, paddle: IPaddle)
 	{
 		// const dist = pointDistToSegment({x: paddle.x, y: paddle.y}, ball, ballLastPos);
 
@@ -236,15 +234,37 @@ export default class ServerSidePong
 		return ballLeft < paddleRight && ballTop < paddleBottom && ballRight > paddleLeft && ballBottom > paddleTop;
 	}
 
-    pause()
-    {
-        this.paused = true;
-    }
+	pause()
+	{
+		this.paused = true;
+	}
 
-    resume()
-    {
-        this.paused = false;
-    }
+	resume()
+	{
+		this.paused = false;
+	}
+
+	start()
+	{
+		this.paused = false;
+	}
+
+	private movePaddle(player: IPLayer, y: number)
+	{
+		player.paddle.y = y;
+		if (player.paddle.y < 0)
+			player.paddle.y = 0;
+		else if (player.paddle.y > CANVAS_HEIGHT - player.paddle.height)
+			player.paddle.y = CANVAS_HEIGHT - player.paddle.height;
+
+
+		this.sendPaddleMove(player);
+	}
+
+	handlePlayerPaddleMove(player: IPLayer, payload: IGameMovePayload)
+	{
+		this.movePaddle(player, payload.y);
+	}
 };
 
 

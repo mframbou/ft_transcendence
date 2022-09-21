@@ -4,9 +4,9 @@ import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { IGameMovePayload, IGamePlayer, IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
 import { AuthService } from '../auth/auth.service';
 import { getCookie } from '../utils/utils';
-import { WebsocketsService } from './websockets.service';
+import { WebsocketsService } from '../websockets/websockets.service';
 import { Server } from 'socket.io';
-import { GameService } from '../game/game.service';
+import { GameService } from './game.service';
 
 
 const NAMESPACE = 'pong';
@@ -16,7 +16,7 @@ const NAMESPACE = 'pong';
   namespace: NAMESPACE,
 })
 // @UseGuards(JwtTwoFactorAuthGuard)
-export class PongGateway implements OnGatewayDisconnect
+export class GameGateway implements OnGatewayDisconnect
 {
   constructor(
       private authService: AuthService,

@@ -81,7 +81,7 @@ export interface IGameRoom
 	id: string;
 	player1: IGamePlayer;
 	player2: IGamePlayer;
-    gameInstance ?:  ServerSidePong;
+	gameInstance?: ServerSidePong;
 }
 
 export interface IChatUser {
