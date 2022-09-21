@@ -61,6 +61,21 @@ export class ChatGateway implements OnGatewayDisconnect
 	async handleCreateRoom(client: any, payload: any)
 	{
 		const user = this.websocketsService.getClient(client.id);
-		this.chatService.createRoom(user, null,payload);
+		this.chatService.createRoom(user, this.server, payload);
 	}
+
+	@SubscribeMessage('getRooms')
+	async handleGetRooms(client: any, payload: any)
+	{
+		const user = this.websocketsService.getClient(client.id);
+		this.chatService.sendRooms(user, this.server, payload);
+	}
+
+	@SubscribeMessage('joinRoom')
+	async handlejoinRoom(client: any, payload: any)
+	{
+		const user = this.websocketsService.getClient(client.id);
+		this.chatService.joinRoom(user, this.server, {room_id: payload});
+	}
+
 }

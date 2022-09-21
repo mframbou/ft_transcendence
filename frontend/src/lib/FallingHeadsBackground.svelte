@@ -49,6 +49,8 @@
 			if (ismaImage && Math.random() < 0.05) {
 				// if yes, replace it with the current image
 				this.img = ismaImage;
+				this.width *= 4;
+				this.height *= .8;
 			} else {
 				// if no, pick a random image
 				if (ismaImage)
