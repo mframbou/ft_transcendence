@@ -5,7 +5,7 @@ function getCookie(request: Request, name: string)
 	const value = '; ' + request.headers.get('cookie');
 	const parts = value.split('; ' + name + '=');
 	if (parts && parts.length == 2)
-		return parts.pop().split(';').shift();
+		return parts.pop()?.split(';').shift() ?? '';
 }
 
 function getPathname(url: URL)
@@ -43,6 +43,7 @@ const jwtSecret = process.env.JWT_SECRET;
 // https://kit.svelte.dev/docs/hooks
 // Redirect to login page (/) if user is not logged in (excluding excludeRedirect paths)
 // Redirect to homepage (/home) if user is logged in and jwt valid
+// @ts-ignore
 export async function handle({event, resolve})
 {
 	const pathname = getPathname(event.url);

@@ -430,15 +430,15 @@
 					</div>
 
 					<div class="buttons">
-							{#if $friends.friends.find(friend => friend.login === targetUser.login) === undefined}
+							{#if $friends?.friends.find(friend => friend.login === targetUser.login) === undefined}
 								<!-- Not friend -->
-								{#if $friends.pendingSent.find(friend => friend.login === targetUser.login) !== undefined}
+								{#if $friends?.pendingSent.find(friend => friend.login === targetUser.login) !== undefined}
 									<Button disabled={friendLoading} on:click={removeFriend}>
 										<span class="banner-button">Cancel friend request</span>
 									</Button>
 								{:else}
 									<Button disabled={friendLoading} on:click={addFriend}>
-										{#if $friends.pendingReceived.find(friend => friend.login === targetUser.login) !== undefined}
+										{#if $friends?.pendingReceived.find(friend => friend.login === targetUser.login) !== undefined}
 											<span class="banner-button">Accept friend request</span>
 										{:else}
 											<span class="banner-button">Add friend</span>

@@ -1,9 +1,11 @@
-version: '3'
+version: '3.7'
 
 services:
 
   frontend:
-    build: ./dockerfiles/frontend/
+    build:
+      context: ./dockerfiles/frontend/
+      dockerfile: Dockerfile
     ports:
       - "3001:3000"
     volumes:
@@ -13,30 +15,40 @@ services:
       - .env
     depends_on:
       - backend
+    networks:
+      transcendence-network:
 
   backend:
-    build: ./dockerfiles/backend/
-    volumes:
-      - ./backend/:/var/www/html/
-      - ./certificates/:/etc/ssl/
+    hostname: backend
+    build:
+      context: ./dockerfiles/backend/
+      dockerfile: Dockerfile
     ports:
       - "3002:3001" # WebSockets
-#    ports:
-#      - "3000:3000"
+    volumes:
+      - ./backend/:/var/www/html/
     restart: always
     env_file:
       - .env
     depends_on:
       - database
+    networks:
+      transcendence-network:
 
+  # psql -d transcendence -p 5432 --username=sasso -h localhost
   database:
+    hostname: database
     image: postgres
     restart: always
     env_file:
       - .env
     volumes:
       - database-volume:/var/lib/postgresql/data/
-
-
+    networks:
+      transcendence-network:
 volumes:
-    database-volume:
+  database-volume:
+
+networks:
+  transcendence-network:
+    driver: bridge
