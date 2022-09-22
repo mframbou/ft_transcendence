@@ -85,13 +85,21 @@
 			player2.paddle.position.client_y = canvas.height / 2 - player2.paddle.height / 2;
 		});
 
-        $pongSocketStore.on('OnBallUpdate', (data) =>
+		$pongSocketStore.on('OnBallUpdate', (data) =>
 		{
-			ball.position.client_x = data.x;
-            ball.position.client_y = data.y;
+			if (isPlayerOne)
+			{
+				ball.position.client_x = data.x;
+				ball.position.client_y = data.y;
+			}
+			else
+			{
+				ball.position.client_x = canvas.width - data.x;
+				ball.position.client_y = canvas.height - data.y;
+			}
 
-            // ball.position.server_x = data.x;
-            // ball.position.server_y = data.y;
+			// ball.position.server_x = data.x;
+			// ball.position.server_y = data.y;
 
 		});
 	}
@@ -247,6 +255,7 @@
 
 		let rect = canvas.getBoundingClientRect();
 
+		// y = center of paddle
 		$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top});
 
 		player1.paddle.position.client_y = event.clientY - rect.top - player1.paddle.height / 2;
@@ -264,29 +273,27 @@
 
 	function update()
 	{
-
-		ball.position.client_x += ball.velocityX;
-		ball.position.client_y += ball.velocityY;
-
-
-		if (ball.position.client_y + ball.radius > canvas.height || ball.position.client_y - ball.radius < 0)
-		{
-			ball.velocityY = -ball.velocityY;
-		}
-
-		let player = (ball.position.client_x < canvas.width / 2) ? player1 : player2;
-		if (checkCollision(ball, player.paddle))
-		{
-			let collisionPoint = ball.position.client_y - (player.paddle.position.client_y + player.paddle.height / 2);
-			collisionPoint = collisionPoint / (player.paddle.height / 2);
-
-			let angleRad = (Math.PI / 4) * collisionPoint;
-			let direction = (ball. position.client_x < canvas.width / 2) ? 1 : -1;
-			ball.velocityX = direction * ball.speed * Math.cos(angleRad);
-			ball.velocityY = ball.speed * Math.sin(angleRad);
-			ball.speed += 0.2;
-		}
-
+		// ball.position.client_x += ball.velocityX;
+		// ball.position.client_y += ball.velocityY;
+		//
+		//
+		// if (ball.position.client_y + ball.radius > canvas.height || ball.position.client_y - ball.radius < 0)
+		// {
+		// 	ball.velocityY = -ball.velocityY;
+		// }
+		//
+		// let player = (ball.position.client_x < canvas.width / 2) ? player1 : player2;
+		// if (checkCollision(ball, player.paddle))
+		// {
+		// 	let collisionPoint = ball.position.client_y - (player.paddle.position.client_y + player.paddle.height / 2);
+		// 	collisionPoint = collisionPoint / (player.paddle.height / 2);
+		//
+		// 	let angleRad = (Math.PI / 4) * collisionPoint;
+		// 	let direction = (ball. position.client_x < canvas.width / 2) ? 1 : -1;
+		// 	ball.velocityX = direction * ball.speed * Math.cos(angleRad);
+		// 	ball.velocityY = ball.speed * Math.sin(angleRad);
+		// 	ball.speed += 0.2;
+		// }
 	}
 
 	function pointDistToSegment(point: {x: number, y: number}, p1: {x: number, y: number}, p2: {x: number, y: number})

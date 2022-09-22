@@ -29,7 +29,7 @@ interface IPLayer
 
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
-const UPDATES_PER_SECOND = 30;
+const UPDATES_PER_SECOND = 60;
 
 // Basis for width / height, but in the end only the ratio matters
 const CANVAS_WIDTH = 600;
@@ -45,7 +45,9 @@ export default class ServerSidePong
 	private readonly server: Server;
 
 	private paused: boolean = true;
+	private lastUpdate: number = 0;
 	private net;
+	private intervalId;
 
 	constructor(room: IGameRoom, server: Server)
 	{
@@ -91,11 +93,7 @@ export default class ServerSidePong
 			velocityY: 0,
 			color: 'white',
 		};
-
-		// to pass this to the setInterval function
-		setInterval(this.update.bind(this), 1000 / UPDATES_PER_SECOND);
 	}
-
 
 	resetBall()
 	{
@@ -137,45 +135,51 @@ export default class ServerSidePong
 		if (this.paused)
 			return;
 
-		if (this.ball.x + this.ball.radius > CANVAS_WIDTH)
-		{
-			this.player1.score++;
-			this.sendBallReset();
-			this.resetBall(); // reset so that next frame we dont accidentally resend message
-		}
-		else if (this.ball.x - this.ball.radius < 0)
-		{
-			this.player2.score++;
-			this.sendBallReset();
-			this.resetBall();
-		}
+		const deltaTime = (performance.now() - this.lastUpdate);
+		this.lastUpdate = performance.now();
 
-		this.ball.x += this.ball.velocityX;
-		this.ball.y += this.ball.velocityY;
+		// updateMultiplier === 1 at 1000 / UPDATES_PER_SECOND (30 fps) to make calculations easier, === 2 at 15 fps etc.
+		const updateMultiplier = deltaTime / (1000 / UPDATES_PER_SECOND);
 
+		this.ball.x += this.ball.velocityX * updateMultiplier;
+		this.ball.y += this.ball.velocityY * updateMultiplier;
 
-		if (this.ball.y + this.ball.radius > CANVAS_HEIGHT || this.ball.y - this.ball.radius < 0)
+		// Check if ball is not already going right way to avoid issue where ball is stuck on the side alterning between +velY and -velY
+		if ((this.ball.y + this.ball.radius > CANVAS_HEIGHT && this.ball.velocityY > 0) || (this.ball.y - this.ball.radius < 0 && this.ball.velocityY < 0))
 		{
 			this.ball.velocityY = -this.ball.velocityY;
 		}
 
 		let player = (this.ball.x < CANVAS_WIDTH / 2) ? this.player1 : this.player2;
 
-
 		if (this.checkCollision(this.ball, player.paddle))
 		{
 			let collisionPoint = this.ball.y - (player.paddle.y + player.paddle.height / 2);
+			console.log(`Collision point: ${collisionPoint}`);
 			collisionPoint = collisionPoint / (player.paddle.height / 2);
-			console.log(collisionPoint);
+			console.log(`Collision point normalized: ${collisionPoint}`);
 
 			let angleRad = (Math.PI / 4) * collisionPoint;
 			let direction = (this.ball.x < CANVAS_WIDTH / 2) ? 1 : -1;
-			this.ball.velocityX = direction * this.ball.speed * Math.cos(angleRad);
-			this.ball.velocityY = this.ball.speed * Math.sin(angleRad);
 			this.ball.speed += 0.2;
+			this.ball.velocityX = this.ball.speed * direction * Math.cos(angleRad);
+			this.ball.velocityY = this.ball.speed * Math.sin(angleRad);
+		}
+		else if (this.ball.x + this.ball.radius > CANVAS_WIDTH)
+		{
+			console.log('Player 1 scored', this.ball.y, this.player1.paddle.y);
+			this.player1.score++;
+			this.sendBallReset();
+			this.resetBall();
+		}
+		else if (this.ball.x - this.ball.radius < 0)
+		{
+			console.log('Player 2 scored', this.ball.y, this.player2.paddle.y);
+			this.player2.score++;
+			this.sendBallReset();
+			this.resetBall();
 		}
 
-		// console.log(this.ball.x, this.ball.y);
 		this.sendBallUpdate(this.ball);
 	}
 
@@ -231,22 +235,35 @@ export default class ServerSidePong
 		const paddleLeft = paddle.x;
 		const paddleRight = paddle.x + paddle.width;
 
-		return ballLeft < paddleRight && ballTop < paddleBottom && ballRight > paddleLeft && ballBottom > paddleTop;
+		console.log(`ball coord: (${ballLeft}, ${ballTop}) (${ballRight}, ${ballBottom}), paddle coord: (${paddleLeft}, ${paddleTop}) (${paddleRight}, ${paddleBottom})`);
+
+		if (ballRight < paddleLeft || ballLeft > paddleRight || ballBottom < paddleTop || ballTop > paddleBottom)
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	pause()
 	{
 		this.paused = true;
+		clearInterval(this.intervalId);
 	}
 
 	resume()
 	{
+		this.lastUpdate = performance.now();
 		this.paused = false;
+		this.intervalId = setInterval(this.update.bind(this), 1000 / UPDATES_PER_SECOND);
 	}
 
 	start()
 	{
+		this.lastUpdate = performance.now();
 		this.paused = false;
+		// to pass this to the setInterval function
+		this.intervalId = setInterval(this.update.bind(this), 1000 / UPDATES_PER_SECOND);
 	}
 
 	private movePaddle(player: IPLayer, y: number)
@@ -263,7 +280,7 @@ export default class ServerSidePong
 
 	handlePlayerPaddleMove(player: IPLayer, payload: IGameMovePayload)
 	{
-		this.movePaddle(player, payload.y);
+		this.movePaddle(player, payload.y - PADDLE_HEIGHT / 2);
 	}
 };
 
