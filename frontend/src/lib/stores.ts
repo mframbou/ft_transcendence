@@ -1,11 +1,29 @@
-import { readable, writable } from 'svelte/store';
+import { get, readable, writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { chatSocket, pongSocket, statusSocket } from '$lib/socket-io';
 import { goto } from '$app/navigation';
 
-export const user = writable(await fetchUserJson());
-export const friends = writable(await fetchFriendsJson());
+export const user = writable(undefined);
+export const friends = writable(undefined);
 export const otpVerifyAndClear = writable(undefined);
+
+if (browser && get(user) === undefined)
+{
+	fetchUserJson().then(json =>
+	{
+		if (json)
+			user.set(json);
+	});
+}
+
+if (browser && get(friends) === undefined)
+{
+	fetchFriendsJson().then(json =>
+	{
+		if (json)
+			friends.set(json);
+	});
+}
 
 export const chatRooms: any = writable([]);
 

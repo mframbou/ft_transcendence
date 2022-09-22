@@ -87,15 +87,15 @@
 
 		$pongSocketStore.on('OnBallUpdate', (data) =>
 		{
+			ball.position.client_y = data.y;
+
 			if (isPlayerOne)
 			{
 				ball.position.client_x = data.x;
-				ball.position.client_y = data.y;
 			}
 			else
 			{
 				ball.position.client_x = canvas.width - data.x;
-				ball.position.client_y = canvas.height - data.y;
 			}
 
 			// ball.position.server_x = data.x;

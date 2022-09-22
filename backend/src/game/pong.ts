@@ -29,7 +29,7 @@ interface IPLayer
 
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
-const UPDATES_PER_SECOND = 60;
+const UPDATES_PER_SECOND = 10;
 
 // Basis for width / height, but in the end only the ratio matters
 const CANVAS_WIDTH = 600;
@@ -138,9 +138,10 @@ export default class ServerSidePong
 		const deltaTime = (performance.now() - this.lastUpdate);
 		this.lastUpdate = performance.now();
 
-		// updateMultiplier === 1 at 1000 / UPDATES_PER_SECOND (30 fps) to make calculations easier, === 2 at 15 fps etc.
-		const updateMultiplier = deltaTime / (1000 / UPDATES_PER_SECOND);
+		// updateMultiplier === 1 at 60fps, 2 at 30fps, 0.5 at 120fps, etc. (just because when we first created the game we based it on 60fps)
+		const updateMultiplier = deltaTime / (1000 / 60);
 
+		console.log('updateMultiplier', updateMultiplier);
 		this.ball.x += this.ball.velocityX * updateMultiplier;
 		this.ball.y += this.ball.velocityY * updateMultiplier;
 
@@ -155,9 +156,7 @@ export default class ServerSidePong
 		if (this.checkCollision(this.ball, player.paddle))
 		{
 			let collisionPoint = this.ball.y - (player.paddle.y + player.paddle.height / 2);
-			console.log(`Collision point: ${collisionPoint}`);
-			collisionPoint = collisionPoint / (player.paddle.height / 2);
-			console.log(`Collision point normalized: ${collisionPoint}`);
+			collisionPoint /= player.paddle.height / 2;
 
 			let angleRad = (Math.PI / 4) * collisionPoint;
 			let direction = (this.ball.x < CANVAS_WIDTH / 2) ? 1 : -1;
@@ -234,8 +233,6 @@ export default class ServerSidePong
 		const paddleBottom = paddle.y + paddle.height;
 		const paddleLeft = paddle.x;
 		const paddleRight = paddle.x + paddle.width;
-
-		console.log(`ball coord: (${ballLeft}, ${ballTop}) (${ballRight}, ${ballBottom}), paddle coord: (${paddleLeft}, ${paddleTop}) (${paddleRight}, ${paddleBottom})`);
 
 		if (ballRight < paddleLeft || ballLeft > paddleRight || ballBottom < paddleTop || ballTop > paddleBottom)
 		{
