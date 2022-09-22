@@ -2,51 +2,63 @@
 <script lang="ts">
     import Button from '$lib/Button.svelte';
 	import { onMount } from 'svelte';
-    import { chatSocketStore } from '../../../lib/stores';
-    import { goto } from '$app/navigation';
+    import { chatSocketStore } from '$lib/stores';
+    import { goto, prefetchRoutes } from '$app/navigation';
+
+	export let data;
+	console.log(data.chatRooms);
 
     let chatRooms: any[] = [];
 
     chatSocketStore.subscribe(() => {});
     let config: boolean = false;
 
-    function createNewChatRoom() {
-        $chatSocketStore.emit('createRoom', {name: 'default', password: 'default'});
-        config = true;
+
+    //onMount(async () => {
+        //getRooms(); // fetch chat rooms when we open the page
+    //});
+
+    async function addRoom() {
+
+        // send addRoom request
+        let ret = await fetch('/api/chat/addRoom', { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({name: 'default', is_private: false})//, password: 'default'})
+        });
+
+        console.log(ret ? 'room added' : 'room not added');
     }
 
-    $chatSocketStore.on('onRoomCreated', (roomId) => {
-        console.log("ROOM CREATED: " + roomId);
-        getList();
-    });
-
-    // later, the id should only be know by the server
-    function joinRoom(id: string) {
-        console.log("JOIN ROOM: " + id);
-        $chatSocketStore.emit('joinRoom', id);
+    async function getRooms() {
+        fetch('/api/chat/rooms')
+            .then((res) => {
+                return res.json();
+            }).then(res => {
+                console.log("room list : " + JSON.stringify(res));
+            }); 
     }
 
-    $chatSocketStore.on('joinedRoom', (data) => {
-        goto('/chat/' + data);
-    });
+    // SOCKET
+    //function joinRoom(id: string) {
+        //console.log("JOIN ROOM: " + id);
+        //$chatSocketStore.emit('joinRoom', id);
+    //}
+
+    //$chatSocketStore.on('joinedRoom', (data) => {
+        //goto('/chat/' + data);
+    //});
 
     // probably better to fetch ? 
-    function getList() {
-        $chatSocketStore.emit('getRooms', '');
 
-    }
+    //console.log("socket : " + chatSocketStore);
 
-    $chatSocketStore.on('onRoomsList', (roomList) => {
-        console.log('bonjoir');
-        chatRooms = roomList;
-        console.log("chat rooms : ", chatRooms);
-    }); 
-
-    console.log("socket : " + chatSocketStore);
 </script>
 
-<Button on:click={createNewChatRoom}>Create New Chat Room</Button>
-<Button on:click={getList}>getList</Button>
+<Button on:click={addRoom}>Create New Chat Room</Button>
+<Button on:click={getRooms}>getList</Button>
 
 {#each chatRooms as room}
     <div>

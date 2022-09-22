@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class AddFriendDto
@@ -21,3 +21,16 @@ export class UpdateUserDto
 	@IsString()
 	profilePicture: string;
 };
+
+export class AddRoomDto
+{
+	@IsString()
+	name: string;
+
+	@IsBoolean()
+	is_private: boolean;
+
+	@IsOptional()
+	@IsString()
+	password: string;
+}

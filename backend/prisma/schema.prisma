@@ -35,6 +35,24 @@ model User {
     friendUsers      Friends[]       @relation(name: "friendsUser")
 }
 
+
+model Participent {
+	id				Int		@default(autoincrement()) @id
+	//user			User
+	//user			String
+	is_admin		Boolean
+	is_moderator	Boolean
+}
+
+model ChatRoom {
+	id			Int		@default(autoincrement()) @id
+	name 		String
+	hash		String?
+	is_private	Boolean @default(false)
+
+	//Participents Participent[]
+}
+
 enum Status {
     ONLINE
     OFFLINE

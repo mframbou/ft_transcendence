@@ -5,29 +5,58 @@ import { Server } from 'socket.io';
 import { subscribeOn } from 'rxjs';
 import { RouterModule } from '@nestjs/core';
 
+import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ChatService {
-    constructor() {}
+  constructor(
+        private readonly prisma: PrismaService, 
+        private readonly usersService: UsersService,
+    ) {}
 
     chatRooms: IChatRoom[] = [];
     cur_id: number = 0;
 
-    async createRoom(client: IWebsocketClient, server: Server, data: any){ //, data: any) {
-        let user: IChatUser = {clientId: client.id, login: client.login, is_admin: true, is_moderator: true} ;
-        const chatRoom: IChatRoom = {
-            id: this.cur_id++,
-            name: data.name,
-            users: [{clientId: client.id, login: client.login, is_admin: true, is_moderator: true}],
-            is_private: false,
-            password: data.password
-        };
 
-        this.chatRooms.push(chatRoom);
-        console.log("Creating chat room " + chatRoom.name + " for " + client.login + "-" + client.id + " (total chat rooms: " + this.chatRooms.length + ")");
+    async addRoom(login: string, name: string, is_private: boolean, password?: string) {
+        const user = await this.usersService.getUser(login);
+        console.log("user in create room : " + JSON.stringify(user));
 
-        server.to(client.id).emit('onRoomCreated', chatRoom.id);
-        this.sendRooms(client, server, data);
+
+        await this.prisma.chatRoom.create({
+            data: {
+                name: name,
+                //participents: {
+                    //create: {
+                        //is_admin: true,
+                        //is_moderator: false,
+                        //user: {
+                            //connect: {
+                                //login: login,
+                            //}
+                        //}
+                    //}
+                //},
+                //participents: {
+                    //create: {
+                        //user: login, // to be change to user
+                        //is_admin: true,
+                        //is_moderator: false,
+                    //}
+                //}
+            }
+        });
+        console.log("user in create room : " + JSON.stringify(user));
+
+        return true;
+    }
+
+    async getChatRooms() {
+        const chatRooms = await this.prisma.chatRoom.findMany();
+        console.log("get chatRooms : " + JSON.stringify(chatRooms));
+
+        return chatRooms;
     }
 
     async joinRoom(client: IWebsocketClient, server: Server, data: any) { 

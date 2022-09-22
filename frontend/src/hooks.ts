@@ -35,7 +35,6 @@ function redirectTo(url: string, code = 302)
 const loginPages = [
 	'/',
 	'/otp-verify',
-	'/pong',
 ];
 
 const jwtSecret = process.env.JWT_SECRET;
