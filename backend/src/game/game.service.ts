@@ -57,8 +57,8 @@ export class GameService {
 
 		if (room.player1.ready && room.player2.ready)
 		{
-			server.to(room.player1.clientId).emit('onStartGame', {isPlayer1: true});
-			server.to(room.player2.clientId).emit('onStartGame', {isPlayer1: false});
+			server.to(room.player1.clientId).emit('onStartGame', {isPlayerOne: true});
+			server.to(room.player2.clientId).emit('onStartGame', {isPlayerOne: false});
 			// server.to([room.player1.clientId, room.player2.clientId]).emit('onStartGame', room);
 			room.player1.score = 0;
 			room.player2.score = 0;
@@ -86,10 +86,20 @@ export class GameService {
 		}
 	}
 
-	removeClient(clientId: string)
+	handleDisconnect(clientId: string)
 	{
 		this.matchmakingPlayers = this.matchmakingPlayers.filter(player => player.clientId !== clientId);
-		this.gameRooms.forEach(gameRoom => this.removeGameRoomPlayer(gameRoom, clientId));
+
+		const gameRoom = this.gameRooms.find(room => room.player1.clientId === clientId || room.player2.clientId === clientId);
+		if (gameRoom)
+		{
+			const player = gameRoom.player1.clientId === clientId ? gameRoom.player1 : gameRoom.player2;
+			player.connected = false;
+			player.clientId = null;
+			if (gameRoom.gameInstance)
+				gameRoom.gameInstance.pause();
+			console.log(`Player ${player.login} disconnected from game room ${gameRoom.id}`);
+		}
 	}
 
 	handlePlayerPaddleMove(client: IWebsocketClient, payload: IGameMovePayload, server: Server)
@@ -109,8 +119,8 @@ export class GameService {
 			return;
 
 		room.gameInstance.handlePlayerPaddleMove(player, payload);
-		// server.to(opponent.clientId).emit('onOpponentPaddleMove', payload);
 	}
+
 
 	resetPaddles(room: IGameRoom, server: Server)
 	{
@@ -129,21 +139,21 @@ export class GameService {
 		return this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
 	}
 
-	broadcastMessage(room: IGameRoom, message: any, server: Server, sendToSpectators: boolean = true, excludePlayer?: IGamePlayer)
+	broadcastEvent(room: IGameRoom, eventName: string, message: any, server: Server, sendToSpectators: boolean = true, excludePlayer?: IGamePlayer)
 	{
 		if (room.player1 && room.player1 !== excludePlayer)
 		{
-			server.to(room.player1.clientId).emit(message);
+			server.to(room.player1.clientId).emit(eventName, message);
 		}
 
 		if (room.player2 && room.player2 !== excludePlayer)
 		{
-			server.to(room.player2.clientId).emit(message);
+			server.to(room.player2.clientId).emit(eventName, message);
 		}
 
 		if (sendToSpectators && room.spectators)
 		{
-			room.spectators.forEach(spectator => server.to(spectator.clientId).emit(message));
+			room.spectators.forEach(spectator => server.to(spectator.clientId).emit(eventName, message));
 		}
 	}
 

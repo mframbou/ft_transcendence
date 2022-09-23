@@ -1,17 +1,15 @@
 <script lang="ts">
 
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { pongSocketStore } from '$lib/stores';
 
-	export let isPlayerOne = true;
-
-    interface position
-    {
-        client_x: number;
-		client_y: number;
-        server_x: number;
-        server_y: number;
-    }
+	interface position
+	{
+			client_x: number;
+	client_y: number;
+			server_x: number;
+			server_y: number;
+	}
 
 	interface IBall
 	{
@@ -37,12 +35,40 @@
 		score: number;
 	}
 
-	if ($pongSocketStore)
+
+	const paddle_width = 10;
+	const paddle_height = 100;
+
+	let canvas: HTMLCanvasElement;
+	let context: CanvasRenderingContext2D;
+
+	let player1: IPLayer;
+	let player2: IPLayer;
+	let ball: IBall;
+	//const ballLastPos: { x: number, y: number } = {};
+	let net:any;
+	//let lastUpdate = null;
+	let animationFrameId: number;
+
+	let inGame = false;
+
+	function startGame(isPlayerOne: boolean)
 	{
-		$pongSocketStore.on('onOpponentPaddleMove', (data) =>
+		inGame = true;
+
+		console.log(`Is player one: ${isPlayerOne}`);
+
+		// Only listen to movement of opposite player (not self user)
+		let moveEventName = 'player1Move';
+		if (isPlayerOne)
 		{
-			//console.log("OPPONENT PADDLE MOVE:", data);
-			player2.paddle.position.client_y = data.y - player2.paddle.height / 2;
+			moveEventName = 'player2Move';
+		}
+
+		$pongSocketStore.on(moveEventName, (data) =>
+		{
+			// console.log("OPONNENT PADDLE MOVE:", data);
+			player2.paddle.position.client_y = data.y;
 
 			if (player2.paddle.position.client_y < 0)
 				player2.paddle.position.client_y = 0;
@@ -50,17 +76,19 @@
 				player2.paddle.position.client_y = canvas.height - player2.paddle.height;
 		});
 
-		$pongSocketStore.on('OnBallReset', (data) =>
+		$pongSocketStore.on('ballReset', (data) =>
 		{
 			console.log('BALL RESET:', data);
-			resetBall();
+			ball.position.client_x = data.x;
+			ball.position.client_y = data.y;
+			ball.velocityX = data.velocityX;
+			ball.velocityY = data.velocityY;
+			ball.speed = data.speed;
+			// resetBall();
 		});
 
-		$pongSocketStore.on('OnScoreUpdate', (data) =>
+		$pongSocketStore.on('scoreUpdate', (data) =>
 		{
-			if (!data || data.player1Score === undefined || data.player2Score === undefined)
-				return;
-
 			console.log('SCORE CHANGE:', data);
 
 			if (isPlayerOne)
@@ -83,9 +111,10 @@
 
 			player2.paddle.position.client_x = canvas.width - player2.paddle.width;
 			player2.paddle.position.client_y = canvas.height / 2 - player2.paddle.height / 2;
+			console.log(`Reset paddle, pos: ${player1.paddle.position.client_y}, ${player2.paddle.position.client_y}`);
 		});
 
-		$pongSocketStore.on('OnBallUpdate', (data) =>
+		$pongSocketStore.on('ballUpdate', (data) =>
 		{
 			ball.position.client_y = data.y;
 
@@ -104,26 +133,14 @@
 		});
 	}
 
-	const paddle_width = 10;
-	const paddle_height = 100;
-
-	let canvas: HTMLCanvasElement;
-	let context: CanvasRenderingContext2D;
-
-	let player1: IPLayer;
-	let player2: IPLayer;
-	let ball: IBall;
-	//const ballLastPos: { x: number, y: number } = {};
-	let net:any;
-	//let lastUpdate = null;
-	let animationFrameId: number;
-
-	let inGame = false;
-
 	onMount(async () =>
 	{
-		canvas.addEventListener('mousemove', movePaddle);
 		context = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+		$pongSocketStore.on('onStartGame', (data) => {
+			console.log("STARTING GAME:", data);
+			startGame(data.isPlayerOne);
+		});
 
 		player1 = {
 			paddle: {
@@ -178,12 +195,11 @@
 		};
 
 		animationFrameId = requestAnimationFrame(loop);
-	});
 
-	onDestroy(() => {
-		canvas.removeEventListener('mousemove', movePaddle);
-		cancelAnimationFrame(animationFrameId);
-	})
+		return () => {
+			cancelAnimationFrame(animationFrameId);
+		}
+	});
 
 
 	function drawPaddle(paddle: IPaddle)
@@ -250,15 +266,20 @@
 		ball.velocityX = -ball.velocityX;
 	}
 
-	function movePaddle(event: MouseEvent)
+	function handleMouse(event: MouseEvent)
 	{
 
 		let rect = canvas.getBoundingClientRect();
 
 		// y = center of paddle
-		$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top});
+		$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top - paddle_height / 2});
 
-		player1.paddle.position.client_y = event.clientY - rect.top - player1.paddle.height / 2;
+		movePaddle(event.clientY - rect.top - paddle_height / 2);
+	}
+
+	function movePaddle(y: number)
+	{
+		player1.paddle.position.client_y = y;
 
 		if (player1.paddle.position.client_y < 0)
 			player1.paddle.position.client_y = 0;
@@ -266,13 +287,41 @@
 			player1.paddle.position.client_y = canvas.height - player1.paddle.height;
 	}
 
-    function lerp(start:number, end:number, time:number) 
-    {
-        return start * (1 - time) + end * time;
-    }
+	let pressedKeys: any = [];
+
+	function handleKeyDown(event: KeyboardEvent)
+	{
+		console.log('start keyboard', event.key);
+		pressedKeys.push(event.key);
+	}
+
+	function handleKeyUp(event: KeyboardEvent)
+	{
+		console.log('stop keyboard', event.key);
+		pressedKeys = pressedKeys.filter((key: string) => key !== event.key);
+	}
 
 	function update()
 	{
+		let multiplier = 1;
+
+		if (pressedKeys.includes('Shift'))
+			multiplier = 2;
+
+		if (pressedKeys.includes('Control'))
+			multiplier = 0.5;
+
+		if (pressedKeys.includes('ArrowUp'))
+		{
+			$pongSocketStore.emit('onPaddleMove', {y: player1.paddle.position.client_y - 10});
+			movePaddle(player1.paddle.position.client_y - (2 * multiplier));
+		}
+
+		if (pressedKeys.includes('ArrowDown'))
+		{
+			$pongSocketStore.emit('onPaddleMove', {y: player1.paddle.position.client_y + 10});
+			movePaddle(player1.paddle.position.client_y + (2 * multiplier));
+		}
 		// ball.position.client_x += ball.velocityX;
 		// ball.position.client_y += ball.velocityY;
 		//
@@ -366,8 +415,10 @@
 
 </script>
 
+<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
+
 <div class="pong-wrapper">
-	<canvas bind:this={canvas} width="600" height="400"/>
+	<canvas on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
 </div>
 
 <style lang="scss">
