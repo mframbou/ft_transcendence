@@ -71,9 +71,16 @@ export interface IWebsocketClient
 export interface IGamePlayer
 {
 	clientId: string;
+	connected: boolean;
 	login: string;
 	ready: boolean;
 	score: number;
+}
+
+export interface ISpectator
+{
+	clientId: string;
+	login: string;
 }
 
 export interface IGameRoom
@@ -82,6 +89,7 @@ export interface IGameRoom
 	player1: IGamePlayer;
 	player2: IGamePlayer;
 	gameInstance?: ServerSidePong;
+	spectators?: ISpectator[];
 }
 
 export interface IChatUser {

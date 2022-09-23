@@ -16,7 +16,7 @@ export class GameService {
 		if (this.matchmakingPlayers.find(player => player.clientId === client.id))
 			return;
 
-		const player: IGamePlayer = {clientId: client.id, login: client.login, ready: false, score: 0};
+		const player: IGamePlayer = {clientId: client.id, login: client.login, ready: false, score: 0, connected: true};
 		this.matchmakingPlayers.push(player);
 		console.log(`Starting matchmaking for ${client.login}-${client.id} (total matchmaking users: ${this.matchmakingPlayers.length})`);
 
@@ -66,7 +66,7 @@ export class GameService {
 			this.resetBall(room, server);
 			this.resetPaddles(room, server);
 			console.log(`Game between ${room.player1.login} and ${room.player2.login} started`);
-			room.gameInstance = new ServerSidePong(room, server);
+			room.gameInstance = new ServerSidePong(room, server, this);
 			room.gameInstance.start();
 		}
 	}
@@ -80,7 +80,7 @@ export class GameService {
 
 		if (!gameRoom.player1 || !gameRoom.player2)
 		{
-            gameRoom.gameInstance.pause();
+			gameRoom.gameInstance.pause();
 			this.gameRooms = this.gameRooms.filter(room => room.id !== gameRoom.id);
 			console.log(`Game room ${gameRoom.id} removed because user left (total game rooms: ${this.gameRooms.length})`);
 		}
@@ -129,6 +129,22 @@ export class GameService {
 		return this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
 	}
 
-    
+	broadcastMessage(room: IGameRoom, message: any, server: Server, sendToSpectators: boolean = true, excludePlayer?: IGamePlayer)
+	{
+		if (room.player1 && room.player1 !== excludePlayer)
+		{
+			server.to(room.player1.clientId).emit(message);
+		}
+
+		if (room.player2 && room.player2 !== excludePlayer)
+		{
+			server.to(room.player2.clientId).emit(message);
+		}
+
+		if (sendToSpectators && room.spectators)
+		{
+			room.spectators.forEach(spectator => server.to(spectator.clientId).emit(message));
+		}
+	}
 
 }

@@ -1,5 +1,7 @@
 import { IGameMovePayload, IGameRoom } from '../interfaces/interfaces';
 import { Server } from 'socket.io';
+import { GameService } from './game.service';
+import { Inject } from '@nestjs/common';
 
 interface IBall
 {
@@ -29,7 +31,7 @@ interface IPLayer
 
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
-const UPDATES_PER_SECOND = 10;
+const UPDATES_PER_SECOND = 30;
 
 // Basis for width / height, but in the end only the ratio matters
 const CANVAS_WIDTH = 600;
@@ -40,6 +42,7 @@ export default class ServerSidePong
 	public readonly player1: IPLayer;
 	public readonly player2: IPLayer;
 	private readonly ball: IBall;
+	private readonly gameService: GameService;
 
 	private readonly room: IGameRoom;
 	private readonly server: Server;
@@ -49,10 +52,13 @@ export default class ServerSidePong
 	private net;
 	private intervalId;
 
-	constructor(room: IGameRoom, server: Server)
+
+	constructor(room: IGameRoom, server: Server, gameService: GameService)
 	{
 		this.room = room;
 		this.server = server;
+		this.gameService = gameService;
+
 		this.player1 = {
 			paddle: {
 				x: 0,
@@ -88,8 +94,8 @@ export default class ServerSidePong
 			x: CANVAS_WIDTH / 2,
 			y: CANVAS_HEIGHT / 2,
 			radius: 10,
-			speed: 5,
-			velocityX: 5,
+			speed: 500, // speed = units per second
+			velocityX: 500,
 			velocityY: 0,
 			color: 'white',
 		};
@@ -99,13 +105,13 @@ export default class ServerSidePong
 	{
 		this.ball.x = CANVAS_WIDTH / 2;
 		this.ball.y = CANVAS_HEIGHT / 2;
-		this.ball.speed = 5;
+		this.ball.speed = 500;
 		this.ball.velocityX = -this.ball.velocityX;
 	}
 
-	broadcastToRoom(message: string, data: any, exclude?: IPLayer)
+	private broadcastToRoom(message: string, data: any, exclude?: IPLayer)
 	{
-		this.server.to([this.room.player1.clientId, this.room.player2.clientId]).emit(message, data);
+		this.server.to([this.room.player1?.clientId, this.room.player2?.clientId]).emit(message, data);
 	}
 
 	sendBallUpdate(ball: IBall)
@@ -138,10 +144,9 @@ export default class ServerSidePong
 		const deltaTime = (performance.now() - this.lastUpdate);
 		this.lastUpdate = performance.now();
 
-		// updateMultiplier === 1 at 60fps, 2 at 30fps, 0.5 at 120fps, etc. (just because when we first created the game we based it on 60fps)
-		const updateMultiplier = deltaTime / (1000 / 60);
+		// updateMultiplier = 1 at 1fps, 0.5 at 2fps and so on
+		const updateMultiplier = deltaTime / 1000;
 
-		console.log('updateMultiplier', updateMultiplier);
 		this.ball.x += this.ball.velocityX * updateMultiplier;
 		this.ball.y += this.ball.velocityY * updateMultiplier;
 
@@ -160,10 +165,11 @@ export default class ServerSidePong
 
 			let angleRad = (Math.PI / 4) * collisionPoint;
 			let direction = (this.ball.x < CANVAS_WIDTH / 2) ? 1 : -1;
-			this.ball.speed += 0.2;
+			this.ball.speed += 20;
 			this.ball.velocityX = this.ball.speed * direction * Math.cos(angleRad);
 			this.ball.velocityY = this.ball.speed * Math.sin(angleRad);
 		}
+
 		else if (this.ball.x + this.ball.radius > CANVAS_WIDTH)
 		{
 			console.log('Player 1 scored', this.ball.y, this.player1.paddle.y);
