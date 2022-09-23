@@ -32,7 +32,7 @@ interface IPLayer
 
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
-const UPDATES_PER_SECOND = 10;
+const UPDATES_PER_SECOND = 144;
 
 // Basis for width / height, but in the end only the ratio matters
 const CANVAS_WIDTH = 600;
@@ -150,16 +150,29 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 	const remainingTime = 1 - collisionTime;
 
 	// deflect ball
-	if (collision.normalX !== 0)
+	if (collisionTime !== 1)
 	{
-		ball.velocityX *= -1;
-		ball.x += ball.velocityX * remainingTime * deltaTimeMultiplier;
-	}
+		const paddle = ball.velocityX > 0 ? paddle2 : paddle1;
+		// collisionPoint is between -1 and 1
+		const collisionPoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
+		const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
+		ball.speed += 20;
+		const direction = ball.velocityX > 0 ? -1 : 1;
+		ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
+		ball.velocityY = ball.speed * Math.sin(angleRad);
 
-	if (collision.normalY !== 0)
-	{
-		ball.velocityY *= -1;
-		ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
+		if (collision.normalX !== 0)
+		{
+			// ball.velocityX *= -1; // velocity already inversed above
+			ball.x += ball.velocityX * remainingTime * deltaTimeMultiplier;
+		}
+
+		// will probably never happen
+		if (collision.normalY !== 0)
+		{
+			ball.velocityY *= -1;
+			ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
+		}
 	}
 }
 
@@ -290,28 +303,14 @@ export default class ServerSidePong
 
 		// updateMultiplier = 1 at 1fps, 0.5 at 2fps and so on
 		const updateMultiplier = deltaTime / 1000;
-
 		computeBallUpdate(this.ball, this.player1.paddle, this.player2.paddle, updateMultiplier);
 
-		// // Check if ball is not already going right way to avoid issue where ball is stuck on the side alterning between +velY and -velY
+
+		// Check if ball is not already going right way to avoid issue where ball is stuck on the side alterning between +velY and -velY
 		if ((this.ball.y + this.ball.radius > CANVAS_HEIGHT && this.ball.velocityY > 0) || (this.ball.y - this.ball.radius < 0 && this.ball.velocityY < 0))
 		{
 			this.ball.velocityY = -this.ball.velocityY;
 		}
-
-		// let player = (this.ball.x < CANVAS_WIDTH / 2) ? this.player1 : this.player2;
-		//
-		// if (this.checkCollision(this.ball, player.paddle))
-		// {
-		// 	let collisionPoint = this.ball.y - (player.paddle.y + player.paddle.height / 2);
-		// 	collisionPoint /= player.paddle.height / 2;
-		//
-		// 	let angleRad = (Math.PI / 4) * collisionPoint;
-		// 	let direction = (this.ball.x < CANVAS_WIDTH / 2) ? 1 : -1;
-		// 	this.ball.speed += 20;
-		// 	this.ball.velocityX = this.ball.speed * direction * Math.cos(angleRad);
-		// 	this.ball.velocityY = this.ball.speed * Math.sin(angleRad);
-		// }
 
 		if (this.ball.x + this.ball.radius > CANVAS_WIDTH)
 		{
@@ -333,66 +332,6 @@ export default class ServerSidePong
 		this.sendBallUpdate(this.ball);
 		this.sendPaddleMove(this.player1);
 		this.sendPaddleMove(this.player2);
-	}
-
-
-	pointDistToSegment(point: { x: number, y: number }, p1: { x: number, y: number }, p2: { x: number, y: number })
-	{
-		let A = point.x - p1.x;
-		let B = point.y - p1.y;
-		let C = p2.x - p1.x;
-		let D = p2.y - p1.y;
-
-		let dot = A * C + B * D;
-		let len_sq = C * C + D * D;
-		let param = -1;
-		if (len_sq != 0) //in case of 0 length line
-			param = dot / len_sq;
-
-		let xx, yy;
-
-		if (param < 0)
-		{
-			xx = p1.x;
-			yy = p1.y;
-		}
-		else if (param > 1)
-		{
-			xx = p2.x;
-			yy = p2.y;
-		}
-		else
-		{
-			xx = p1.x + param * C;
-			yy = p1.y + param * D;
-		}
-
-		let dx = point.x - xx;
-		let dy = point.y - yy;
-		return Math.sqrt(dx * dx + dy * dy);
-	}
-
-	// https://stackoverflow.com/questions/43615547/collision-detection-for-2d-capsule-or-swept-sphere
-	checkCollision(ball: { x: number, y: number, radius: number }, paddle: IPaddle)
-	{
-		// const dist = pointDistToSegment({x: paddle.x, y: paddle.y}, ball, ballLastPos);
-
-		const ballTop = ball.y - ball.radius;
-		const ballBottom = ball.y + ball.radius;
-		const ballLeft = ball.x - ball.radius;
-		const ballRight = ball.x + ball.radius;
-
-		const paddleTop = paddle.y;
-		const paddleBottom = paddle.y + paddle.height;
-		const paddleLeft = paddle.x;
-		const paddleRight = paddle.x + paddle.width;
-
-		if (ballRight < paddleLeft || ballLeft > paddleRight || ballBottom < paddleTop || ballTop > paddleBottom)
-		{
-			return false;
-		}
-
-		return true;
 	}
 
 	pause()
