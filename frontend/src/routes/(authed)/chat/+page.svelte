@@ -33,12 +33,19 @@
     }
 
     async function getRooms() {
-        fetch('/api/chat/rooms')
-            .then((res) => {
-                return res.json();
-            }).then(res => {
-                console.log("room list : " + JSON.stringify(res));
-            }); 
+        let rooms;
+        rooms = await fetch('/api/chat/rooms').then(res => res.json())
+
+        console.log("rooms : " + JSON.stringify(rooms));
+
+    }
+
+    // return participents in a room based on room id
+    async function getParticipants(roomId: number){
+    }
+
+    function clearAll() {
+        fetch('/api/chat/clearAll');
     }
 
     // SOCKET
@@ -57,8 +64,12 @@
 
 </script>
 
-<Button on:click={addRoom}>Create New Chat Room</Button>
-<Button on:click={getRooms}>getList</Button>
+<div class="vflex">
+    <Button on:click={addRoom}>add room</Button>
+    <Button on:click={getRooms}>list room</Button>
+    <!-- <Button on:click={getParticipants}>list all participants</Button> -->
+    <Button on:click={clearAll}>clear</Button>
+</div>
 
 {#each chatRooms as room}
     <div>
@@ -66,3 +77,14 @@
     </div>
 {/each}
 
+
+<style>
+    .vflex {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* space between buttons */
+        gap: 1rem; 
+
+    }
+</style>

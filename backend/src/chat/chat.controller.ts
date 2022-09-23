@@ -35,12 +35,29 @@ import { AddRoomDto } from 'src/interfaces/dtos';
         return await this.chatService.addRoom(payload.login, room.name, room.is_private, room.password);
     }
 
+    // TODO: add permission check
+    // return participants of a room based on the room id
+    @Post('participants')
+    async roomParticipants(@Body() roomId: number, @Req() req: IUserRequest): Promise<any> {
+        if (roomId == null) {
+          return new HttpException('bad room id', HttpStatus.BAD_REQUEST);
+        }
+        console.log("body : " + JSON.stringify(roomId));
+    }
+
     @Get('rooms')
     async getChats(@Req() req: IUserRequest): Promise<any> {
 
         const payload = req.jwtPayload;
 
-        return await this.chatService.getChatRooms();
+        return await this.chatService.getRooms();
+    }
+
+    @Get('clearAll')
+    async clearAll(@Req() req: IUserRequest): Promise<any> {
+          const payload = req.jwtPayload;
+  
+          return await this.chatService.clearAll();
     }
   
   }

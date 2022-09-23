@@ -7,6 +7,7 @@ import { RouterModule } from '@nestjs/core';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { connect, sensitiveHeaders } from 'http2';
 
 @Injectable()
 export class ChatService {
@@ -15,79 +16,94 @@ export class ChatService {
         private readonly usersService: UsersService,
     ) {}
 
-    chatRooms: IChatRoom[] = [];
-    cur_id: number = 0;
-
 
     async addRoom(login: string, name: string, is_private: boolean, password?: string) {
         const user = await this.usersService.getUser(login);
-        console.log("user in create room : " + JSON.stringify(user));
+
+        console.log("addRoom request from " + JSON.stringify(user));
 
 
-        await this.prisma.chatRoom.create({
+        let cur_room = await this.prisma.chatRoom.create({
             data: {
                 name: name,
-                //participents: {
-                    //create: {
-                        //is_admin: true,
-                        //is_moderator: false,
-                        //user: {
-                            //connect: {
-                                //login: login,
-                            //}
-                        //}
-                    //}
-                //},
-                //participents: {
-                    //create: {
-                        //user: login, // to be change to user
-                        //is_admin: true,
-                        //is_moderator: false,
-                    //}
-                //}
+                participants: {
+                    create: [{
+                        is_admin: true,
+                        is_moderator: false,
+                        userId: user.id
+                    }]
+                },
+            },
+            include: {
+                participants: {
+                    include: {
+                        user: true
+                    }
+                },
+                messages: true,
             }
+
         });
-        console.log("user in create room : " + JSON.stringify(user));
+
+
+        // to create message: 
+        //await this.prisma.message.create({
+            //data: {
+                //content: "msg1",
+                //senderId: user.id,
+                //chatId: cur_room.id
+            //},
+        //});
+        //await this.prisma.message.create({
+            //data: {
+                //content: "msg2",
+                //senderId: user.id,
+                //chatId: cur_room.id
+            //},
+        //});
+
+        //this.prisma.participant.update({
+            //where: {
+                //id: user.id,
+            //},
+            //data: {}
+        //})
+
+        //this.prisma.chatRoom.update({
+            //where: {
+                //id: cur_room.id,
+            //},
+            //data: {}
+        //});
+
+        console.log("room added: " + JSON.stringify(cur_room));
+        console.log('-------------------');
 
         return true;
     }
 
-    async getChatRooms() {
-        const chatRooms = await this.prisma.chatRoom.findMany();
-        console.log("get chatRooms : " + JSON.stringify(chatRooms));
+    async getRooms() {
+        const chatRooms = await this.prisma.chatRoom.findMany({
+            include: {
+                participants: {
+                    include: {
+                        user: true
+                    }
+                },
+                messages: true
+            }
+        });
 
         return chatRooms;
     }
 
-    async joinRoom(client: IWebsocketClient, server: Server, data: any) { 
+    async clearAll() {
+        await this.prisma.message.deleteMany();
+        await this.prisma.participant.deleteMany();
+        await this.prisma.chatRoom.deleteMany();
 
-        let cur_room: IChatRoom = this.chatRooms.find(room => room.id == data.room_id);
-        if (cur_room == null) {
-            console.log("Room " + data.room_id + " not found");
-        }
-
-        cur_room.users = [...cur_room.users, {clientId: client.id, login: client.login, is_admin: false, is_moderator: false}];
-
-        server.to(client.id).emit('joinedRoom', data);
+        console.log('cleared all chat data');
     }
-
-	//this.chatService.getChatRooms(user, this.server, payload);
-    async sendRooms(client: IWebsocketClient, server: Server, data: any) {
-        let roomsIds: number[] = this.chatRooms.map(room => room.id);
-        server.to(client.id).emit('onRoomsList', roomsIds);
-
-
-
-        //await Promise.all(this.chatRooms.map(room => room.id)).then(async (value) => {
-            //console.log("promise value : " + value);
-            //server.to(client.id).emit('onRoomsList', value);
-
-        //} );
-
-        //console.log(roomsIds);
-        //server.to(client.id).emit('onRoomsList', 'roomlist');
-    }
-
 
     // ____________ CHAT ROOM  _____________ 
 
