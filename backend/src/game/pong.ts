@@ -165,10 +165,11 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 				// collisionPoint is between -1 and 1
 				const collisionPoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
 				const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
-				ball.speed += 20;
+				ball.speed *= 1.05;
 				const direction = ball.velocityX > 0 ? -1 : 1;
 				ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
 				ball.velocityY = ball.speed * Math.sin(angleRad);
+				// console.log(`Paddle y: ${paddle.y}, ball y: ${ball.y}, collision point: ${collisionPoint}, angle: ${angleRad}, velocityX: ${ball.velocityX}, velocityY: ${ball.velocityY}`);
 
 				if (collision.normalX !== 0)
 				{
@@ -297,6 +298,7 @@ export default class ServerSidePong
 			velocityX: ball.velocityX / CANVAS_WIDTH,
 			velocityY: ball.velocityY / CANVAS_HEIGHT,
 			radius: ball.radius / CANVAS_WIDTH,
+			speed: ball.speed / CANVAS_WIDTH,
 		};
 
 		this.broadcastEvent('ballUpdate', normalizedBall);
@@ -310,6 +312,7 @@ export default class ServerSidePong
 			velocityX: ballReset.velocityX / CANVAS_WIDTH,
 			velocityY: ballReset.velocityY / CANVAS_HEIGHT,
 			radius: ballReset.radius / CANVAS_WIDTH,
+			speed: ballReset.speed / CANVAS_WIDTH,
 		};
 
 		this.broadcastEvent('ballReset', normalizedBall);
@@ -352,7 +355,7 @@ export default class ServerSidePong
 
 		if (this.ball.x + this.ball.radius > CANVAS_WIDTH)
 		{
-			console.log('Player 1 scored', this.ball.y, this.player1.paddle.y);
+			// console.log('Player 1 scored', this.ball.y, this.player1.paddle.y);
 			this.player1.score++;
 			this.sendScoreUpdate();
 			this.resetBall(); // reset ball before sending new ball otherwise it would only reset on the next update
@@ -360,7 +363,7 @@ export default class ServerSidePong
 		}
 		else if (this.ball.x - this.ball.radius < 0)
 		{
-			console.log('Player 2 scored', this.ball.y, this.player2.paddle.y);
+			// console.log('Player 2 scored', this.ball.y, this.player2.paddle.y);
 			this.player2.score++;
 			this.sendScoreUpdate();
 			this.resetBall();

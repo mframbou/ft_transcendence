@@ -50,6 +50,8 @@
 	//let lastUpdate = null;
 	let animationFrameId: number;
 	let lastUpdate: number;
+	let lastBallUpdate: number;
+	let collisionSinceLastBallUpdate: boolean;
 
 	let inGame = false;
 	let lastPaddleMove: number = 0;
@@ -58,7 +60,7 @@
 	{
 		inGame = true;
 
-		console.log(`Is player one: ${isPlayerOne}`);
+		// console.log(`Is player one: ${isPlayerOne}`);
 
 		// Only listen to movement of opposite player (not self user)
 		let moveEventName = 'player1Move';
@@ -67,10 +69,10 @@
 			moveEventName = 'player2Move';
 		}
 
-		console.log(`Listening event ${moveEventName}, ${isPlayerOne}`)
+		// console.log(`Listening event ${moveEventName}, ${isPlayerOne}`)
 		$pongSocketStore.on(moveEventName, (data) =>
 		{
-			console.log("OPONNENT PADDLE MOVE:", data);
+			// console.log("OPONNENT PADDLE MOVE:", data);
 			player2.paddle.position.server_y = data.y * canvas.height;
 
 			// if (player2.paddle.position.client_y < 0)
@@ -81,6 +83,7 @@
 
 		$pongSocketStore.on('ballReset', (data) =>
 		{
+			collisionSinceLastBallUpdate = false;
 			// console.log('BALL RESET:', data);
 
 			const denormalizedBall = {
@@ -93,9 +96,13 @@
 
 			ball.position.client_x = denormalizedBall.x;
 			ball.position.client_y = denormalizedBall.y;
+			ball.position.server_x = denormalizedBall.x;
+			ball.position.server_y = denormalizedBall.y;
 			ball.velocityX = denormalizedBall.velocityX * (isPlayerOne ? 1 : -1);
 			ball.velocityY = denormalizedBall.velocityY;
 			ball.speed = denormalizedBall.speed;
+
+			lastBallUpdate = performance.now();
 		});
 
 		$pongSocketStore.on('scoreUpdate', (data) =>
@@ -160,6 +167,7 @@
 
 		$pongSocketStore.on('ballUpdate', (data) =>
 		{
+			collisionSinceLastBallUpdate = false;
 			// console.log('BALL UPDATE:', data);
 
 			const denormalizedBall = {
@@ -167,21 +175,28 @@
 				y: data.y * canvas.height,
 				velocityX: data.velocityX * canvas.width,
 				velocityY: data.velocityY * canvas.height,
+				radius: data.radius * canvas.width,
+				speed: data.speed * canvas.width,
 			}
+
+			ball.radius = denormalizedBall.radius;
+			ball.speed = denormalizedBall.speed;
 
 			ball.position.server_x = denormalizedBall.x;
 			ball.position.server_y = denormalizedBall.y;
 
-			ball.position.client_x = denormalizedBall.x;
-			ball.position.client_y = denormalizedBall.y;
-
 			ball.velocityX = denormalizedBall.velocityX * (isPlayerOne ? 1 : -1);
 			ball.velocityY = denormalizedBall.velocityY;
 
+			// ball.position.client_x = ball.position.server_x;
+			// ball.position.client_y = ball.position.server_y;
+
 			if (!isPlayerOne)
 			{
-				ball.position.client_x = canvas.width - ball.position.client_x;
+				ball.position.server_x = canvas.width - ball.position.server_x;
 			}
+
+			lastBallUpdate = performance.now();
 		});
 
 		lastUpdate = performance.now();
@@ -378,7 +393,6 @@
 
 		const updateMultiplier = deltaTime / 1000; // === 1 at 1 fps, 0.5 at 2 fps etc.
 
-
 		let multiplier = 1;
 
 		if (pressedKeys.includes('Shift'))
@@ -402,35 +416,52 @@
 			movePaddle(player1.paddle.position.client_y + moveDistance);
 		}
 
-
-
-
 		ball.position.client_x += ball.velocityX * updateMultiplier;
 		ball.position.client_y += ball.velocityY * updateMultiplier;
 
-		player2.paddle.position.client_y = lerp(player2.paddle.position.client_y, player2.paddle.position.server_y, 0.1);
+		// lerp ball to server position if no collision (should already be almost equivalent client pos and server pos)
+		if (inGame && !collisionSinceLastBallUpdate)
+		{
+			const elapsedTimeSinceBallUpdate = now - lastBallUpdate;
+			const ballUpdateMultiplier = elapsedTimeSinceBallUpdate / 1000;
 
-		// ball.position.client_x += ball.velocityX;
-		// ball.position.client_y += ball.velocityY;
-		//
-		//
-		// if (ball.position.client_y + ball.radius > canvas.height || ball.position.client_y - ball.radius < 0)
-		// {
-		// 	ball.velocityY = -ball.velocityY;
-		// }
-		//
-		// let player = (ball.position.client_x < canvas.width / 2) ? player1 : player2;
-		// if (checkCollision(ball, player.paddle))
-		// {
-		// 	let collisionPoint = ball.position.client_y - (player.paddle.position.client_y + player.paddle.height / 2);
-		// 	collisionPoint = collisionPoint / (player.paddle.height / 2);
-		//
-		// 	let angleRad = (Math.PI / 4) * collisionPoint;
-		// 	let direction = (ball. position.client_x < canvas.width / 2) ? 1 : -1;
-		// 	ball.velocityX = direction * ball.speed * Math.cos(angleRad);
-		// 	ball.velocityY = ball.speed * Math.sin(angleRad);
-		// 	ball.speed += 0.2;
-		// }
+			// predict server ball position using lastBallupdate knowing velocity is how much ball moves every second
+			const ballPredictedPosition = {
+				x: ball.position.server_x + ball.velocityX * ballUpdateMultiplier,
+				y: ball.position.server_y + ball.velocityY * ballUpdateMultiplier,
+			};
+
+			// console.log(`ball pos: ${ball.position.client_x}, ${ball.position.client_y}, velocity ${ball.velocityY}, ${ball.velocityY} | ball predicted pos: ${ballPredictedPosition.x}, ${ballPredictedPosition.y} | ball server pos: ${ball.position.server_x}, ${ball.position.server_y}`);
+			const lerpFactor = 0.1;
+			// lerp ball position to predicted position
+			ball.position.client_x = lerp(ball.position.client_x, ballPredictedPosition.x, lerpFactor);
+			ball.position.client_y = lerp(ball.position.client_y, ballPredictedPosition.y, lerpFactor);
+		}
+
+		player2.paddle.position.client_y = lerp(player2.paddle.position.client_y, player2.paddle.position.server_y, 0.2);
+
+		if (ball.position.client_y + ball.radius > canvas.height || ball.position.client_y - ball.radius < 0)
+		{
+			collisionSinceLastBallUpdate = true;
+
+			ball.velocityY = -ball.velocityY;
+		}
+		const paddle = ball.velocityX < 0 ? player1.paddle : player2.paddle;
+
+		// when collision, dont lerp ball position with server position until a new ball update is received
+		if (checkCollision(ball, paddle))
+		{
+			collisionSinceLastBallUpdate = true;
+
+			const collisionPoint = (ball.position.client_y - (paddle.position.client_y + paddle.height / 2)) / (paddle.height / 2);
+			const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
+			ball.speed *= 1.05;
+			const direction = ball.velocityX > 0 ? -1 : 1;
+			ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
+			ball.velocityY = ball.speed * Math.sin(angleRad);
+
+			// console.log(`Paddle y: ${paddle.position.client_y}, ball y: ${ball.position.client_y}, collision point: ${collisionPoint}, angle: ${angleRad}, velocityX: ${ball.velocityX}, velocityY: ${ball.velocityY}`);
+		}
 	}
 
 
