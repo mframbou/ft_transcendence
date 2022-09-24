@@ -32,7 +32,7 @@ interface IPLayer
 
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
-const UPDATES_PER_SECOND = 144;
+const UPDATES_PER_SECOND = 10;
 
 // Basis for width / height, but in the end only the ratio matters
 const CANVAS_WIDTH = 600;
@@ -41,10 +41,8 @@ const CANVAS_HEIGHT = 400;
 // we consider the ball squared, then do this: https://www.gamedev.net/articles/programming/general-and-gameplay-programming/swept-aabb-collision-detection-and-response-r3084/
 // with deflection
 // 0.5 = collision in the middle of the frame, 0 = collision at the start, 1 = no collision
-function getBallNextPosCollision(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, deltaTimeMultiplier: number): { normalX: number, normalY: number, time: number }
+function getCollision(ball: IBall, collider: {x: number, y: number, width: number, height: number}, deltaTimeMultiplier: number): { normalX: number, normalY: number, time: number }
 {
-	const targetPaddle = ball.velocityX > 0 ? paddle2 : paddle1;
-
 	// make ball and targetBall x in the top left corner
 	const ballPos = {x: ball.x - ball.radius, y: ball.y - ball.radius}
 
@@ -55,24 +53,24 @@ function getBallNextPosCollision(ball: IBall, paddle1: IPaddle, paddle2: IPaddle
 
 	if (ball.velocityX > 0)
 	{
-		xInvEntry = targetPaddle.x - (ballPos.x + ball.radius * 2);
-		xInvExit = (targetPaddle.x + targetPaddle.width) - ballPos.x;
+		xInvEntry = collider.x - (ballPos.x + ball.radius * 2);
+		xInvExit = (collider.x + collider.width) - ballPos.x;
 	}
 	else
 	{
-		xInvEntry = (targetPaddle.x + targetPaddle.width) - ballPos.x;
-		xInvExit = targetPaddle.x - (ballPos.x + ball.radius * 2);
+		xInvEntry = (collider.x + collider.width) - ballPos.x;
+		xInvExit = collider.x - (ballPos.x + ball.radius * 2);
 	}
 
 	if (ball.velocityY > 0)
 	{
-		yInvEntry = targetPaddle.y - (ballPos.y + ball.radius * 2);
-		yInvExit = (targetPaddle.y + targetPaddle.height) - ballPos.y;
+		yInvEntry = collider.y - (ballPos.y + ball.radius * 2);
+		yInvExit = (collider.y + collider.height) - ballPos.y;
 	}
 	else
 	{
-		yInvEntry = (targetPaddle.y + targetPaddle.height) - ballPos.y;
-		yInvExit = targetPaddle.y - (ballPos.y + ball.radius * 2);
+		yInvEntry = (collider.y + collider.height) - ballPos.y;
+		yInvExit = collider.y - (ballPos.y + ball.radius * 2);
 	}
 
 	let xEntry: number;
@@ -95,10 +93,6 @@ function getBallNextPosCollision(ball: IBall, paddle1: IPaddle, paddle2: IPaddle
 	{
 		yEntry = -Infinity;
 		yExit = Infinity;
-
-		// check if ball is in front of paddle on y
-		if (ballPos.y + ball.radius * 2 < targetPaddle.y || ballPos.y > targetPaddle.y + targetPaddle.height)
-			xEntry = Infinity;
 	}
 	else
 	{
@@ -112,8 +106,6 @@ function getBallNextPosCollision(ball: IBall, paddle1: IPaddle, paddle2: IPaddle
 	// no collision
 	if (entryTime > exitTime || (xEntry < 0 && yEntry < 0) || xEntry > 1 || yEntry > 1)
 	{
-		// normalx = 0;
-		// normaly = 0;
 		return { normalX: 0, normalY: 0, time: 1 };
 	}
 
@@ -141,39 +133,134 @@ function getBallNextPosCollision(ball: IBall, paddle1: IPaddle, paddle2: IPaddle
 
 function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, deltaTimeMultiplier: number)
 {
-	const collision = getBallNextPosCollision(ball, paddle1, paddle2, deltaTimeMultiplier);
-	const collisionTime = collision.time;
+	const paddle = ball.velocityX < 0 ? paddle1 : paddle2;
+	let collision = getCollision(ball, paddle, deltaTimeMultiplier);
 
-	ball.x += ball.velocityX * collisionTime * deltaTimeMultiplier;
-	ball.y += ball.velocityY * collisionTime * deltaTimeMultiplier;
-
-	const remainingTime = 1 - collisionTime;
-
-	// deflect ball
-	if (collisionTime !== 1)
-	{
-		const paddle = ball.velocityX > 0 ? paddle2 : paddle1;
-		// collisionPoint is between -1 and 1
-		const collisionPoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
-		const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
-		ball.speed += 20;
-		const direction = ball.velocityX > 0 ? -1 : 1;
-		ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
-		ball.velocityY = ball.speed * Math.sin(angleRad);
-
-		if (collision.normalX !== 0)
+	// https://stackoverflow.com/questions/38765194/conditionally-initializing-a-constant-in-javascript
+	const collisionYObject = (() => {
+		if (ball.y + ball.radius + ball.velocityY * deltaTimeMultiplier * collision.time >= CANVAS_HEIGHT)
 		{
-			// ball.velocityX *= -1; // velocity already inversed above
-			ball.x += ball.velocityX * remainingTime * deltaTimeMultiplier;
+			return { x: 0, y: CANVAS_HEIGHT, width: CANVAS_WIDTH, height: 1 };
 		}
-
-		// will probably never happen
-		if (collision.normalY !== 0)
+		else
 		{
-			ball.velocityY *= -1;
-			ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
+			return { x: 0, y: -1, width: CANVAS_WIDTH, height: 1 };
+		}
+	})();
+	let collisionY = getCollision(ball, collisionYObject, deltaTimeMultiplier);
+
+	// Just in case multiple collisions happen on same frame (either very low frame rate server-side or very unlucky)
+	let i = 0;
+	// collision (y or x)
+	if (collision.time !== 1 || collisionY.time !== 1)
+	{
+		while (collision.time < 1 || collisionY.time < 1)
+		{
+			console.log(`Looping collision ${i++}, ${collision.time}, ${collisionY.time}`);
+			const minTime = Math.min(collision.time, collisionY.time);
+			const remainingTime = 1 - minTime;
+
+			ball.x += ball.velocityX * deltaTimeMultiplier * minTime;
+			ball.y += ball.velocityY * deltaTimeMultiplier * minTime;
+
+			if (collision.time < collisionY.time)
+			{
+				// collisionPoint is between -1 and 1
+				const collisionPoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
+				const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
+				ball.speed += 20;
+				const direction = ball.velocityX > 0 ? -1 : 1;
+				ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
+				ball.velocityY = ball.speed * Math.sin(angleRad);
+
+				if (collision.normalX !== 0)
+				{
+					// ball.velocityX *= -1; // velocity already inversed above
+					ball.x += ball.velocityX * remainingTime * deltaTimeMultiplier;
+				}
+
+				// will probably never happen
+				if (collision.normalY !== 0)
+				{
+					ball.velocityY *= -1;
+					ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
+				}
+			}
+			else
+			{
+				ball.velocityY = -ball.velocityY;
+				ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
+			}
+
+			collision = getCollision(ball, paddle, deltaTimeMultiplier);
+			collisionY = getCollision(ball, collisionYObject, deltaTimeMultiplier);
+			deltaTimeMultiplier *= remainingTime;
 		}
 	}
+	else
+	{
+		// no collision
+		ball.x += ball.velocityX * deltaTimeMultiplier;
+		ball.y += ball.velocityY * deltaTimeMultiplier;
+	}
+
+
+
+
+	// const collision = getCollision(ball, paddle, deltaTimeMultiplier);
+	// const collisionTime = collision.time;
+
+	// check if ball will hit floor or ceiling this frame
+	// if (ball.y + ball.radius + ball.velocityY * deltaTimeMultiplier * collisionTime >= CANVAS_HEIGHT || ball.y - ball.radius + ball.velocityY * deltaTimeMultiplier * collisionTime <= 0)
+	// {
+	// 	// check if floor or ceiling
+	// 	let collider = null;
+	// 	if (ball.y + ball.radius + ball.velocityY * deltaTimeMultiplier * collisionTime >= CANVAS_HEIGHT)
+	// 	{
+	// 		collider = { x: 0, y: CANVAS_HEIGHT, width: CANVAS_WIDTH, height: 1 };
+	// 	}
+	// 	else
+	// 	{
+	// 		collider = { x: 0, y: -1, width: CANVAS_WIDTH, height: 1 };
+	// 	}
+	//
+	// 	const collisionY = getCollision(ball, collider, deltaTimeMultiplier);
+	// 	const collisionTimeY = collisionY.time;
+	//
+	// 	console.log(`Collision this frame at ${collisionTimeY}, ball pos: ${ball.x}, ${ball.y}, velocity: ${ball.velocityX}, ${ball.velocityY}`);
+	// }
+
+	// ball.x += ball.velocityX * collisionTime * deltaTimeMultiplier;
+	// ball.y += ball.velocityY * collisionTime * deltaTimeMultiplier;
+	//
+	// const remainingTime = 1 - collisionTime;
+	//
+	// // deflect ball
+	// if (collisionTime !== 1)
+	// {
+	// 	const paddle = ball.velocityX > 0 ? paddle2 : paddle1;
+	// 	// collisionPoint is between -1 and 1
+	// 	const collisionPoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
+	// 	const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
+	// 	ball.speed += 20;
+	// 	const direction = ball.velocityX > 0 ? -1 : 1;
+	// 	ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
+	// 	ball.velocityY = ball.speed * Math.sin(angleRad);
+	//
+	// 	if (collision.normalX !== 0)
+	// 	{
+	// 		// ball.velocityX *= -1; // velocity already inversed above
+	// 		ball.x += ball.velocityX * remainingTime * deltaTimeMultiplier;
+	// 	}
+	//
+	// 	// will probably never happen
+	// 	if (collision.normalY !== 0)
+	// 	{
+	// 		ball.velocityY *= -1;
+	// 		ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
+	// 	}
+	// }
+
 }
 
 export default class ServerSidePong
@@ -235,7 +322,7 @@ export default class ServerSidePong
 			radius: 10,
 			speed: 500, // speed = units per second
 			velocityX: 500,
-			velocityY: 50,
+			velocityY: 0,
 			color: 'white',
 		};
 	}
@@ -265,7 +352,15 @@ export default class ServerSidePong
 
 	sendBallUpdate(ball: IBall)
 	{
-		this.broadcastEvent('ballUpdate', ball);
+		const normalizedBall = {
+			x: ball.x / CANVAS_WIDTH,
+			y: ball.y / CANVAS_HEIGHT,
+			velocityX: ball.velocityX / CANVAS_WIDTH,
+			velocityY: ball.velocityY / CANVAS_HEIGHT,
+			radius: ball.radius / CANVAS_WIDTH,
+		};
+
+		this.broadcastEvent('ballUpdate', normalizedBall);
 	}
 
 	sendBallReset(ballReset: IBall)
@@ -298,8 +393,9 @@ export default class ServerSidePong
 		if (this.paused)
 			return;
 
-		const deltaTime = (performance.now() - this.lastUpdate);
-		this.lastUpdate = performance.now();
+		const now = performance.now();
+		const deltaTime = now - this.lastUpdate;
+		this.lastUpdate = now;
 
 		// updateMultiplier = 1 at 1fps, 0.5 at 2fps and so on
 		const updateMultiplier = deltaTime / 1000;

@@ -5,10 +5,10 @@
 
 	interface position
 	{
-			client_x: number;
-	client_y: number;
-			server_x: number;
-			server_y: number;
+		client_x: number;
+		client_y: number;
+		server_x: number;
+		server_y: number;
 	}
 
 	interface IBall
@@ -49,6 +49,7 @@
 	let net:any;
 	//let lastUpdate = null;
 	let animationFrameId: number;
+	let lastUpdate: number;
 
 	let inGame = false;
 
@@ -68,23 +69,31 @@
 		$pongSocketStore.on(moveEventName, (data) =>
 		{
 			// console.log("OPONNENT PADDLE MOVE:", data);
-			player2.paddle.position.client_y = data.y;
+			player2.paddle.position.server_y = data.y;
 
-			if (player2.paddle.position.client_y < 0)
-				player2.paddle.position.client_y = 0;
-			else if (player2.paddle.position.client_y > canvas.height - player2.paddle.height)
-				player2.paddle.position.client_y = canvas.height - player2.paddle.height;
+			// if (player2.paddle.position.client_y < 0)
+			// 	player2.paddle.position.client_y = 0;
+			// else if (player2.paddle.position.client_y > canvas.height - player2.paddle.height)
+			// 	player2.paddle.position.client_y = canvas.height - player2.paddle.height;
 		});
 
 		$pongSocketStore.on('ballReset', (data) =>
 		{
 			console.log('BALL RESET:', data);
-			ball.position.client_x = data.x;
-			ball.position.client_y = data.y;
-			ball.velocityX = data.velocityX;
-			ball.velocityY = data.velocityY;
-			ball.speed = data.speed;
-			// resetBall();
+
+			const denormalizedBall = {
+				x: data.x * canvas.width,
+				y: data.y * canvas.height,
+				velocityX: data.velocityX * canvas.width,
+				velocityY: data.velocityY * canvas.height,
+				speed: data.speed * canvas.width,
+			}
+
+			ball.position.client_x = denormalizedBall.x;
+			ball.position.client_y = denormalizedBall.y;
+			ball.velocityX = denormalizedBall.velocityX * (isPlayerOne ? 1 : -1);
+			ball.velocityY = denormalizedBall.velocityY;
+			ball.speed = denormalizedBall.speed;
 		});
 
 		$pongSocketStore.on('scoreUpdate', (data) =>
@@ -116,21 +125,31 @@
 
 		$pongSocketStore.on('ballUpdate', (data) =>
 		{
-			ball.position.client_y = data.y;
+			// console.log('BALL UPDATE:', data);
 
-			if (isPlayerOne)
-			{
-				ball.position.client_x = data.x;
-			}
-			else
-			{
-				ball.position.client_x = canvas.width - data.x;
+			const denormalizedBall = {
+				x: data.x * canvas.width,
+				y: data.y * canvas.height,
+				velocityX: data.velocityX * canvas.width,
+				velocityY: data.velocityY * canvas.height,
 			}
 
-			// ball.position.server_x = data.x;
-			// ball.position.server_y = data.y;
+			ball.position.server_x = denormalizedBall.x;
+			ball.position.server_y = denormalizedBall.y;
 
+			ball.position.client_x = denormalizedBall.x;
+			ball.position.client_y = denormalizedBall.y;
+
+			ball.velocityX = denormalizedBall.velocityX * (isPlayerOne ? 1 : -1);
+			ball.velocityY = denormalizedBall.velocityY;
+
+			if (!isPlayerOne)
+			{
+				ball.position.client_x = canvas.width - ball.position.client_x;
+			}
 		});
+
+		lastUpdate = performance.now();
 	}
 
 	onMount(async () =>
@@ -145,11 +164,11 @@
 		player1 = {
 			paddle: {
 				position: {
-                    client_x: 0,
-                    client_y: canvas.height / 2 - paddle_height / 2,
-                    server_x: 0,
-                    server_y: canvas.height / 2 - paddle_height / 2
-                },
+						client_x: 0,
+						client_y: canvas.height / 2 - paddle_height / 2,
+						server_x: 0,
+						server_y: canvas.height / 2 - paddle_height / 2
+				},
 				width: paddle_width,
 				height: paddle_height,
 				color: 'blue',
@@ -159,12 +178,12 @@
 
 		player2 = {
 			paddle: {
-                position: {
-                    client_x: canvas.width - paddle_width,
-                    client_y: canvas.height / 2 - paddle_height / 2,
-                    server_x: canvas.width - paddle_width,
-                    server_y: canvas.height / 2 - paddle_height / 2
-                },
+				position: {
+						client_x: canvas.width - paddle_width,
+						client_y: canvas.height / 2 - paddle_height / 2,
+						server_x: canvas.width - paddle_width,
+						server_y: canvas.height / 2 - paddle_height / 2
+				},
 				width: paddle_width,
 				height: paddle_height,
 				color: 'red',
@@ -181,12 +200,12 @@
 		};
 
 		ball = {
-            position: {
-                client_x: canvas.width / 2,
-                client_y: canvas.height / 2,
-                server_x: canvas.width / 2,
-                server_y: canvas.height / 2
-            },
+			position: {
+					client_x: canvas.width / 2,
+					client_y: canvas.height / 2,
+					server_x: canvas.width / 2,
+					server_y: canvas.height / 2
+			},
 			radius: 10,
 			speed: 5,
 			velocityX: 5,
@@ -301,6 +320,11 @@
 		pressedKeys = pressedKeys.filter((key: string) => key !== event.key);
 	}
 
+	function lerp(start: number, end: number, t: number)
+	{// 60 * (0.99) + 100 * (0.01) =
+		return start * (1 - t) + end * t;
+	}
+
 	function update()
 	{
 		let multiplier = 1;
@@ -322,6 +346,19 @@
 			$pongSocketStore.emit('onPaddleMove', {y: player1.paddle.position.client_y + 10});
 			movePaddle(player1.paddle.position.client_y + (2 * multiplier));
 		}
+
+
+		const now = performance.now();
+		const deltaTime = now - lastUpdate;
+		lastUpdate = now;
+
+		const updateMultiplier = deltaTime / 1000; // === 1 at 1 fps, 0.5 at 2 fps etc.
+
+		ball.position.client_x += ball.velocityX * updateMultiplier;
+		ball.position.client_y += ball.velocityY * updateMultiplier;
+
+		player2.paddle.position.client_y = lerp(player2.paddle.position.client_y, player2.paddle.position.server_y, 0.1);
+
 		// ball.position.client_x += ball.velocityX;
 		// ball.position.client_y += ball.velocityY;
 		//
@@ -345,38 +382,6 @@
 		// }
 	}
 
-	function pointDistToSegment(point: {x: number, y: number}, p1: {x: number, y: number}, p2: {x: number, y: number})
-	{
-		let A = point.x - p1.x;
-		let B = point.y - p1.y;
-		let C = p2.x - p1.x;
-		let D = p2.y - p1.y;
-
-		let dot = A * C + B * D;
-		let len_sq = C * C + D * D;
-		let param = -1;
-		if (len_sq != 0) //in case of 0 length line
-			param = dot / len_sq;
-
-		let xx, yy;
-
-		if (param < 0) {
-			xx = p1.x;
-			yy = p1.y;
-		}
-		else if (param > 1) {
-			xx = p2.x;
-			yy = p2.y;
-		}
-		else {
-			xx = p1.x + param * C;
-			yy = p1.y + param * D;
-		}
-
-		let dx = point.x - xx;
-		let dy = point.y - yy;
-		return Math.sqrt(dx * dx + dy * dy);
-	}
 
 	// https://stackoverflow.com/questions/43615547/collision-detection-for-2d-capsule-or-swept-sphere
 	function checkCollision(ball: IBall, paddle: IPaddle)
@@ -418,7 +423,7 @@
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 
 <div class="pong-wrapper">
-	<canvas on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
+	<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
 </div>
 
 <style lang="scss">
