@@ -26,6 +26,7 @@ export class ChatService {
         let cur_room = await this.prisma.chatRoom.create({
             data: {
                 name: name,
+                is_private: is_private,
                 participants: {
                     create: [{
                         is_admin: true,

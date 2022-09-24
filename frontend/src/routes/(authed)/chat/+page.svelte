@@ -23,22 +23,12 @@
 
 
     onMount(async () => {
-        
+        getRooms();
     });
 
     async function addRoom() {
-
-        // send addRoom request
-        let ret = await fetch('/api/chat/addRoom', { 
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({name: 'default', is_private: false})//, password: 'default'})
-        });
-
-        console.log(ret ? 'room added' : 'room not added');
         getRooms();
+        goto('/chat/config');
     }
 
     async function getRooms() {

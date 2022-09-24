@@ -13,7 +13,7 @@
         <img class="profilePicture" src={participant.user.profilePicture}/>
     {/each}
     <p>
-        name: {room.name}
+        name: &nbsp {room.name}
     </p>
     <p>
         public: &nbsp {room.is_private ? '❌' : ' ✓'}
