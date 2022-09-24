@@ -47,13 +47,13 @@ export class ChatService {
 
 
         // to create message: 
-        //await this.prisma.message.create({
-            //data: {
-                //content: "msg1",
-                //senderId: user.id,
-                //chatId: cur_room.id
-            //},
-        //});
+        await this.prisma.message.create({
+            data: {
+                content: "msg1",
+                senderId: user.id,
+                chatId: cur_room.id
+            },
+        });
         //await this.prisma.message.create({
             //data: {
                 //content: "msg2",

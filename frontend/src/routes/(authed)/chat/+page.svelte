@@ -5,18 +5,20 @@
     import { chatSocketStore } from '$lib/stores';
     import { goto, prefetchRoutes } from '$app/navigation';
 
-	export let data;
-	console.log(data.chatRooms);
+    import ChatBanner from '$lib/chat/ChatBanner.svelte';
 
-    let chatRooms: any[] = [];
+    // store loaded content
+	export let data;
+
+    let chatRooms: any[] = data.chatRooms;
 
     chatSocketStore.subscribe(() => {});
     let config: boolean = false;
 
 
-    //onMount(async () => {
-        //getRooms(); // fetch chat rooms when we open the page
-    //});
+    onMount(async () => {
+        
+    });
 
     async function addRoom() {
 
@@ -30,22 +32,27 @@
         });
 
         console.log(ret ? 'room added' : 'room not added');
+        getRooms();
     }
 
     async function getRooms() {
         let rooms;
-        rooms = await fetch('/api/chat/rooms').then(res => res.json())
+        chatRooms = await fetch('/api/chat/rooms').then(res => res.json())
 
-        console.log("rooms : " + JSON.stringify(rooms));
+        console.log("rooms : " + JSON.stringify(chatRooms));
 
+        //for (let i = 0; i < rooms.length; i++) {
+            //console.log("rooms " + i + " " + rooms[i].participants[0].user.login);
+        //}
     }
 
     // return participents in a room based on room id
     async function getParticipants(roomId: number){
     }
 
-    function clearAll() {
-        fetch('/api/chat/clearAll');
+    async function clearAll() {
+        await fetch('/api/chat/clearAll');
+        getRooms();
     }
 
     // SOCKET
@@ -65,17 +72,17 @@
 </script>
 
 <div class="vflex">
-    <Button on:click={addRoom}>add room</Button>
-    <Button on:click={getRooms}>list room</Button>
-    <!-- <Button on:click={getParticipants}>list all participants</Button> -->
-    <Button on:click={clearAll}>clear</Button>
-</div>
-
-{#each chatRooms as room}
-    <div>
-        <Button on:click={() => {joinRoom(room)}}>room {room}</Button>
+    <div class="config">
+        <Button on:click={addRoom}>add room</Button>
+        <Button on:click={getRooms}>list room</Button>
+        <!-- <Button on:click={getParticipants}>list all participants</Button> -->
+        <Button on:click={clearAll}>clear</Button>
     </div>
-{/each}
+
+        {#each chatRooms as room}
+            <ChatBanner room={room} />
+        {/each}
+</div>
 
 
 <style>
@@ -86,5 +93,13 @@
         /* space between buttons */
         gap: 1rem; 
 
+    }
+
+    .config {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        /* space between buttons */
+        gap: 1rem; 
     }
 </style>
