@@ -16,7 +16,7 @@ export class GameService {
 		if (this.matchmakingPlayers.find(player => player.clientId === client.id))
 			return;
 
-		const player: IGamePlayer = {clientId: client.id, login: client.login, ready: false, score: 0, connected: true};
+		const player: IGamePlayer = {clientId: client.id, login: client.login, ready: false, connected: true};
 		this.matchmakingPlayers.push(player);
 		console.log(`Starting matchmaking for ${client.login}-${client.id} (total matchmaking users: ${this.matchmakingPlayers.length})`);
 
@@ -57,14 +57,12 @@ export class GameService {
 
 		if (room.player1.ready && room.player2.ready)
 		{
-			server.to(room.player1.clientId).emit('onStartGame', {isPlayerOne: true});
-			server.to(room.player2.clientId).emit('onStartGame', {isPlayerOne: false});
+			// server.to(room.player1.clientId).emit('onStartGame', {isPlayerOne: true});
+			// server.to(room.player2.clientId).emit('onStartGame', {isPlayerOne: false});
 			// server.to([room.player1.clientId, room.player2.clientId]).emit('onStartGame', room);
-			room.player1.score = 0;
-			room.player2.score = 0;
-			server.to([room.player1.clientId, room.player2.clientId]).emit('onScoreChange', {player1Score: 0, player2Score: 0});
-			this.resetBall(room, server);
-			this.resetPaddles(room, server);
+			// server.to([room.player1.clientId, room.player2.clientId]).emit('onScoreChange', {player1Score: 0, player2Score: 0});
+			// this.resetBall(room, server);
+			// this.resetPaddles(room, server);
 			console.log(`Game between ${room.player1.login} and ${room.player2.login} started`);
 			room.gameInstance = new ServerSidePong(room, server, this);
 			room.gameInstance.start();
@@ -91,13 +89,18 @@ export class GameService {
 		this.matchmakingPlayers = this.matchmakingPlayers.filter(player => player.clientId !== clientId);
 
 		const gameRoom = this.gameRooms.find(room => room.player1.clientId === clientId || room.player2.clientId === clientId);
+
+
 		if (gameRoom)
 		{
+			gameRoom.gameInstance.pause();
+			this.gameRooms = this.gameRooms.filter(room => room.id !== gameRoom.id);
+
 			const player = gameRoom.player1.clientId === clientId ? gameRoom.player1 : gameRoom.player2;
-			player.connected = false;
-			player.clientId = null;
-			if (gameRoom.gameInstance)
-				gameRoom.gameInstance.pause();
+			// player.connected = false;
+			// player.clientId = null;
+			// if (gameRoom.gameInstance)
+			// 	gameRoom.gameInstance.pause();
 			console.log(`Player ${player.login} disconnected from game room ${gameRoom.id}`);
 		}
 	}
@@ -122,17 +125,17 @@ export class GameService {
 	}
 
 
-	resetPaddles(room: IGameRoom, server: Server)
-	{
-		server.to([room.player1.clientId, room.player2.clientId]).emit('onResetPaddles');
-	}
-
-	resetBall(room: IGameRoom, server: Server)
-	{
-		const ball = {velocityX: Math.random() < 0.5 ? -5 : 5, velocityY: Math.random() * 5};
-
-		server.to([room.player1.clientId, room.player2.clientId]).emit('onBallReset', ball);
-	}
+	// resetPaddles(room: IGameRoom, server: Server)
+	// {
+	// 	server.to([room.player1.clientId, room.player2.clientId]).emit('onResetPaddles');
+	// }
+	//
+	// resetBall(room: IGameRoom, server: Server)
+	// {
+	// 	const ball = {velocityX: Math.random() < 0.5 ? -5 : 5, velocityY: Math.random() * 5};
+	//
+	// 	server.to([room.player1.clientId, room.player2.clientId]).emit('onBallReset', ball);
+	// }
 
 	getClientGameRoom(client: IWebsocketClient): IGameRoom
 	{

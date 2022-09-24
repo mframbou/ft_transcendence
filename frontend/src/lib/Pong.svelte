@@ -66,10 +66,11 @@
 			moveEventName = 'player2Move';
 		}
 
+		console.log(`Listening event ${moveEventName}, ${isPlayerOne}`)
 		$pongSocketStore.on(moveEventName, (data) =>
 		{
-			// console.log("OPONNENT PADDLE MOVE:", data);
-			player2.paddle.position.server_y = data.y;
+			console.log("OPONNENT PADDLE MOVE:", data);
+			player2.paddle.position.server_y = data.y * canvas.height;
 
 			// if (player2.paddle.position.client_y < 0)
 			// 	player2.paddle.position.client_y = 0;
@@ -79,7 +80,7 @@
 
 		$pongSocketStore.on('ballReset', (data) =>
 		{
-			console.log('BALL RESET:', data);
+			// console.log('BALL RESET:', data);
 
 			const denormalizedBall = {
 				x: data.x * canvas.width,
@@ -98,7 +99,7 @@
 
 		$pongSocketStore.on('scoreUpdate', (data) =>
 		{
-			console.log('SCORE CHANGE:', data);
+			// console.log('SCORE CHANGE:', data);
 
 			if (isPlayerOne)
 			{
@@ -113,14 +114,47 @@
 			drawScore();
 		});
 
-		$pongSocketStore.on('onResetPaddles', (data) =>
-		{
-			player1.paddle.position.client_x = 0;
-			player1.paddle.position.client_y = canvas.height / 2 - player1.paddle.height / 2;
+		// $pongSocketStore.on('onResetPaddles', (data) =>
+		// {
+		// 	player1.paddle.position.client_x = 0;
+		// 	player1.paddle.position.client_y = canvas.height / 2 - player1.paddle.height / 2;
+		//
+		// 	player2.paddle.position.client_x = canvas.width - player2.paddle.width;
+		// 	player2.paddle.position.client_y = canvas.height / 2 - player2.paddle.height / 2;
+		// 	console.log(`Reset paddle, pos: ${player1.paddle.position.client_y}, ${player2.paddle.position.client_y}`);
+		// });
 
-			player2.paddle.position.client_x = canvas.width - player2.paddle.width;
-			player2.paddle.position.client_y = canvas.height / 2 - player2.paddle.height / 2;
-			console.log(`Reset paddle, pos: ${player1.paddle.position.client_y}, ${player2.paddle.position.client_y}`);
+		$pongSocketStore.on('resetPaddles', (data) =>
+		{
+			const denormalizedPaddle1 = {
+				x: data.paddle1.x * canvas.width,
+				y: data.paddle1.y * canvas.height,
+				height: data.paddle1.height * canvas.height,
+				width: data.paddle1.width * canvas.width,
+			};
+
+			const denormalizedPaddle2 = {
+				x: data.paddle2.x * canvas.width,
+				y: data.paddle2.y * canvas.height,
+				height: data.paddle2.height * canvas.height,
+				width: data.paddle2.width * canvas.width,
+			};
+
+			console.log(`Player 2 paddle: ${JSON.stringify(denormalizedPaddle2)}`);
+
+			player1.paddle.position.client_x = denormalizedPaddle1.x;
+			player1.paddle.position.client_y = denormalizedPaddle1.y;
+			player1.paddle.position.server_x = denormalizedPaddle1.x;
+			player1.paddle.position.server_y = denormalizedPaddle1.y;
+			player1.paddle.height = denormalizedPaddle1.height;
+			player1.paddle.width = denormalizedPaddle1.width;
+
+			player2.paddle.position.client_x = denormalizedPaddle2.x;
+			player2.paddle.position.client_y = denormalizedPaddle2.y;
+			player2.paddle.position.server_x = denormalizedPaddle2.x;
+			player2.paddle.position.server_y = denormalizedPaddle2.y;
+			player2.paddle.height = denormalizedPaddle2.height;
+			player2.paddle.width = denormalizedPaddle2.width;
 		});
 
 		$pongSocketStore.on('ballUpdate', (data) =>
@@ -156,7 +190,7 @@
 	{
 		context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-		$pongSocketStore.on('onStartGame', (data) => {
+		$pongSocketStore.on('gameStart', (data) => {
 			console.log("STARTING GAME:", data);
 			startGame(data.isPlayerOne);
 		});
@@ -291,9 +325,14 @@
 		let rect = canvas.getBoundingClientRect();
 
 		// y = center of paddle
-		$pongSocketStore.emit('onPaddleMove', {y: event.clientY - rect.top - paddle_height / 2});
+		emitPaddleMove(event.clientY - rect.top - (player1.paddle.height / 2));
+		movePaddle(event.clientY - rect.top - player1.paddle.height / 2);
+	}
 
-		movePaddle(event.clientY - rect.top - paddle_height / 2);
+	function emitPaddleMove(y: number)
+	{
+		// ratio
+		$pongSocketStore.emit('onPaddleMove', {y: y / canvas.height});
 	}
 
 	function movePaddle(y: number)
@@ -310,13 +349,13 @@
 
 	function handleKeyDown(event: KeyboardEvent)
 	{
-		console.log('start keyboard', event.key);
+		// console.log('start keyboard', event.key);
 		pressedKeys.push(event.key);
 	}
 
 	function handleKeyUp(event: KeyboardEvent)
 	{
-		console.log('stop keyboard', event.key);
+		// console.log('stop keyboard', event.key);
 		pressedKeys = pressedKeys.filter((key: string) => key !== event.key);
 	}
 
@@ -327,6 +366,13 @@
 
 	function update()
 	{
+		const now = performance.now();
+		const deltaTime = now - lastUpdate;
+		lastUpdate = now;
+
+		const updateMultiplier = deltaTime / 1000; // === 1 at 1 fps, 0.5 at 2 fps etc.
+
+
 		let multiplier = 1;
 
 		if (pressedKeys.includes('Shift'))
@@ -335,24 +381,23 @@
 		if (pressedKeys.includes('Control'))
 			multiplier = 0.5;
 
+		// means 3 times the paddle height every second (at normal speeed)
+		const moveDistance = player1.paddle.height * 3 * multiplier * updateMultiplier;
+
 		if (pressedKeys.includes('ArrowUp'))
 		{
-			$pongSocketStore.emit('onPaddleMove', {y: player1.paddle.position.client_y - 10});
-			movePaddle(player1.paddle.position.client_y - (2 * multiplier));
+			emitPaddleMove(player1.paddle.position.client_y - moveDistance);
+			movePaddle(player1.paddle.position.client_y - moveDistance);
 		}
 
 		if (pressedKeys.includes('ArrowDown'))
 		{
-			$pongSocketStore.emit('onPaddleMove', {y: player1.paddle.position.client_y + 10});
-			movePaddle(player1.paddle.position.client_y + (2 * multiplier));
+			emitPaddleMove(player1.paddle.position.client_y + moveDistance);
+			movePaddle(player1.paddle.position.client_y + moveDistance);
 		}
 
 
-		const now = performance.now();
-		const deltaTime = now - lastUpdate;
-		lastUpdate = now;
 
-		const updateMultiplier = deltaTime / 1000; // === 1 at 1 fps, 0.5 at 2 fps etc.
 
 		ball.position.client_x += ball.velocityX * updateMultiplier;
 		ball.position.client_y += ball.velocityY * updateMultiplier;

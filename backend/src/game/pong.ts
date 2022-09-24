@@ -150,13 +150,11 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 	let collisionY = getCollision(ball, collisionYObject, deltaTimeMultiplier);
 
 	// Just in case multiple collisions happen on same frame (either very low frame rate server-side or very unlucky)
-	let i = 0;
 	// collision (y or x)
 	if (collision.time !== 1 || collisionY.time !== 1)
 	{
 		while (collision.time < 1 || collisionY.time < 1)
 		{
-			console.log(`Looping collision ${i++}, ${collision.time}, ${collisionY.time}`);
 			const minTime = Math.min(collision.time, collisionY.time);
 			const remainingTime = 1 - minTime;
 
@@ -365,7 +363,15 @@ export default class ServerSidePong
 
 	sendBallReset(ballReset: IBall)
 	{
-		this.broadcastEvent('ballReset', ballReset);
+		const normalizedBall = {
+			x: ballReset.x / CANVAS_WIDTH,
+			y: ballReset.y / CANVAS_HEIGHT,
+			velocityX: ballReset.velocityX / CANVAS_WIDTH,
+			velocityY: ballReset.velocityY / CANVAS_HEIGHT,
+			radius: ballReset.radius / CANVAS_WIDTH,
+		};
+
+		this.broadcastEvent('ballReset', normalizedBall);
 	}
 
 	sendScoreUpdate()
@@ -376,14 +382,9 @@ export default class ServerSidePong
 	// send move to everyone except the player who made the move
 	sendPaddleMove(movedPlayer: IPLayer)
 	{
-		if (movedPlayer === this.player1)
-		{
-			this.broadcastEvent('player1Move', {y: this.player1.paddle.y });
-		}
-		else if (movedPlayer === this.player2)
-		{
-			this.broadcastEvent('player2Move', {y: this.player2.paddle.y });
-		}
+		console.log(`Moved player pos: ${movedPlayer.paddle.y}`)
+		let eventName = movedPlayer === this.player1 ? 'player1Move' : 'player2Move';
+		this.broadcastEvent(eventName, { y: movedPlayer.paddle.y / CANVAS_HEIGHT });
 
 		// this.broadcastToRoom('OnPaddleMove', movedPlayer.paddle.y, movedPlayer);
 	}
@@ -448,6 +449,15 @@ export default class ServerSidePong
 		this.lastUpdate = performance.now();
 		this.paused = false;
 		// to pass this to the setInterval function
+
+		this.broadcastEvent('gameStart', { isPlayerOne: true }, false, this.player2);
+		this.broadcastEvent('gameStart', { isPlayerOne: false }, false, this.player1);
+		this.sendScoreUpdate(); // to reset score just in case
+		this.resetBall();
+		this.sendBallReset(this.ball);
+		this.resetPaddles();
+		this.sendPaddleReset(this.player1.paddle, this.player2.paddle)
+
 		this.intervalId = setInterval(this.update.bind(this), 1000 / UPDATES_PER_SECOND);
 	}
 
@@ -462,8 +472,31 @@ export default class ServerSidePong
 
 	handlePlayerPaddleMove(player: IPLayer, payload: IGameMovePayload)
 	{
-		this.movePaddle(player, payload.y);
+		this.movePaddle(player, payload.y * CANVAS_HEIGHT);
+	}
+
+	private resetPaddles()
+	{
+		this.player1.paddle.y = CANVAS_HEIGHT / 2 - this.player1.paddle.height / 2;
+		this.player2.paddle.y = CANVAS_HEIGHT / 2 - this.player2.paddle.height / 2;
+	}
+
+	private sendPaddleReset(paddle: IPaddle, paddle2: IPaddle)
+	{
+		const normalizedPaddle = {
+			x: paddle.x / CANVAS_WIDTH,
+			y: paddle.y / CANVAS_HEIGHT,
+			height: paddle.height / CANVAS_HEIGHT,
+			width: paddle.width / CANVAS_WIDTH,
+		};
+
+		const normalizedPaddle2 = {
+			x: paddle2.x / CANVAS_WIDTH,
+			y: paddle2.y / CANVAS_HEIGHT,
+			height: paddle.height / CANVAS_HEIGHT,
+			width: paddle.width / CANVAS_WIDTH,
+		};
+
+		this.broadcastEvent('resetPaddles', { paddle1: normalizedPaddle, paddle2: normalizedPaddle2 });
 	}
 };
-
-

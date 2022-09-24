@@ -1,15 +1,8 @@
 
 <script lang="ts">
 
-	import { user } from '../../../../lib/stores';
-    import { chatSocketStore } from '../../../../lib/stores';
-
-    let my_user: any;
-    user.subscribe((value) => {
-        my_user = value;
-    });
-    console.log(my_user);
-
+    import { user } from '$lib/stores';
+    import { chatSocketStore } from '$lib/stores';
 
     let msgs: any[] = [];
 
@@ -23,10 +16,11 @@
 <section class="chat_container">
 
         <!-- <h1>Chat</h1> -->
+    {#if $user}
     <div class="chat">
         {#each msgs as msg, i}
             <div class="msg">
-                {#if msg.user === my_user.login}
+                {#if msg.user === $user.login}
                   <div class='hflex' style="justify-content: flex-end;">
                         <p>{msg.msg} {msg.user}</p>
                 </div> 
@@ -38,8 +32,8 @@
             </div>
         {/each}
     </div>
-    <input type="text" id="name" name="name" required
-       minlength="4" maxlength="8" size="10">
+    <input type="text" id="name" name="name" required autocomplete="off" minlength="4" maxlength="8" size="10">
+    {/if}
 </section>
 
 <style lang="scss">

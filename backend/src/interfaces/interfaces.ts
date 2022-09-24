@@ -74,7 +74,6 @@ export interface IGamePlayer
 	connected: boolean;
 	login: string;
 	ready: boolean;
-	score: number;
 }
 
 export interface ISpectator
