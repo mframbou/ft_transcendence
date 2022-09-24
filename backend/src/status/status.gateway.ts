@@ -7,6 +7,7 @@ import { EUserStatus, IJwtPayload, IWebsocketClient } from '../interfaces/interf
 import { WebsocketsService } from '../websockets/websockets.service';
 import { StatusService } from './status.service';
 import { Server } from 'socket.io';
+import { WsFirstConnectDto } from '../interfaces/dtos';
 
 
 const NAMESPACE = 'status';
@@ -31,15 +32,14 @@ export class StatusGateway implements OnGatewayDisconnect
 
 
 	@SubscribeMessage('first_connect')
-	async handleFirstConnect(client: any, payload: any)
+	async handleFirstConnect(client: any, payload: WsFirstConnectDto)
 	{
-		if (!payload)
+		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
+		if (!jwtPayload)
 		{
 			client.disconnect();
 			return;
 		}
-
-		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload);
 
 		await this.statusService.setStatus(jwtPayload.login, EUserStatus.ONLINE, this.server);
 		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
@@ -52,6 +52,6 @@ export class StatusGateway implements OnGatewayDisconnect
 			return;
 
 		await this.statusService.setStatus(clientToRemove.login, EUserStatus.OFFLINE);
-		this.websocketsService.removeClient(client.id);
+		this.websocketsService.removeClient(clientToRemove.id);
 	}
 }

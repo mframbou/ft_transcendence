@@ -9,12 +9,12 @@ import { pongSocketStore } from '$lib/stores';
 function setReady()
 {
     console.log("CLIENT READY");
-		$pongSocketStore.emit('onStartMatchmaking', '');
+		$pongSocketStore.emit('startMatchmaking', '');
 }
 
-$pongSocketStore.on('onMatchFound', (data) => {
+$pongSocketStore.on('matchFound', (data) => {
 		console.log("MATCH FOUND, SENDING CONFIRMATION:", data);
-		$pongSocketStore.emit('onConfirmMatch', '');
+		$pongSocketStore.emit('confirmMatch', '');
 });
 
 

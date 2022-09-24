@@ -1,12 +1,12 @@
 import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
-import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
-import { IGameMovePayload, IGamePlayer, IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
+import { IJwtPayload, IWebsocketClient, IWsClient } from '../interfaces/interfaces';
 import { AuthService } from '../auth/auth.service';
-import { getCookie } from '../utils/utils';
 import { WebsocketsService } from '../websockets/websockets.service';
 import { Server } from 'socket.io';
 import { GameService } from './game.service';
+import { WsFirstConnectDto, WsPaddleMoveDto } from '../interfaces/dtos';
+import { UseGuards } from '@nestjs/common';
+import { WsAuthGuard } from '../auth/ws-auth.guard';
 
 
 const NAMESPACE = 'pong';
@@ -28,82 +28,48 @@ export class GameGateway implements OnGatewayDisconnect
   server: Server;
 
   @SubscribeMessage('first_connect')
-  async handleFirstConnect(client: any, payload: any)
+  async handleFirstConnect(client: any, payload: WsFirstConnectDto)
   {
-    if (!payload)
+    const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
+    if (!jwtPayload)
     {
       client.disconnect();
       return;
     }
 
-    const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload);
-
     this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
   }
 
-  async handleDisconnect(client: any)
+  // cannot use guard here because guards disconnect and if disconnect this function is called so it's a problem
+  async handleDisconnect(client: IWsClient)
   {
-    const clientToRemove: IWebsocketClient = this.websocketsService.getClient(client.id);
-    if (!clientToRemove)
-      return;
-
-    this.websocketsService.removeClient(clientToRemove.id);
-    this.gameService.handleDisconnect(clientToRemove.id);
+    this.websocketsService.removeClient(client.id);
+    this.gameService.handleDisconnect(client.id);
   }
 
-  // @SubscribeMessage('join')
-  // async handleMessage(client: any, payload: any)
-  // {
-  //   const user = this.websocketsService.getClient(client.id);
-  //
-  //   if (!user)
-  //     return;
-  //
-  //   console.log(`${NAMESPACE}-Gateway: ${user.login}: ${payload}`);
-  // }
-
-  gameUsers: any[] = [];
-  waitingForConfirmUsers: any[] = [];
-  playingUsers: any[] = [];
-
-  matchmakingUsers: any[] = [];
-  gameRooms: any[] = [];
-
-
-  @SubscribeMessage('onStartMatchmaking')
-  async handleOnGameReady(client: any, payload: any)
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('startMatchmaking')
+  async handleOnGameReady(client: IWsClient, payload: any)
   {
-    const user = this.websocketsService.getClient(client.id);
-
-    if (!user)
-      return;
+    const user = client.transcendenceUser;
 
     this.gameService.startMatchmaking(user, this.server);
   }
 
-  @SubscribeMessage('onConfirmMatch')
-  async handleOnConfirmMatch(client: any, payload: any)
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('confirmMatch')
+  async handleOnConfirmMatch(client: IWsClient, payload: any)
   {
-    const user = this.websocketsService.getClient(client.id);
-
-    if (!user)
-      return;
+    const user = client.transcendenceUser;
 
     this.gameService.confirmMatch(user, this.server);
   }
 
-  @SubscribeMessage('onPaddleMove')
-  async handleOnPaddleMove(client: any, payload: any)
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('paddleMove')
+  async handleOnPaddleMove(client: any, payload: WsPaddleMoveDto)
   {
-    const user = this.websocketsService.getClient(client.id);
-
-    if (!user)
-      return;
-
-    if (!payload || !payload.y)
-      return;
-
-    payload = <IGameMovePayload> payload;
+    const user = client.transcendenceUser;
 
     this.gameService.handlePlayerPaddleMove(user, payload, this.server);
   }

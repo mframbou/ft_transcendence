@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { IWebsocketClient } from '../interfaces/interfaces';
+import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
+import { WsFirstConnectDto } from '../interfaces/dtos';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class WebsocketsService {
 
 	private clients: IWebsocketClient[] = [];
 
-	constructor() {}
+	constructor(
+			private authService: AuthService,
+	) {}
 
 	addClient(clientData: IWebsocketClient)
 	{
@@ -40,6 +44,22 @@ export class WebsocketsService {
 	getClient(clientId: string): IWebsocketClient
 	{
 		return this.clients.find(client => client.id === clientId);
+	}
+
+	async validateFirstConnect(payload: WsFirstConnectDto, namespace: string): Promise<IJwtPayload | null>
+	{
+		let jwtPayload: IJwtPayload = null;
+		try
+		{
+			jwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
+		}
+		catch (e)
+		{
+			console.log(`Error while handling first connect in ${namespace}: ${e}`);
+			return null;
+		}
+
+		return jwtPayload;
 	}
 
 }

@@ -1,4 +1,12 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator';
+import {
+	IsBoolean,
+	IsNotEmpty,
+	IsNumber,
+	IsOptional,
+	IsString,
+	MaxLength, Min, Max,
+	MinLength,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class AddFriendDto
@@ -33,4 +41,21 @@ export class AddRoomDto
 	@IsOptional()
 	@IsString()
 	password: string;
+}
+
+export class WsFirstConnectDto
+{
+	@IsString()
+	@IsNotEmpty()
+	cookie: string;
+}
+
+export class WsPaddleMoveDto
+{
+	// number y between 0 and 1
+	@IsNumber()
+	@IsNotEmpty()
+	@Min(0)
+	@Max(1)
+	y: number;
 }

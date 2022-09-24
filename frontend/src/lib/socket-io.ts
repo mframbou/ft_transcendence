@@ -22,17 +22,17 @@ const pongSocket = ioClient(BASE_ENDPOINT + '/pong', {
 
 statusSocket.on('connect', () => 
 {
-	statusSocket.emit('first_connect', getCookie('cockies'));
+	statusSocket.emit('first_connect', {cookie: getCookie('cockies')});
 });
 
 chatSocket.on('connect', () => 
 {
-	chatSocket.emit('first_connect', getCookie('cockies'));
+	chatSocket.emit('first_connect', {cookie: getCookie('cockies')});
 });
 
 pongSocket.on('connect', () => 
 {
-    pongSocket.emit('first_connect', getCookie('cockies'));
+    pongSocket.emit('first_connect', {cookie: getCookie('cockies')});
 });
 
 

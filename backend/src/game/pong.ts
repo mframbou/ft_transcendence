@@ -1,8 +1,7 @@
-import { IGameMovePayload, IGamePlayer, IGameRoom } from '../interfaces/interfaces';
+import { IGamePlayer, IGameRoom } from '../interfaces/interfaces';
 import { Server } from 'socket.io';
 import { GameService } from './game.service';
-import { Inject } from '@nestjs/common';
-import { retry } from 'rxjs';
+import { WsPaddleMoveDto } from '../interfaces/dtos';
 
 interface IBall
 {
@@ -201,64 +200,6 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 		ball.x += ball.velocityX * deltaTimeMultiplier;
 		ball.y += ball.velocityY * deltaTimeMultiplier;
 	}
-
-
-
-
-	// const collision = getCollision(ball, paddle, deltaTimeMultiplier);
-	// const collisionTime = collision.time;
-
-	// check if ball will hit floor or ceiling this frame
-	// if (ball.y + ball.radius + ball.velocityY * deltaTimeMultiplier * collisionTime >= CANVAS_HEIGHT || ball.y - ball.radius + ball.velocityY * deltaTimeMultiplier * collisionTime <= 0)
-	// {
-	// 	// check if floor or ceiling
-	// 	let collider = null;
-	// 	if (ball.y + ball.radius + ball.velocityY * deltaTimeMultiplier * collisionTime >= CANVAS_HEIGHT)
-	// 	{
-	// 		collider = { x: 0, y: CANVAS_HEIGHT, width: CANVAS_WIDTH, height: 1 };
-	// 	}
-	// 	else
-	// 	{
-	// 		collider = { x: 0, y: -1, width: CANVAS_WIDTH, height: 1 };
-	// 	}
-	//
-	// 	const collisionY = getCollision(ball, collider, deltaTimeMultiplier);
-	// 	const collisionTimeY = collisionY.time;
-	//
-	// 	console.log(`Collision this frame at ${collisionTimeY}, ball pos: ${ball.x}, ${ball.y}, velocity: ${ball.velocityX}, ${ball.velocityY}`);
-	// }
-
-	// ball.x += ball.velocityX * collisionTime * deltaTimeMultiplier;
-	// ball.y += ball.velocityY * collisionTime * deltaTimeMultiplier;
-	//
-	// const remainingTime = 1 - collisionTime;
-	//
-	// // deflect ball
-	// if (collisionTime !== 1)
-	// {
-	// 	const paddle = ball.velocityX > 0 ? paddle2 : paddle1;
-	// 	// collisionPoint is between -1 and 1
-	// 	const collisionPoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
-	// 	const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
-	// 	ball.speed += 20;
-	// 	const direction = ball.velocityX > 0 ? -1 : 1;
-	// 	ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
-	// 	ball.velocityY = ball.speed * Math.sin(angleRad);
-	//
-	// 	if (collision.normalX !== 0)
-	// 	{
-	// 		// ball.velocityX *= -1; // velocity already inversed above
-	// 		ball.x += ball.velocityX * remainingTime * deltaTimeMultiplier;
-	// 	}
-	//
-	// 	// will probably never happen
-	// 	if (collision.normalY !== 0)
-	// 	{
-	// 		ball.velocityY *= -1;
-	// 		ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
-	// 	}
-	// }
-
 }
 
 export default class ServerSidePong
@@ -382,7 +323,7 @@ export default class ServerSidePong
 	// send move to everyone except the player who made the move
 	sendPaddleMove(movedPlayer: IPLayer)
 	{
-		console.log(`Moved player pos: ${movedPlayer.paddle.y}`)
+		// console.log(`Moved player pos: ${movedPlayer.paddle.y}`)
 		let eventName = movedPlayer === this.player1 ? 'player1Move' : 'player2Move';
 		this.broadcastEvent(eventName, { y: movedPlayer.paddle.y / CANVAS_HEIGHT });
 
@@ -470,7 +411,7 @@ export default class ServerSidePong
 			player.paddle.y = CANVAS_HEIGHT - player.paddle.height;
 	}
 
-	handlePlayerPaddleMove(player: IPLayer, payload: IGameMovePayload)
+	handlePlayerPaddleMove(player: IPLayer, payload: WsPaddleMoveDto)
 	{
 		this.movePaddle(player, payload.y * CANVAS_HEIGHT);
 	}

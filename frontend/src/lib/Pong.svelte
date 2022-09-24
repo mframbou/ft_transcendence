@@ -52,6 +52,7 @@
 	let lastUpdate: number;
 
 	let inGame = false;
+	let lastPaddleMove: number = 0;
 
 	function startGame(isPlayerOne: boolean)
 	{
@@ -331,8 +332,13 @@
 
 	function emitPaddleMove(y: number)
 	{
-		// ratio
-		$pongSocketStore.emit('onPaddleMove', {y: y / canvas.height});
+		// only emit once every 10ms at most
+		if (performance.now() - lastPaddleMove > 10)
+		{
+			// ratio
+			$pongSocketStore.emit('paddleMove', {y: y / canvas.height});
+			lastPaddleMove = performance.now();
+		}
 	}
 
 	function movePaddle(y: number)

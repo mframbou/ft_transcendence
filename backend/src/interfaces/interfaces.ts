@@ -2,6 +2,7 @@ import { Request } from 'express';
 import { Status } from '@prisma/client';
 import ServerSidePong from '../game/pong';
 import { User, Friends } from '@prisma/client';
+import { Socket } from 'socket.io';
 
 export interface ISession
 {
@@ -107,14 +108,14 @@ export interface IChatRoom
 	password?: string;
 }
 
-export interface IGameMovePayload
-{
-	y: number;
-}
-
 export enum EUserStatus
 {
 	ONLINE = 'ONLINE',
 	OFFLINE = 'OFFLINE',
 	IN_GAME = 'IN_GAME',
+}
+
+export interface IWsClient extends Socket
+{
+	transcendenceUser: IWebsocketClient;
 }

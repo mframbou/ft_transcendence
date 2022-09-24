@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { IGameMovePayload, IGamePlayer, IGameRoom, IWebsocketClient } from '../interfaces/interfaces';
+import { IGamePlayer, IGameRoom, IWebsocketClient } from '../interfaces/interfaces';
 import { Server } from 'socket.io';
 import  ServerSidePong  from './pong';
+import { WsPaddleMoveDto } from '../interfaces/dtos';
 
 @Injectable()
 export class GameService {
@@ -30,7 +31,7 @@ export class GameService {
 			const room: IGameRoom = {id: `${player1.clientId}-${player2.clientId}`, player1: player1, player2: player2};
 			this.gameRooms.push(room);
 
-			server.to([player1.clientId, player2.clientId]).emit('onMatchFound', room);
+			server.to([player1.clientId, player2.clientId]).emit('matchFound', room);
 			console.log(`Creating game between ${player1.login} and ${player2.login} (total game rooms: ${this.gameRooms.length})`);
 		}
 	}
@@ -90,7 +91,6 @@ export class GameService {
 
 		const gameRoom = this.gameRooms.find(room => room.player1.clientId === clientId || room.player2.clientId === clientId);
 
-
 		if (gameRoom)
 		{
 			gameRoom.gameInstance.pause();
@@ -105,7 +105,7 @@ export class GameService {
 		}
 	}
 
-	handlePlayerPaddleMove(client: IWebsocketClient, payload: IGameMovePayload, server: Server)
+	handlePlayerPaddleMove(client: IWebsocketClient, payload: WsPaddleMoveDto, server: Server)
 	{
 		const room = this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
 

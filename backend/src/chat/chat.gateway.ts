@@ -1,12 +1,14 @@
 import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
-import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
+import { IJwtPayload, IWebsocketClient, IWsClient } from '../interfaces/interfaces';
 import { AuthService } from '../auth/auth.service';
 import { getCookie } from '../utils/utils';
 import { WebsocketsService } from '../websockets/websockets.service';
 import { Server } from 'socket.io';
 import { ChatService } from './chat.service';
+import { WsFirstConnectDto } from '../interfaces/dtos';
+import { WsAuthGuard } from '../auth/ws-auth.guard';
 
 
 const NAMESPACE = 'chat';
@@ -28,32 +30,28 @@ export class ChatGateway implements OnGatewayDisconnect
 	server: Server;
 
 	@SubscribeMessage('first_connect')
-	async handleFirstConnect(client: any, payload: any)
+	async handleFirstConnect(client: any, payload: WsFirstConnectDto)
 	{
-		if (!payload)
+		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
+		if (!jwtPayload)
 		{
 			client.disconnect();
 			return;
 		}
-
-		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload);
 
 		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
 	}
 
 	async handleDisconnect(client: any)
 	{
-		const clientToRemove: IWebsocketClient = this.websocketsService.getClient(client.id);
-		if (!clientToRemove)
-			return;
-
 		this.websocketsService.removeClient(client.id);
 	}
 
+	@UseGuards(WsAuthGuard)
 	@SubscribeMessage('message')
-	async handleMessage(client: any, payload: any)
+	async handleMessage(client: IWsClient, payload: any)
 	{
-		const user = this.websocketsService.getClient(client.id);
+		const user = client.transcendenceUser;
 		console.log(`${NAMESPACE}-Gateway: ${user.login}: ${payload}`);
 	}
 }
