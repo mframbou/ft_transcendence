@@ -26,6 +26,7 @@ export class ChatService {
         let cur_room = await this.prisma.chatRoom.create({
             data: {
                 name: name,
+                is_private: is_private,
                 participants: {
                     create: [{
                         is_admin: true,
@@ -47,13 +48,13 @@ export class ChatService {
 
 
         // to create message: 
-        //await this.prisma.message.create({
-            //data: {
-                //content: "msg1",
-                //senderId: user.id,
-                //chatId: cur_room.id
-            //},
-        //});
+        await this.prisma.message.create({
+            data: {
+                content: "msg1",
+                senderId: user.id,
+                chatId: cur_room.id
+            },
+        });
         //await this.prisma.message.create({
             //data: {
                 //content: "msg2",

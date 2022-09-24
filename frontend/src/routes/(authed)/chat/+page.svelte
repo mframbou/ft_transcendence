@@ -1,51 +1,60 @@
 
 <script lang="ts">
-    import Button from '$lib/Button.svelte';
 	import { onMount } from 'svelte';
     import { chatSocketStore } from '$lib/stores';
     import { goto, prefetchRoutes } from '$app/navigation';
 
+    import Button from '$lib/Button.svelte';
+    import ChatBanner from '$lib/chat/ChatBanner.svelte';
+    import ParticlesBackground from '$lib/ParticlesBackground.svelte';
+
+
+    // store loaded content
 	export let data;
-	console.log(data.chatRooms);
 
-    let chatRooms: any[] = [];
-
+    // chatSocket
     chatSocketStore.subscribe(() => {});
-    let config: boolean = false;
+
+    let chatRooms: any[] = data.chatRooms;
+    let headSize = 30;
 
 
-    //onMount(async () => {
-        //getRooms(); // fetch chat rooms when we open the page
-    //});
+
+
+
+    onMount(async () => {
+        getRooms();
+    });
 
     async function addRoom() {
-
-        // send addRoom request
-        let ret = await fetch('/api/chat/addRoom', { 
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({name: 'default', is_private: false})//, password: 'default'})
-        });
-
-        console.log(ret ? 'room added' : 'room not added');
+        getRooms();
+        goto('/chat/config');
     }
 
     async function getRooms() {
         let rooms;
-        rooms = await fetch('/api/chat/rooms').then(res => res.json())
+        chatRooms = await fetch('/api/chat/rooms').then(res => res.json())
 
-        console.log("rooms : " + JSON.stringify(rooms));
+        console.log("rooms : " + JSON.stringify(chatRooms));
 
+        //for (let i = 0; i < rooms.length; i++) {
+            //console.log("rooms " + i + " " + rooms[i].participants[0].user.login);
+        //}
     }
 
     // return participents in a room based on room id
     async function getParticipants(roomId: number){
     }
 
-    function clearAll() {
-        fetch('/api/chat/clearAll');
+    async function clearAll() {
+        await fetch('/api/chat/clearAll');
+        getRooms();
+    }
+
+    let unique = {}
+    async function feature() {
+        headSize = 1000;
+        unique = {}
     }
 
     // SOCKET
@@ -64,18 +73,27 @@
 
 </script>
 
-<div class="vflex">
-    <Button on:click={addRoom}>add room</Button>
-    <Button on:click={getRooms}>list room</Button>
-    <!-- <Button on:click={getParticipants}>list all participants</Button> -->
-    <Button on:click={clearAll}>clear</Button>
-</div>
 
-{#each chatRooms as room}
-    <div>
-        <Button on:click={() => {joinRoom(room)}}>room {room}</Button>
+{#key unique}
+<div class='background'>
+    <ParticlesBackground properties={{minVelocity: 0.4, maxVelocity: .8, lineColor: '#0097e3', initialCount: 50, maxPointSize: headSize}} />
+</div>
+{/key}
+
+<div class="vflex">
+    <!-- config panel -->
+    <div class="config">
+        <Button on:click={addRoom}>add room</Button>
+        <Button on:click={getRooms}>list room</Button>
+        <Button on:click={clearAll}>clear</Button>
+        <Button on:click={feature}>useful feature</Button>
     </div>
-{/each}
+
+    <!-- chatRooms list -->
+    {#each chatRooms as room}
+        <ChatBanner room={room} />
+    {/each}
+</div>
 
 
 <style>
@@ -87,4 +105,25 @@
         gap: 1rem; 
 
     }
+
+    .config {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        /* space between buttons */
+        gap: 1rem; 
+    }
+
+	.background
+	{
+		opacity: 0.6;
+
+        color: #0097e3;
+		transform: translateZ(-1px);
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 100%;
+	}
 </style>
