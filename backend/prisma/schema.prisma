@@ -66,7 +66,7 @@ model Participant {
 
 model ChatRoom {
 	id			Int		@default(autoincrement()) @id
-	name 		String
+	name 		String	@unique
 	is_private	Boolean @default(false)
 	hash		String?
 

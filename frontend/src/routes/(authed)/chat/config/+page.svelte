@@ -6,18 +6,23 @@
     let name: string = '';
     let is_private: boolean = false;
 
-    function addRoom() {
+    async function addRoom() {
         // addRoom request return a true/false
-        fetch('/api/chat/addRoom', {
+        const res = await fetch('/api/chat/addRoom', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({name: name, is_private: is_private})
-        }).then(res => res.json()).then(data => {
-            console.log("addRoom " + (data ? "success" : "fail"));
-        });
-        goto('/chat/');
+        }).then(res => res.json());
+        console.log("addroom res : " + JSON.stringify(res));
+        if (!res) {
+            console.log("error");
+        } else {
+            goto('/chat/' + name);
+        }
+
+        //goto('/chat/' + name);
     } 
 
     $: console.log("is_private: " + is_private);
