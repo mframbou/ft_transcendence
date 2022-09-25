@@ -29,14 +29,16 @@ interface IPLayer
 	score: number;
 }
 
-const PADDLE_WIDTH = 10;
-const PADDLE_HEIGHT = 100;
+
 const BALL_UPDATES_PER_SECOND = 15;
 const PADDLE_UPDATES_PER_SECOND = 30;
 
 // Basis for width / height, but in the end only the ratio matters
 const CANVAS_WIDTH = 600;
 const CANVAS_HEIGHT = 400;
+
+const PADDLE_WIDTH = 10;
+const PADDLE_HEIGHT = 100;
 
 // we consider the ball squared, then do this: https://www.gamedev.net/articles/programming/general-and-gameplay-programming/swept-aabb-collision-detection-and-response-r3084/
 // with deflection

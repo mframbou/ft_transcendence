@@ -9,7 +9,7 @@ const host = browser ? window.location.hostname : 'backend';
 const BASE_ENDPOINT = `http://${host}:3002`;
 
 const statusSocket = ioClient(BASE_ENDPOINT + '/status', {
-	autoConnect: false,
+	autoConnect: true,
 });
 
 const chatSocket = ioClient(BASE_ENDPOINT + '/chat', {

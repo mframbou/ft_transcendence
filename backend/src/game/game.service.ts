@@ -94,7 +94,8 @@ export class GameService {
 	handleSpectatorDisconnect(clientId: string)
 	{
 		this.gameRooms.forEach(room => {
-			room.spectators = room.spectators.filter(spectator => spectator.clientId !== clientId);
+			if (room.spectators)
+				room.spectators = room.spectators.filter(spectator => spectator.clientId !== clientId);
 		});
 	}
 
@@ -151,7 +152,7 @@ export class GameService {
 		const spectator: IGameSpectator = {clientId: user.id, login: user.login};
 
 		room.spectators.push(spectator);
-		console.log(`Added spectator ${user.login} to game room ${room.id} (${room.player1.login} vs ${room.player2.login})`);
+		console.log(`Added spectator ${user.login} to game room ${room.id} (${room.player1.login} vs ${room.player2.login}), spectators: ${JSON.stringify(room.spectators)}`);
 	}
 
 	async getGameRooms(): Promise<IPublicGameRoom[]>
