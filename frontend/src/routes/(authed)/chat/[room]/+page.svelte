@@ -4,6 +4,9 @@
     import { user } from '$lib/stores';
     import { chatSocketStore } from '$lib/stores';
 
+    // store loaded content
+    export let data;
+
     let msgs: any[] = [];
 
     for (let i = 0; i < 12; i++) {
