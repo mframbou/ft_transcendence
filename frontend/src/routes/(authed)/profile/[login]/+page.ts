@@ -5,7 +5,7 @@ async function loadUser(login: string, fetch: any)
 	try
 	{
 		const res = await fetch(`/api/users/${login}`);
-
+		
 		if (!res.ok)
 		{
 			throw error(res.status, res.statusText);

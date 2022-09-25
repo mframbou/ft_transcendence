@@ -1,4 +1,4 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { ConsoleLogger, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersController } from 'src/users/users.controller';
 import { IChatUser, IChatRoom, IWebsocketClient } from '../interfaces/interfaces';
 import { Server } from 'socket.io';
@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { connect, sensitiveHeaders } from 'http2';
 import errorDispatcher from 'src/utils/error-dispatcher';
+import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 
 @Injectable()
 export class ChatService {
@@ -67,59 +68,29 @@ export class ChatService {
         catch (e) {
             return false;
         }
-
-
-        // to create message: 
-        //await this.prisma.message.create({
-            //data: {
-                //content: "msg1",
-                //senderId: user.id,
-                //chatId: cur_room.id
-            //},
-        //});
-        //await this.prisma.message.create({
-            //data: {
-                //content: "msg2",
-                //senderId: user.id,
-                //chatId: cur_room.id
-            //},
-        //});
-
-        //this.prisma.participant.update({
-            //where: {
-                //id: user.id,
-            //},
-            //data: {}
-        //})
-
-        //this.prisma.chatRoom.update({
-            //where: {
-                //id: cur_room.id,
-            //},
-            //data: {}
-        //});
-
     }
 
-    async getRooms(name?: string) {
+    async findRooms(name?: string) {
 
         if (name) {
-            return await this.prisma.chatRoom.findUnique({
-                where: {
-                    name: name
-                },
-                include: {
-                    participants: {
-                        include: {
-                            user: true
-                        }
+                return await this.prisma.chatRoom.findUnique({
+                    where: {
+                        name: name
                     },
-                    messages: true,
-                }
-            });
+                    include: {
+                        participants: {
+                            include: {
+                                user: true
+                            }
+                        },
+                        messages: true,
+                    }
+                });
         }
 
-        const chatRooms = await this.prisma.chatRoom.findMany({
+
+        // if name is not provided, returns all rooms
+        return await this.prisma.chatRoom.findMany({
             include: {
                 participants: {
                     include: {
@@ -129,8 +100,6 @@ export class ChatService {
                 messages: false,
             }
         });
-
-        return chatRooms;
     }
 
     async clearAll() {

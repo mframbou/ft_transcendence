@@ -6,31 +6,25 @@ import { get } from 'svelte/store'
 
 async function loadData(fetch: any, room: string)
 {
-	try
-	{
-        let out: any = {room:"", participant:""};
+    let out: any = {room:"", participant:""};
 
-        out.room = await fetch(`/api/chat/rooms?name=${encodeURIComponent(room)}`).then(res => res.json());
-        if (!out.room) {
-            throw error(404, 'Room not found');
-        }
+    out.room = await fetch(`/api/chat/rooms?name=${encodeURIComponent(room)}`).then((res) => {
+        if (res.ok)
+            return res.json();
+        throw error(404, 'Room not found');
+    });
 
-        let current_user = await fetch(`/api/users/me`).then(res => res.json());
-        if (!current_user) {
-            throw error(404, 'User not found');
-        }
+    let current_user = await fetch(`/api/users/me`).then(res => res.json());
+    if (!current_user) {
+        throw error(404, 'User not found');
+    }
 
-        out.participant = out.room.participants.find((p: any) => p.userId == current_user.id);
-        if (!out.participant) {
-            throw error(404, 'Looks like you are not a participant of this room');
-        }
+    out.participant = out.room.participants.find((p: any) => p.userId == current_user.id);
+    if (!out.participant) {
+        throw error(404, 'Looks like you are not a participant of this room');
+    }
 
-        return out;
-	}
-	catch(e)
-	{
-		throw error(404, 'rooms not found');
-	}
+    return out;
 }
 
 

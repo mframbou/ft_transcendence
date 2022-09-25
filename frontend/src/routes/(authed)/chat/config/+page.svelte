@@ -1,13 +1,14 @@
 
 <script lang="ts">
     import { goto } from "$app/navigation";
-
+    import Modal from "$lib/Modal.svelte";
 
     let name: string = '';
     let is_private: boolean = false;
 
     async function addRoom() {
         // addRoom request return a true/false
+
         const res = await fetch('/api/chat/addRoom', {
             method: 'POST',
             headers: {
@@ -15,14 +16,14 @@
             },
             body: JSON.stringify({name: name, is_private: is_private})
         }).then(res => res.json());
+
         console.log("addroom res : " + JSON.stringify(res));
+
         if (!res) {
-            console.log("error");
+            // TODO : error modal
         } else {
             goto('/chat/' + name);
         }
-
-        //goto('/chat/' + name);
     } 
 
     $: console.log("is_private: " + is_private);
@@ -30,13 +31,17 @@
 
 <div class='wrapper'>
     <h1>ugly ChatRoom configuration</h1>
+
     <div class='hflex'>  name <input type="text" bind:value={name}> </div>
+
     <div class='hflex'>  password <input type="text"> </div>
-<label>
-    <div class='hflex'> <input class="check" type=checkbox bind:checked={is_private}> private</div>
-</label>
+
+    <label>
+        <div class='hflex'> <input class="check" type=checkbox bind:checked={is_private}> private</div>
+    </label>
 
     <button on:click={addRoom}>create</button>
+
 </div>
 
 <!-- good css to be done -->
