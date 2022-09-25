@@ -4,7 +4,7 @@ import { AuthService } from '../auth/auth.service';
 import { WebsocketsService } from '../websockets/websockets.service';
 import { Server } from 'socket.io';
 import { GameService } from './game.service';
-import { WsFirstConnectDto, WsPaddleMoveDto } from '../interfaces/dtos';
+import { WsFirstConnectDto, WsPaddleMoveDto, WsSpectateDto } from '../interfaces/dtos';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/ws-auth.guard';
 
@@ -44,7 +44,8 @@ export class GameGateway implements OnGatewayDisconnect
   async handleDisconnect(client: IWsClient)
   {
     this.websocketsService.removeClient(client.id);
-    this.gameService.handleDisconnect(client.id);
+    this.gameService.handlePlayerDisconnect(client.id);
+    this.gameService.handleSpectatorDisconnect(client.id);
   }
 
   @UseGuards(WsAuthGuard)
@@ -71,7 +72,16 @@ export class GameGateway implements OnGatewayDisconnect
   {
     const user = client.transcendenceUser;
 
-    this.gameService.handlePlayerPaddleMove(user, payload, this.server);
+    this.gameService.handlePlayerPaddleMove(user, payload);
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('startSpectate')
+  async startSpectatingMatch(client: IWsClient, payload: WsSpectateDto)
+  {
+    const user = client.transcendenceUser;
+
+    this.gameService.addSpectator(payload.roomId, user);
   }
 
 }

@@ -1,13 +1,23 @@
-import { Injectable } from '@nestjs/common';
-import { IGamePlayer, IGameRoom, IWebsocketClient } from '../interfaces/interfaces';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	IGamePlayer,
+	IGameRoom,
+	IGameSpectator,
+	IPublicGameRoom,
+	IPublicUser,
+	IWebsocketClient
+} from '../interfaces/interfaces';
 import { Server } from 'socket.io';
 import  ServerSidePong  from './pong';
 import { WsPaddleMoveDto } from '../interfaces/dtos';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class GameService {
 
-	constructor() {}
+	constructor(
+			private usersService: UsersService,
+	) {}
 
 	matchmakingPlayers: IGamePlayer[] = [];
 	gameRooms: IGameRoom[] = [];
@@ -38,19 +48,16 @@ export class GameService {
 
 	confirmMatch(client: IWebsocketClient, server: Server)
 	{
-		const room = this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
+		const room = this.getClientGameRoom(client);
 
 		if (!room)
 			return;
 
-		let player = null;
-
+		let player;
 		if (room.player1.clientId === client.id)
 			player = room.player1;
-		else if (room.player2.clientId === client.id)
-			player = room.player2;
 		else
-			return;
+			player = room.player2;
 
 		player.ready = true;
 
@@ -58,34 +65,13 @@ export class GameService {
 
 		if (room.player1.ready && room.player2.ready)
 		{
-			// server.to(room.player1.clientId).emit('onStartGame', {isPlayerOne: true});
-			// server.to(room.player2.clientId).emit('onStartGame', {isPlayerOne: false});
-			// server.to([room.player1.clientId, room.player2.clientId]).emit('onStartGame', room);
-			// server.to([room.player1.clientId, room.player2.clientId]).emit('onScoreChange', {player1Score: 0, player2Score: 0});
-			// this.resetBall(room, server);
-			// this.resetPaddles(room, server);
 			console.log(`Game between ${room.player1.login} and ${room.player2.login} started`);
 			room.gameInstance = new ServerSidePong(room, server, this);
 			room.gameInstance.start();
 		}
 	}
 
-	removeGameRoomPlayer(gameRoom: IGameRoom, id: string)
-	{
-		if (gameRoom.player1.clientId === id)
-			gameRoom.player1 = null;
-		else if (gameRoom.player2.clientId === id)
-			gameRoom.player2 = null;
-
-		if (!gameRoom.player1 || !gameRoom.player2)
-		{
-			gameRoom.gameInstance.pause();
-			this.gameRooms = this.gameRooms.filter(room => room.id !== gameRoom.id);
-			console.log(`Game room ${gameRoom.id} removed because user left (total game rooms: ${this.gameRooms.length})`);
-		}
-	}
-
-	handleDisconnect(clientId: string)
+	handlePlayerDisconnect(clientId: string)
 	{
 		this.matchmakingPlayers = this.matchmakingPlayers.filter(player => player.clientId !== clientId);
 
@@ -105,37 +91,29 @@ export class GameService {
 		}
 	}
 
-	handlePlayerPaddleMove(client: IWebsocketClient, payload: WsPaddleMoveDto, server: Server)
+	handleSpectatorDisconnect(clientId: string)
 	{
-		const room = this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
+		this.gameRooms.forEach(room => {
+			room.spectators = room.spectators.filter(spectator => spectator.clientId !== clientId);
+		});
+	}
+
+	handlePlayerPaddleMove(client: IWebsocketClient, payload: WsPaddleMoveDto)
+	{
+		const room = this.getClientGameRoom(client);
 
 		if (!room || !room.gameInstance)
 			return;
 
-		let player = null;
+		let player;
 
 		if (room.player1.clientId === client.id)
 			player = room.gameInstance.player1;
-		else if (room.player2.clientId === client.id)
-			player = room.gameInstance.player2;
 		else
-			return;
+			player = room.gameInstance.player2;
 
 		room.gameInstance.handlePlayerPaddleMove(player, payload);
 	}
-
-
-	// resetPaddles(room: IGameRoom, server: Server)
-	// {
-	// 	server.to([room.player1.clientId, room.player2.clientId]).emit('onResetPaddles');
-	// }
-	//
-	// resetBall(room: IGameRoom, server: Server)
-	// {
-	// 	const ball = {velocityX: Math.random() < 0.5 ? -5 : 5, velocityY: Math.random() * 5};
-	//
-	// 	server.to([room.player1.clientId, room.player2.clientId]).emit('onBallReset', ball);
-	// }
 
 	getClientGameRoom(client: IWebsocketClient): IGameRoom
 	{
@@ -160,4 +138,59 @@ export class GameService {
 		}
 	}
 
+	addSpectator(roomId: string, user: IWebsocketClient)
+	{
+		const room = this.gameRooms.find(room => room.id === roomId);
+
+		if (!room)
+			return;
+
+		if (!room.spectators)
+			room.spectators = [];
+
+		const spectator: IGameSpectator = {clientId: user.id, login: user.login};
+
+		room.spectators.push(spectator);
+		console.log(`Added spectator ${user.login} to game room ${room.id} (${room.player1.login} vs ${room.player2.login})`);
+	}
+
+	async getGameRooms(): Promise<IPublicGameRoom[]>
+	{
+		const publicRooms = await Promise.all(this.gameRooms.map(async room => {
+			const player1: IPublicUser = await this.usersService.getPublicUser(room.player1.login);
+			const player2: IPublicUser = await this.usersService.getPublicUser(room.player2.login);
+
+			if (!player1 || !player2)
+				return null;
+
+			return {
+				id: room.id,
+				player1: player1,
+				player2: player2,
+			};
+		}));
+
+		// just in case some players are not really here (database reset or something like that)
+		return publicRooms.filter(room => room !== null);
+	}
+
+	async getGameRoom(roomId: string): Promise<IPublicGameRoom>
+	{
+		const room = this.gameRooms.find(room => room.id === roomId);
+
+		if (!room)
+			throw new NotFoundException('Game room not found');
+
+		const player1: IPublicUser = await this.usersService.getPublicUser(room.player1.login);
+		const player2: IPublicUser = await this.usersService.getPublicUser(room.player2.login);
+
+		if (!player1 || !player2)
+			throw new NotFoundException('Game room players not found');
+
+		return {
+			id: room.id,
+			player1: player1,
+			player2: player2,
+		};
+	}
 }

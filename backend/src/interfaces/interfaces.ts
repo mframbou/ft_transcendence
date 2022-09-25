@@ -77,7 +77,7 @@ export interface IGamePlayer
 	ready: boolean;
 }
 
-export interface ISpectator
+export interface IGameSpectator
 {
 	clientId: string;
 	login: string;
@@ -89,7 +89,14 @@ export interface IGameRoom
 	player1: IGamePlayer;
 	player2: IGamePlayer;
 	gameInstance?: ServerSidePong;
-	spectators?: ISpectator[];
+	spectators?: IGameSpectator[];
+}
+
+export interface IPublicGameRoom
+{
+	id: string;
+	player1: IPublicUser;
+	player2: IPublicUser;
 }
 
 export interface IChatUser {

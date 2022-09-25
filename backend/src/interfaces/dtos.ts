@@ -59,3 +59,10 @@ export class WsPaddleMoveDto
 	@Max(1)
 	y: number;
 }
+
+export class WsSpectateDto
+{
+	@IsString()
+	@IsNotEmpty()
+	roomId: string;
+}
