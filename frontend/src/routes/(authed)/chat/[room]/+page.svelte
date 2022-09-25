@@ -8,12 +8,16 @@
     export let data;
     console.log("data : " + JSON.stringify(data));
 
-    let msgs: any[] = [];
+    let msgs: any[] = data.room.messages; 
 
-    for (let i = 0; i < 12; i++) {
-        msgs.push({user:(Math.random() + 1).toString(36).substring(7), msg:(Math.random() + 1).toString(36).substring(7)});
-    }
-    msgs.push({user:'dsamain', msg:(Math.random() + 1).toString(36).substring(7)});
+    //let msgs: any = [];
+
+
+    //for (let i = 0; i < 12; i++) {
+        //msgs.push({user:(Math.random() + 1).toString(36).substring(7), msg:(Math.random() + 1).toString(36).substring(7)});
+    //}
+    //msgs.push({senderId:$user , content:(Math.random() + 1).toString(36).substring(7)});
+    console.log("data : " + JSON.stringify(data));
 
 </script>
 
@@ -24,15 +28,15 @@
     <div class="chat">
         {#each msgs as msg, i}
             <div class="msg">
-                {#if msg.user === $user.login}
+                <!-- {#if msg.user === $user.login}
                   <div class='hflex' style="justify-content: flex-end;">
-                        <p>{msg.msg} {msg.user}</p>
+                        <p>{msg.content} {msg.user}</p>
                 </div> 
-                {:else}
+                {:else} -->
                     <div class='hflex' style="justify-content: flex-start; ">
-                    <p>{msg.user} {msg.msg} </p>
+                    <p>{msg.content} </p>
                     </div>
-                {/if}
+                <!-- {/if} -->
             </div>
         {/each}
     </div>

@@ -42,9 +42,23 @@ export class ChatService {
                             user: true
                         }
                     },
-                    messages: true,
+                    messages: {
+                        include: {
+                            sender: true,
+                        }
+                    },
                 }
             });
+
+            // to be removed ( message testing )
+            await this.prisma.message.create({
+                data: {
+                    chatId: cur_room.id,
+                    content: "test message in chat.sercice addRoom",
+                    senderId: cur_room.participants[0].id
+                }
+            });
+
             console.log("room added: " + JSON.stringify(cur_room));
             console.log('-------------------');
 

@@ -1,55 +1,31 @@
+import { chatRooms } from '$lib/stores';
 import { error } from '@sveltejs/kit';
 import { select_option } from 'svelte/internal';
 import { get } from 'svelte/store'
-import { user }  from '$lib/stores';
+//import { chatRooms, user }  from '$lib/stores';
 
 async function loadData(fetch: any, room: string)
 {
-    // code below for chatRoom to check if user is in the room
-
-    //let my_user = get(user);
-    //if (my_user.login != 'dsamain')
-        //throw error(404, 'User not found');
-
 	try
 	{
+        let out: any = {room:"", participant:""};
 
-        // get room
+        out.room = await fetch(`/api/chat/rooms?name=${encodeURIComponent(room)}`).then(res => res.json());
+        if (!out.room) {
+            throw error(404, 'Room not found');
+        }
 
-        //console.log(my_user);
-        //let res;
-		//res['room'] = await fetch(`/api/chat/rooms?name=${encodeURIComponent(room)}`);
+        let current_user = await fetch(`/api/users/me`).then(res => res.json());
+        if (!current_user) {
+            throw error(404, 'User not found');
+        }
 
-        //let res = {room};
-		//res.room = await fetch(`/api/chat/rooms?name=${encodeURIComponent(room)}`);
+        out.participant = out.room.participants.find((p: any) => p.userId == current_user.id);
+        if (!out.participant) {
+            throw error(404, 'Looks like you are not a participant of this room');
+        }
 
-        console.log("${encodeURIComponent(room)}:  " + encodeURIComponent(room));
-
-        let cur_room = await fetch(`/api/chat/rooms?name=${encodeURIComponent(room)}`).then(res => res.json());
-
-        //if (cur_room)
-
-        //for (let p of cur_room.participants) 
-        //console.log("room: " + JSON.stringify(res.json()));
-
-        //let res = {room: await fetch(`/api/chat/rooms?name=${encodeURIComponent(room)}`)};
-        ////res.room = "test";
-        //console.log("res.room : " + JSON.stringify(res.room.json()));
-
-
-
-
-
-
-		//if (!res.test.ok)
-		//{
-            //console.log
-			//throw error(res.test.status, res.test.statusText);
-		//}
-
-        return cur_room;
-		const json = await res.json();
-		return json;
+        return out;
 	}
 	catch(e)
 	{
@@ -57,11 +33,13 @@ async function loadData(fetch: any, room: string)
 	}
 }
 
+
+async function load_test(fetch: any) {
+    return {a:'a', b:'b'};
+}
 // called before the page is rendered
 // returned value is sent to data in +page.ts
 export async function load({params, fetch})
 {
-	return {
-        chatRooms: await loadData(fetch, params.room),
-	}
+    return await loadData(fetch, params.room);
 }

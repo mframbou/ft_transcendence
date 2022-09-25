@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 
 	import ParticlesBackground from '../lib/ParticlesBackground.svelte';
+    import { error } from '@sveltejs/kit';
 </script>
 
 <div class="wrapper">
@@ -12,6 +13,7 @@
 	<div class="content">
 		<h1>{$page.status}</h1>
 		<h2>Oopsie doopsie</h2>
+		<h3>{$page.error.message}</h3>
 	</div>
 </div>
 
@@ -52,7 +54,7 @@
 		justify-content: center;
 		align-items: center;
 
-		h1, h2
+		h1, h2, h3
 		{
 			color: red;
 		}

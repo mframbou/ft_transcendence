@@ -77,6 +77,7 @@ export class UsersService
 					login: login,
 				},
 				select: {
+					id: true, // I need the id for chat until a find another way
 					login: true,
 					username: true,
 					profilePicture: true,
