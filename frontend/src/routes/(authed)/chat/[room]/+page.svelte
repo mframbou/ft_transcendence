@@ -2,7 +2,7 @@
 <script lang="ts">
 
     import { user } from '$lib/stores';
-    import { chatSocketStore } from '$lib/stores';
+    import { chatSocket } from '$lib/websocket-stores';
 
     // store loaded content
     export let data;

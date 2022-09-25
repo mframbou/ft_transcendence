@@ -1,6 +1,5 @@
 import { get, readable, writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { chatSocket, pongSocket, statusSocket } from '$lib/socket-io';
 import { goto } from '$app/navigation';
 
 export const user = writable(undefined);
@@ -26,57 +25,6 @@ if (browser && get(friends) === undefined)
 }
 
 export const chatRooms: any = writable([]);
-
-// https://svelte.dev/tutorial/readable-stores
-export const statusTrackerSocket = readable({}, set => {
-	if (!browser) return;
-
-	const socket = statusSocket;
-	socket.on('connect', () => {
-		console.log("status socket connected");
-	});
-
-	socket.open();
-
-	return () => {
-		socket.close();
-		console.log("status socket disconnected");
-	};
-})
-
-export const pongSocketStore = readable(pongSocket, set => {
-	if (!browser) return;
-
-	const socket = pongSocket;
-	socket.on('connect', () => {
-		console.log("pong socket connected");
-	});
-
-	socket.open();
-
-
-	return () => {
-		socket.close();
-		console.log("pong socket disconnected");
-	};
-})
-
-export const chatSocketStore = readable(chatSocket, set => {
-	if (!browser) return;
-
-	const socket = chatSocket;
-	socket.on('connect', () => {
-		console.log("chat socket connected");
-	});
-
-	socket.open();
-
-
-	return () => {
-		socket.close();
-		console.log("chat socket disconnected");
-	};
-})
 
 async function fetchUserJson()
 {

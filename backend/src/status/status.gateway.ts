@@ -31,7 +31,7 @@ export class StatusGateway implements OnGatewayDisconnect
 	server: Server;
 
 
-	@SubscribeMessage('first_connect')
+	@SubscribeMessage('firstConnect')
 	async handleFirstConnect(client: any, payload: WsFirstConnectDto)
 	{
 		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
@@ -43,6 +43,7 @@ export class StatusGateway implements OnGatewayDisconnect
 
 		await this.statusService.setStatus(jwtPayload.login, EUserStatus.ONLINE, this.server);
 		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
+		this.server.to(client.id).emit('confirmFirstConnect', {login: jwtPayload.login});
 	}
 
 	async handleDisconnect(client: any)

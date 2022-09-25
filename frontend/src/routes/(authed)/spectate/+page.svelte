@@ -1,4 +1,5 @@
 <script lang="ts">
+
 	export let data;
 
 	const gameRooms = data.rooms;

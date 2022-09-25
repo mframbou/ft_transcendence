@@ -1,7 +1,7 @@
 
 <script lang="ts">
 	import { onMount } from 'svelte';
-    import { chatSocketStore } from '$lib/stores';
+    import { chatSocket } from '$lib/websocket-stores';
     import { goto, prefetchRoutes } from '$app/navigation';
 
     import Button from '$lib/Button.svelte';
@@ -13,7 +13,7 @@
 	export let data;
 
     // chatSocket
-    chatSocketStore.subscribe(() => {});
+    // chatSocket.subscribe(() => {});
 
     let chatRooms: any[] = data.chatRooms;
     let headSize = 30;

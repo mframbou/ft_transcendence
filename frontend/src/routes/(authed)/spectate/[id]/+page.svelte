@@ -1,25 +1,26 @@
 <script lang="ts">
 	import Pong from '$lib/Pong.svelte';
-	import { pongSocketStore } from '$lib/stores';
+	import { pongSocket } from '$lib/websocket-stores';
 	import { onMount } from 'svelte';
 
 	export let data;
 
 	const gameRoom = data.room;
 
-	onMount(() => {
-		$pongSocketStore.on('connect', () => {
-			$pongSocketStore.emit('startSpectate', { roomId: gameRoom.id });
+	onMount(async () => {
+
+		$pongSocket.on('connect', () => {
+			$pongSocket.emit('startSpectate', { roomId: gameRoom.id });
 		});
 
-		$pongSocketStore.on('disconnect', () => {
+		$pongSocket.on('disconnect', () => {
 			console.log('disconnected');
 			// try to reconnect
-			$pongSocketStore.connect();
+			$pongSocket.connect();
 		});
 
-		if ($pongSocketStore.connected)
-			$pongSocketStore.emit('startSpectate', { roomId: gameRoom.id });
+		if ($pongSocket.connected)
+			$pongSocket.emit('startSpectate', { roomId: gameRoom.id });
 	});
 
 

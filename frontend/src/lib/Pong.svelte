@@ -1,7 +1,7 @@
 <script lang="ts">
 
 	import { onMount } from 'svelte';
-	import { pongSocketStore } from '$lib/stores';
+	import { pongSocket } from '$lib/websocket-stores';
 
 	interface position
 	{
@@ -64,12 +64,12 @@
 		// Only listen to movement of opposite player (not self user)
 		const moveEventName = isPlayerOne ? 'player2Move' : 'player1Move';
 
-		$pongSocketStore.on(moveEventName, (data) =>
+		$pongSocket.on(moveEventName, (data) =>
 		{
 			player2.paddle.position.server_y = data.y * canvas.height;
 		});
 
-		$pongSocketStore.on('ballReset', (data) =>
+		$pongSocket.on('ballReset', (data) =>
 		{
 			collisionSinceLastBallUpdate = false;
 
@@ -92,7 +92,7 @@
 			lastBallUpdate = performance.now();
 		});
 
-		$pongSocketStore.on('scoreUpdate', (data) =>
+		$pongSocket.on('scoreUpdate', (data) =>
 		{
 			if (isPlayerOne)
 			{
@@ -108,7 +108,7 @@
 		});
 
 
-		$pongSocketStore.on('resetPaddles', (data) =>
+		$pongSocket.on('resetPaddles', (data) =>
 		{
 			const denormalizedPaddle1 = {
 				x: data.paddle1.x * canvas.width,
@@ -139,7 +139,7 @@
 			player2.paddle.width = denormalizedPaddle2.width;
 		});
 
-		$pongSocketStore.on('ballUpdate', (data) =>
+		$pongSocket.on('ballUpdate', (data) =>
 		{
 			collisionSinceLastBallUpdate = false;
 
@@ -175,17 +175,17 @@
 	function startSpectate()
 	{
 
-		$pongSocketStore.on('player1Move', (data) =>
+		$pongSocket.on('player1Move', (data) =>
 		{
 			player1.paddle.position.server_y = data.y * canvas.height;
 		});
 
-		$pongSocketStore.on('player2Move', (data) =>
+		$pongSocket.on('player2Move', (data) =>
 		{
 			player2.paddle.position.server_y = data.y * canvas.height;
 		});
 
-		$pongSocketStore.on('ballReset', (data) =>
+		$pongSocket.on('ballReset', (data) =>
 		{
 			collisionSinceLastBallUpdate = false;
 
@@ -208,7 +208,7 @@
 			lastBallUpdate = performance.now();
 		});
 
-		$pongSocketStore.on('scoreUpdate', (data) =>
+		$pongSocket.on('scoreUpdate', (data) =>
 		{
 			player1.score = data.player1Score;
 			player2.score = data.player2Score;
@@ -216,7 +216,7 @@
 		});
 
 
-		$pongSocketStore.on('resetPaddles', (data) =>
+		$pongSocket.on('resetPaddles', (data) =>
 		{
 			const denormalizedPaddle1 = {
 				x: data.paddle1.x * canvas.width,
@@ -247,7 +247,7 @@
 			player2.paddle.width = denormalizedPaddle2.width;
 		});
 
-		$pongSocketStore.on('ballUpdate', (data) =>
+		$pongSocket.on('ballUpdate', (data) =>
 		{
 			collisionSinceLastBallUpdate = false;
 
@@ -285,7 +285,7 @@
 		}
 		else
 		{
-			$pongSocketStore.on('gameStart', (data) => {
+			$pongSocket.on('gameStart', (data) => {
 				console.log("STARTING GAME:", data);
 				startGame(data.isPlayerOne);
 			});
@@ -407,7 +407,7 @@
 		if (performance.now() - lastPaddleMove > 10)
 		{
 			// ratio
-			$pongSocketStore.emit('paddleMove', {y: y / canvas.height});
+			$pongSocket.emit('paddleMove', {y: y / canvas.height});
 			lastPaddleMove = performance.now();
 		}
 	}

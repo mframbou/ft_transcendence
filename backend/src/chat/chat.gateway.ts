@@ -29,7 +29,7 @@ export class ChatGateway implements OnGatewayDisconnect
   	@WebSocketServer()
 	server: Server;
 
-	@SubscribeMessage('first_connect')
+	@SubscribeMessage('firstConnect')
 	async handleFirstConnect(client: any, payload: WsFirstConnectDto)
 	{
 		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);

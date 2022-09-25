@@ -27,7 +27,7 @@ export class GameGateway implements OnGatewayDisconnect
   @WebSocketServer()
   server: Server;
 
-  @SubscribeMessage('first_connect')
+  @SubscribeMessage('firstConnect')
   async handleFirstConnect(client: any, payload: WsFirstConnectDto)
   {
     console.log(`First connect date: ${new Date()}`);
@@ -39,6 +39,8 @@ export class GameGateway implements OnGatewayDisconnect
     }
 
     this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
+    // emit confirm after client is really added (to prevent connecting and sending msg at the same time, which will invalidate in auth guard)
+    this.server.to(client.id).emit('confirmFirstConnect', {login: jwtPayload.login});
   }
 
   // cannot use guard here because guards disconnect and if disconnect this function is called so it's a problem

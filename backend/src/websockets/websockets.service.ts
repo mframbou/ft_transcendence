@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
 import { WsFirstConnectDto } from '../interfaces/dtos';
 import { AuthService } from '../auth/auth.service';
+import { Server } from 'socket.io';
 
 @Injectable()
 export class WebsocketsService {

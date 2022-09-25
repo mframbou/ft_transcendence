@@ -292,7 +292,7 @@
 	import Button from '$lib/Button.svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
 	import { onMount } from 'svelte';
-	import { statusSocket } from '$lib/socket-io';
+	import { statusSocket } from '$lib/websocket-stores';
 
 	export let data;
 	let targetUser = data.user;
@@ -348,7 +348,7 @@
 
 	onMount(() =>
 	{
-		statusSocket.on('userStatusChanged', (data) =>
+		$statusSocket.on('userStatusChanged', (data) =>
 		{
 			console.log('userStatusChanged', data);
 			if (targetUser && targetUser.login === data.login)
@@ -359,7 +359,7 @@
 
 		return () =>
 		{
-			statusSocket.off('userStatusChanged');
+			$statusSocket.off('userStatusChanged');
 		};
 	});
 

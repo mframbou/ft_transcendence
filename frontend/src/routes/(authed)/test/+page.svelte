@@ -1,23 +1,43 @@
 <script lang="ts">
 
-	import { statusSocket, chatSocket } from '$lib/socket-io';
+	import { statusSocket } from '$lib/websocket-stores';
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 
-	// void one of imports so that code isn't unused, because import executes code and we still need to connect
-	void statusSocket; // for statussocket we dont need to send anything, just connect / disconnect
+	onMount(async () => {
+		if ($statusSocket)
+		{
+			console.log('Socket already connected');
+			$statusSocket.on('ping', (data) => {
+				console.log(data);
+			});
+			$statusSocket.on('pong', (data) => {
+				console.log(data);
+			});
+			$statusSocket.emit('status', { status: 'online' });
+		}
+	});
+	// try
+	// {
+	// 	const socket = get(await statusSocket);
+	// 	socket.on('ping', (data) => {
+	// 		console.log(data);
+	// 	});
+	// 	socket.emit('status', 'Hello from Svelte!');
+	// }
+	// catch (e)
+	// {
+	// 	console.error('error in websocket: ' + e);
+	// }
+	// });
 
-	function sendMsg()
-	{
-		chatSocket.emit('message', 'hello everyone');
-	}
 
 </script>
 
-<button on:click={sendMsg}>Send</button>
-
-<style lang="scss">
-	button
-	{
-		height: 200px;
-		width: 400px;
-	}
-</style>
+<!--{#await statusSocket}-->
+<!--	Connecting to socket-->
+<!--{:then value}-->
+<!--	connected: {JSON.stringify(value)}-->
+<!--{:catch error}-->
+<!--	error: {error}-->
+<!--{/await}-->
