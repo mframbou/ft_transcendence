@@ -17,6 +17,11 @@ $pongSocketStore.on('matchFound', (data) => {
 		$pongSocketStore.emit('confirmMatch', '');
 });
 
+$pongSocketStore.on('connect', () => {
+		ready = true;
+});
+
+let ready: boolean = $pongSocketStore.connected;
 
 </script>
 
@@ -29,5 +34,5 @@ $pongSocketStore.on('matchFound', (data) => {
 </style>
 
 <Pong />
-<Button on:click={setReady}>Ready</Button>
+<Button disabled={!ready} on:click={setReady}>Ready</Button>
 

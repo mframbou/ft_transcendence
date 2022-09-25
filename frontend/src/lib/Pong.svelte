@@ -141,7 +141,6 @@
 
 		$pongSocketStore.on('ballUpdate', (data) =>
 		{
-			console.log('ballupdate');
 			collisionSinceLastBallUpdate = false;
 
 			const denormalizedBall = {
@@ -250,7 +249,6 @@
 
 		$pongSocketStore.on('ballUpdate', (data) =>
 		{
-			console.log('ballupdate');
 			collisionSinceLastBallUpdate = false;
 
 			const denormalizedBall = {

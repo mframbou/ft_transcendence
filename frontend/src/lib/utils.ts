@@ -10,3 +10,15 @@ export function getCookie(cookie: string)
 	if (parts && parts.length === 2)
 		return parts.pop()!.split(';').shift();
 }
+
+export async function resJson(res: Response)
+{
+	try
+	{
+		return await res.json();
+	}
+	catch(e)
+	{
+		return null;
+	}
+}

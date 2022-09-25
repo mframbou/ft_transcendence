@@ -32,8 +32,11 @@ export const statusTrackerSocket = readable({}, set => {
 	if (!browser) return;
 
 	const socket = statusSocket;
+	socket.on('connect', () => {
+		console.log("status socket connected");
+	});
+
 	socket.open();
-	console.log("status socket connected");
 
 	return () => {
 		socket.close();
@@ -45,8 +48,12 @@ export const pongSocketStore = readable(pongSocket, set => {
 	if (!browser) return;
 
 	const socket = pongSocket;
+	socket.on('connect', () => {
+		console.log("pong socket connected");
+	});
+
 	socket.open();
-	console.log("pong socket connected");
+
 
 	return () => {
 		socket.close();
@@ -58,8 +65,12 @@ export const chatSocketStore = readable(chatSocket, set => {
 	if (!browser) return;
 
 	const socket = chatSocket;
+	socket.on('connect', () => {
+		console.log("chat socket connected");
+	});
+
 	socket.open();
-	console.log("chat socket connected");
+
 
 	return () => {
 		socket.close();

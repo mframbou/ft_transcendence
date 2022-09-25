@@ -12,6 +12,12 @@
 			$pongSocketStore.emit('startSpectate', { roomId: gameRoom.id });
 		});
 
+		$pongSocketStore.on('disconnect', () => {
+			console.log('disconnected');
+			// try to reconnect
+			$pongSocketStore.connect();
+		});
+
 		if ($pongSocketStore.connected)
 			$pongSocketStore.emit('startSpectate', { roomId: gameRoom.id });
 	});
@@ -23,5 +29,4 @@
 
 </style>
 
-{JSON.stringify(gameRoom)}
 <Pong spectateId={gameRoom.id}/>

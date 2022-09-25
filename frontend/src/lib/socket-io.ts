@@ -9,15 +9,15 @@ const host = browser ? window.location.hostname : 'backend';
 const BASE_ENDPOINT = `http://${host}:3002`;
 
 const statusSocket = ioClient(BASE_ENDPOINT + '/status', {
-	autoConnect: true,
+	autoConnect: false, // will connect in store
 });
 
 const chatSocket = ioClient(BASE_ENDPOINT + '/chat', {
-	autoConnect: true,
+	autoConnect: false, // will connect in store
 });
 
 const pongSocket = ioClient(BASE_ENDPOINT + '/pong', {
-   autoConnect: true,
+   autoConnect: false, // will connect in store
 });
 
 statusSocket.on('connect', () => 
