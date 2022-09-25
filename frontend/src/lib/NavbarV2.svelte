@@ -229,7 +229,7 @@
 		elt: HTMLElement;
 	}
 
-	export let navigation: string[] = ['home', 'chat', 'friends', 'profile', 'settings'];
+	export let navigation: string[] = ['home', 'chat', 'friends', 'spectate', 'profile', 'settings'];
 	export let relativePos: boolean = false;
 	let current: string = navigation[0];
 	let navItems: NavItem[] = navigation.map((name) => ({ name: name, elt: null }));

@@ -27,9 +27,10 @@ import { FriendsController } from './friends/friends.controller';
 import { FriendsService } from './friends/friends.service';
 import { ChatService } from './chat/chat.service';
 import { ChatController } from './chat/chat.controller';
+import { GameController } from './game/game.controller';
 
 @Module({
-	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController, ChatController],
+	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController, ChatController, GameController],
 	imports: [
 		PrismaModule,
 		JwtModule.register({

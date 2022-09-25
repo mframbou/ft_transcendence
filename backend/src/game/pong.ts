@@ -31,7 +31,8 @@ interface IPLayer
 
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
-const UPDATES_PER_SECOND = 10;
+const BALL_UPDATES_PER_SECOND = 15;
+const PADDLE_UPDATES_PER_SECOND = 30;
 
 // Basis for width / height, but in the end only the ratio matters
 const CANVAS_WIDTH = 600;
@@ -216,8 +217,8 @@ export default class ServerSidePong
 	private paused: boolean = true;
 	private lastUpdate: number = 0;
 	private net;
-	private intervalId;
-
+	private ballIntervalId;
+	private paddleIntervalId;
 
 	constructor(room: IGameRoom, server: Server, gameService: GameService)
 	{
@@ -371,6 +372,12 @@ export default class ServerSidePong
 		}
 
 		this.sendBallUpdate(this.ball);
+		// this.sendPaddleMove(this.player1);
+		// this.sendPaddleMove(this.player2);
+	}
+
+	sendPaddlePositions()
+	{
 		this.sendPaddleMove(this.player1);
 		this.sendPaddleMove(this.player2);
 	}
@@ -378,14 +385,16 @@ export default class ServerSidePong
 	pause()
 	{
 		this.paused = true;
-		clearInterval(this.intervalId);
+		clearInterval(this.ballIntervalId);
+		clearInterval(this.paddleIntervalId);
 	}
 
 	resume()
 	{
 		this.lastUpdate = performance.now();
 		this.paused = false;
-		this.intervalId = setInterval(this.update.bind(this), 1000 / UPDATES_PER_SECOND);
+		this.ballIntervalId = setInterval(this.update.bind(this), 1000 / BALL_UPDATES_PER_SECOND);
+		this.paddleIntervalId = setInterval(this.sendPaddlePositions.bind(this), 1000 / PADDLE_UPDATES_PER_SECOND);
 	}
 
 	start()
@@ -402,7 +411,8 @@ export default class ServerSidePong
 		this.resetPaddles();
 		this.sendPaddleReset(this.player1.paddle, this.player2.paddle)
 
-		this.intervalId = setInterval(this.update.bind(this), 1000 / UPDATES_PER_SECOND);
+		this.ballIntervalId = setInterval(this.update.bind(this), 1000 / BALL_UPDATES_PER_SECOND);
+		this.paddleIntervalId = setInterval(this.sendPaddlePositions.bind(this), 1000 / PADDLE_UPDATES_PER_SECOND);
 	}
 
 	private movePaddle(player: IPLayer, y: number)

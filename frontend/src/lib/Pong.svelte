@@ -440,7 +440,7 @@
 
 		player2.paddle.position.client_y = lerp(player2.paddle.position.client_y, player2.paddle.position.server_y, 0.2);
 
-		if (ball.position.client_y + ball.radius > canvas.height || ball.position.client_y - ball.radius < 0)
+		if ((ball.position.client_y + ball.radius > canvas.height && ball.velocityY > 0) || (ball.position.client_y - ball.radius < 0 && ball.velocityY < 0))
 		{
 			collisionSinceLastBallUpdate = true;
 
