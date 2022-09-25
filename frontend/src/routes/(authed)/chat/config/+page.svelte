@@ -16,7 +16,7 @@
             body: JSON.stringify({name: name, is_private: is_private})
         }).then(res => res.json());
         console.log("addroom res : " + JSON.stringify(res));
-        if (!res.ok) {
+        if (!res) {
             console.log("error");
         } else {
             goto('/chat/' + name);

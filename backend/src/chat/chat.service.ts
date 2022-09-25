@@ -51,8 +51,7 @@ export class ChatService {
             return true;
         }
         catch (e) {
-            console.log("e : " + JSON.stringify(e));
-            errorDispatcher(e);
+            return false;
         }
 
 

@@ -40,13 +40,13 @@ import { AddRoomDto } from 'src/interfaces/dtos';
     @Get('rooms')
     async getChats(@Req() req: IUserRequest, @Query('name') params?): Promise<any> {
 
-        console.log("params : " + JSON.stringify(params));
-        const payload = req.jwtPayload;
+        //console.log("params : " + JSON.stringify(params));
+        //const payload = req.jwtPayload;
 
         let res = await this.chatService.getRooms(params);
-        console.log(JSON.stringify(res));
-
-        return (res ? res : new HttpException('bad room id', HttpStatus.BAD_REQUEST));
+        return res;
+        //console.log("res chat controler : " + JSON.stringify(res));
+        //return (res ? res : new HttpException('bad room id', HttpStatus.BAD_REQUEST));
     }
 
     // TODO: add permission check

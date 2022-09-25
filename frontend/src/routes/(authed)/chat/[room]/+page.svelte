@@ -6,6 +6,7 @@
 
     // store loaded content
     export let data;
+    console.log("data : " + JSON.stringify(data));
 
     let msgs: any[] = [];
 
