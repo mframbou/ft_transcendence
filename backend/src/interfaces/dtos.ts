@@ -43,6 +43,19 @@ export class AddRoomDto
 	password: string;
 }
 
+export class AddParticipantDto
+{
+	@IsNumber()
+	chatId: number;
+
+	@IsNumber()
+	userId: number;
+
+	@IsOptional()
+	@IsString()
+	password: string;
+}
+
 export class WsFirstConnectDto
 {
 	@IsString()

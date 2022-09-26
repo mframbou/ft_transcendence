@@ -19,16 +19,29 @@ export class ChatService {
     ) {}
 
 
+    // TODO: better error management (without confusing errorCode)
     async addRoom(login: string, name: string, is_private: boolean, password?: string) {
+
         const user = await this.usersService.getUser(login);
 
         console.log("addRoom request from " + JSON.stringify(user));
+        console.log("is private : " + is_private);
+
+        if (await this.prisma.chatRoom.findUnique({where: {name: name}})) {
+            throw new HttpException('Room already exist with this name', 403);
+        }
+
+        if (is_private && password.length < 4) {
+            throw new HttpException('Passord is too short', 403);
+        }
+
 
         try {
             let cur_room = await this.prisma.chatRoom.create({
                 data: {
                     name: name,
                     is_private: is_private,
+                    hash: password,
                     participants: {
                         create: [{
                             is_admin: true,
@@ -51,23 +64,50 @@ export class ChatService {
                 }
             });
 
+            console.log("room created: " + JSON.stringify(cur_room));
+
             // to be removed ( message testing )
-            await this.prisma.message.create({
-                data: {
-                    chatId: cur_room.id,
-                    content: "test message in chat.sercice addRoom",
-                    senderId: cur_room.participants[0].id
-                }
-            });
+            //await this.prisma.message.create({
+                //data: {
+                    //chatId: cur_room.id,
+                    //content: "test message in chat.sercice addRoom",
+                    //senderId: cur_room.participants[0].id
+                //}
+            //});
 
             console.log("room added: " + JSON.stringify(cur_room));
             console.log('-------------------');
 
-            return true;
+            return HttpStatus.OK;
         }
         catch (e) {
-            return false;
+            console.log("e : " + e);
+            throw new HttpException('Unknown error', 403);
         }
+    }
+
+    async addParticipant(chatId: number, userId: number, password?: string) {
+
+        let participant =  await this.prisma.participant.findMany({
+            where: {
+                chatRoomId: chatId,
+                userId: userId
+            },
+        });
+
+        // if user is already in the room
+        if (participant.length) {
+            return ;
+        }
+
+        await this.prisma.participant.create({
+            data: {
+                chatRoomId: chatId,
+                userId: userId,
+                is_admin: false,
+                is_moderator: false,
+            }
+        });
     }
 
     async findRooms(name?: string) {

@@ -3,9 +3,14 @@
 	import { onMount } from 'svelte';
     import { goto, prefetchRoutes } from '$app/navigation';
 
+	import Modal from '$lib/Modal.svelte';
+    import ChatConfig from '$lib/chat/chatConfig.svelte';
+
+
     import Button from '$lib/Button.svelte';
     import ChatBanner from '$lib/chat/ChatBanner.svelte';
     import ParticlesBackground from '$lib/ParticlesBackground.svelte';
+    import { writable } from 'svelte/store';
 
 
     // store loaded content
@@ -15,7 +20,7 @@
     let headSize = 30;
 
 
-
+    let config = false;
 
 
     onMount(async () => {
@@ -25,6 +30,10 @@
     async function addRoom() {
         getRooms();
         goto('/chat/config');
+    }
+
+    async function joinRoom() {
+        
     }
 
     async function getRooms() {
@@ -38,9 +47,8 @@
         //}
     }
 
-    // return participents in a room based on room id
-    async function getParticipants(roomId: number){
-    }
+
+
 
     async function clearAll() {
         await fetch('/api/chat/clearAll');
@@ -55,6 +63,11 @@
 
 </script>
 
+{#if config}
+<Modal on:close-modal={() => {config = false}}>
+    <ChatConfig />
+</Modal>
+{/if}
 
 {#key unique}
 <div class='background'>
@@ -65,7 +78,7 @@
 <div class="vflex">
     <!-- config panel -->
     <div class="config">
-        <Button on:click={addRoom}>add room</Button>
+        <Button on:click= {() => {config = true;}}>new chatroom</Button>
         <Button on:click={getRooms}>list room</Button>
         <Button on:click={clearAll}>clear</Button>
         <Button on:click={feature}>useful feature</Button>
