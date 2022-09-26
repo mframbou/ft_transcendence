@@ -2,7 +2,7 @@
 
 	import { onMount } from 'svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
-	import { statusSocket } from '../../../lib/socket-io';
+	import { statusSocket } from '$lib/websocket-stores';
 	import { user } from '../../../lib/stores';
 	import { goto } from '$app/navigation';
 
@@ -32,7 +32,8 @@
 
 		return () =>
 		{
-			statusSocket.off('userStatusChanged');
+			if ($statusSocket)
+				$statusSocket.off('userStatusChanged');
 		}
 	});
 

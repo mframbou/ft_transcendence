@@ -1,39 +1,26 @@
 <script lang="ts">
 
-	import { statusSocket } from '$lib/websocket-stores';
+	import { statusSocket, statusSocketConnected } from '$lib/websocket-stores';
 	import { onMount } from 'svelte';
-	import { get } from 'svelte/store';
 
-	onMount(async () => {
-		if ($statusSocket)
-		{
-			console.log('Socket already connected');
-			$statusSocket.on('ping', (data) => {
-				console.log(data);
-			});
-			$statusSocket.on('pong', (data) => {
-				console.log(data);
-			});
-			$statusSocket.emit('status', { status: 'online' });
+	statusSocketConnected.subscribe((connected) => {
+		if (connected) {
+			initWebsocket();
 		}
 	});
-	// try
-	// {
-	// 	const socket = get(await statusSocket);
-	// 	socket.on('ping', (data) => {
-	// 		console.log(data);
-	// 	});
-	// 	socket.emit('status', 'Hello from Svelte!');
-	// }
-	// catch (e)
-	// {
-	// 	console.error('error in websocket: ' + e);
-	// }
-	// });
 
+	function initWebsocket() {
+		const socket = $statusSocket;
+		socket.emit('test', {test: true, pouet: false});
+	}
 
 </script>
 
+{#if $statusSocketConnected}
+	Socket connected
+{:else}
+	Socket not connected
+{/if}
 <!--{#await statusSocket}-->
 <!--	Connecting to socket-->
 <!--{:then value}-->
