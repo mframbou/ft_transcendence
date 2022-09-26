@@ -1,11 +1,48 @@
 <script lang="ts">
+    import { goto } from '$app/navigation';
+    import { user } from '$lib/stores';
+
     import Button from "$lib/Button.svelte";
     import ParticlesBackground from "$lib/ParticlesBackground.svelte";
+    import Modal from "$lib/Modal.svelte";
 
     export let room;
+
+
+    let passwordPanel = false; 
+
+    async function joinRoom() {
+
+        // need to add error + security check
+        const response = await fetch('/api/chat/joinRoom', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                chatId: room.id,
+                userId: $user.id,
+            })
+        });
+
+        //const json = await response.json();
+
+
+        if (room.is_private) {
+            passwordPanel = true;
+        } else {
+            goto('/chat/' + room.name);
+        }
+    }
+
 </script>
 
-
+{#if passwordPanel}
+    <Modal on:close-modal={() => {passwordPanel = false}}>
+        <p>test</p>
+        <p>test</p>
+    </Modal>
+{/if}
 
 <div class='wrapper'>
 
@@ -21,7 +58,7 @@
     <p>
         {room.participants.length} user
     </p>
-    <button>join</button>
+    <button on:click={joinRoom}>join</button>
 </div>
 
 <style lang="scss">

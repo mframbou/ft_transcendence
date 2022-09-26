@@ -57,8 +57,8 @@ model Participant {
 	chatRoom		ChatRoom	@relation(fields: [chatRoomId], references: [id])
 	chatRoomId		Int
 
-	user			User		@relation(fields: [userId], references: [id])
-	userId			Int
+	user			User		@relation(fields: [userId], references: [id]) 
+	userId			Int			
 
 	messages		Message[]
 }

@@ -36,6 +36,10 @@
         goto('/chat/config');
     }
 
+    async function joinRoom() {
+        
+    }
+
     async function getRooms() {
         let rooms;
         chatRooms = await fetch('/api/chat/rooms').then(res => res.json())
@@ -47,9 +51,8 @@
         //}
     }
 
-    // return participents in a room based on room id
-    async function getParticipants(roomId: number){
-    }
+
+
 
     async function clearAll() {
         await fetch('/api/chat/clearAll');
