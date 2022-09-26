@@ -38,8 +38,8 @@ import { AddRoomDto } from 'src/interfaces/dtos';
     @Get('rooms')
     async rooms(@Req() req: IUserRequest, @Query('name') params?): Promise<any> {
         let res = await this.chatService.findRooms(params);
-        if (!res)
-          throw new HttpException('Room not found', 404);
+        //if (!res)
+          //throw new HttpException('Room not found', 404);
         return res;
     }
 

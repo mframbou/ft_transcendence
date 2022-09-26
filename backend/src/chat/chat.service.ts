@@ -19,16 +19,28 @@ export class ChatService {
     ) {}
 
 
+    // TODO: better error management (without confusing errorCode)
     async addRoom(login: string, name: string, is_private: boolean, password?: string) {
+
         const user = await this.usersService.getUser(login);
 
         console.log("addRoom request from " + JSON.stringify(user));
+
+        if (await this.prisma.chatRoom.findUnique({where: {name: name}})) {
+            throw new HttpException('Room already exist with this name', 403);
+        }
+
+        if (is_private && password.length < 4) {
+            throw new HttpException('Passord is too short', 403);
+        }
+
 
         try {
             let cur_room = await this.prisma.chatRoom.create({
                 data: {
                     name: name,
                     is_private: is_private,
+                    hash: password,
                     participants: {
                         create: [{
                             is_admin: true,
@@ -63,10 +75,10 @@ export class ChatService {
             console.log("room added: " + JSON.stringify(cur_room));
             console.log('-------------------');
 
-            return true;
+            return HttpStatus.OK
         }
         catch (e) {
-            return false;
+            throw new HttpException('Passord is too short', 403);
         }
     }
 

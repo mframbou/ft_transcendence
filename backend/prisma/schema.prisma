@@ -47,7 +47,6 @@ model Message {
 
 	sender		Participant		@relation(fields: [senderId], references: [id])
 	senderId	Int
-
 }
 
 model Participant {
