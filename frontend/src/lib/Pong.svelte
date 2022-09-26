@@ -46,20 +46,23 @@
 	let player1: IPLayer;
 	let player2: IPLayer;
 	let ball: IBall;
-	let net;
+	let net:any;
 
 	let collisionSinceLastBallUpdate: boolean;
-	let inGame = false;
+	let isInGame = false;
 	let animationFrameId: number;
 	let lastUpdate: number = 0;
 	let lastBallUpdate: number = 0;
 	let lastPaddleMove: number = 0;
 
+    const computerLevel = 50;
+    let paddlerandom = Math.random() * computerLevel;
+
 	export let spectateId: string = null;
 
 	function startGame(isPlayerOne: boolean)
 	{
-		inGame = true;
+		isInGame = true;
 
 		// Only listen to movement of opposite player (not self user)
 		const moveEventName = isPlayerOne ? 'player2Move' : 'player1Move';
@@ -299,9 +302,7 @@
 		context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
 		if (spectateId !== null)
-		{
 			startSpectate();
-		}
 		else
 		{
 			$pongSocket.on('gameStart', (data) => {
@@ -362,7 +363,14 @@
 			color: 'white',
 		};
 
+        if(!isInGame)
+        {
+            Math.random() < 0.5 ?     ball.velocityX = 500 : ball.velocityX = -500;
+            resetBall();
+        }
+
 		animationFrameId = requestAnimationFrame(loop);
+
 
 		return () => {
 			cancelAnimationFrame(animationFrameId);
@@ -431,15 +439,21 @@
 		}
 	}
 
+    function LimitPaddleMovement(paddle: IPaddle)
+    {
+        if (paddle.position.client_y < 0)
+            paddle.position.client_y = 0;
+        else if (paddle.position.client_y + paddle.height > canvas.height)
+            paddle.position.client_y = canvas.height - paddle.height;
+    }    
+
 	function movePaddle(y: number)
 	{
 		player1.paddle.position.client_y = y;
 
-		if (player1.paddle.position.client_y < 0)
-			player1.paddle.position.client_y = 0;
-		else if (player1.paddle.position.client_y > canvas.height - player1.paddle.height)
-			player1.paddle.position.client_y = canvas.height - player1.paddle.height;
-	}
+		LimitPaddleMovement(player1.paddle);
+
+    }
 
 	// Only handle inputs if not in spectator mode
 	let pressedKeys: string[] = [];
@@ -476,6 +490,11 @@
 		movePaddle(event.clientY - rect.top - player1.paddle.height / 2);
 	}
 
+    function IsNotSpectactorMode()
+    {
+        return spectateId === null
+    }
+
 	function update()
 	{
 		const now = performance.now();
@@ -487,7 +506,7 @@
 		//////////////
 		// MOVEMENT //
 		//////////////
-		if (spectateId === null)
+		if (IsNotSpectactorMode())
 		{
 			let speedMultiplier = 1;
 			if (pressedKeys.includes('Shift'))
@@ -512,7 +531,6 @@
 			}
 		}
 
-
 		/////////////////
 		// BALL UPDATE //
 		/////////////////
@@ -520,7 +538,7 @@
 		ball.position.client_y += ball.velocityY * updateMultiplier;
 
 		// lerp ball to server position if no collision (should already be almost equivalent client pos and server pos)
-		if (inGame && !collisionSinceLastBallUpdate)
+		if (isInGame && !collisionSinceLastBallUpdate)
 		{
 			const elapsedTimeSinceBallUpdate = now - lastBallUpdate;
 			const ballUpdateMultiplier = elapsedTimeSinceBallUpdate / 1000;
@@ -544,7 +562,17 @@
 		{
 			player1.paddle.position.client_y = lerp(player1.paddle.position.client_y, player1.paddle.position.server_y, 0.2);
 		}
-		player2.paddle.position.client_y = lerp(player2.paddle.position.client_y, player2.paddle.position.server_y, 0.2);
+        if(IsNotSpectactorMode() && !isInGame)
+        {
+           
+           
+            player2.paddle.position.client_y  = ball.position.client_y -  player2.paddle.height/2 + paddlerandom;
+
+            //player2.paddle.position.client_y = ball.position.client_y - player2.paddle.height / 2; 
+            LimitPaddleMovement(player2.paddle);
+        }
+        else
+		    player2.paddle.position.client_y = lerp(player2.paddle.position.client_y, player2.paddle.position.server_y, 0.2);
 
 		if ((ball.position.client_y + ball.radius > canvas.height && ball.velocityY > 0) || (ball.position.client_y - ball.radius < 0 && ball.velocityY < 0))
 		{
@@ -553,6 +581,25 @@
 			ball.velocityY = -ball.velocityY;
 		}
 		const paddle = ball.velocityX < 0 ? player1.paddle : player2.paddle;
+
+        if(!isInGame)
+        {
+
+            if (ball.position.client_x + ball.radius > canvas.width)
+            {
+                player1.score++;
+                resetBall(); // reset ball before sending new ball otherwise it would only reset on the next update
+                drawScore();
+            }
+            else if (ball.position.client_x - ball.radius < 0)
+            {
+                player2.score++;
+                resetBall();
+                drawScore();
+            }
+        }
+
+
 
 		// when collision, dont lerp ball position with server position until a new ball update is received
 		if (checkCollision(ball, paddle))
@@ -565,7 +612,21 @@
 			const direction = ball.velocityX > 0 ? -1 : 1;
 			ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
 			ball.velocityY = ball.speed * Math.sin(angleRad);
+
+           paddlerandom =  Math.random() * computerLevel;
+
 		}
+	}
+
+    function resetBall()
+	{
+		ball.position.client_x = canvas.width / 2;
+		ball.position.client_y = canvas.height / 2;;
+		ball.speed = 500;
+		ball.velocityX = -ball.velocityX;
+		// random angle between -30 and 30 degrees
+		const angleRad = (Math.random() -0.5) * (Math.PI / 3);
+		ball.velocityY = ball.speed * Math.sin(angleRad);
 	}
 
 
