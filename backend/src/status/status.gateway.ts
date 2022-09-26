@@ -46,12 +46,6 @@ export class StatusGateway implements OnGatewayDisconnect
 		this.server.to(client.id).emit('confirmFirstConnect', {login: jwtPayload.login});
 	}
 
-	@SubscribeMessage('test')
-	async test(client: any, payload: any)
-	{
-		console.log('test ' + JSON.stringify(payload));
-	}
-
 	async handleDisconnect(client: any)
 	{
 		const clientToRemove: IWebsocketClient = this.websocketsService.getClient(client.id);

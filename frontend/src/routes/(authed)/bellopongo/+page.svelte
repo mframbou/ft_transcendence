@@ -3,18 +3,18 @@
 
 import  Pong  from '$lib/Pong.svelte'
 import Button from '$lib/Button.svelte';
-import { pongSocket } from '$lib/websocket-stores';
+import { pongSocket, pongSocketConnected } from '$lib/websocket-stores';
 
 function setReady()
 {
     console.log("CLIENT READY");
 		$pongSocket.emit('startMatchmaking', '');
-}
 
-$pongSocket.on('matchFound', (data) => {
+	$pongSocket.once('matchFound', (data) => {
 		console.log("MATCH FOUND, SENDING CONFIRMATION:", data);
 		$pongSocket.emit('confirmMatch', '');
-});
+	});
+}
 
 </script>
 
@@ -27,5 +27,5 @@ $pongSocket.on('matchFound', (data) => {
 </style>
 
 <Pong />
-<Button on:click={setReady}>Ready</Button>
+<Button disabled={!$pongSocketConnected} on:click={setReady}>Ready</Button>
 

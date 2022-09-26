@@ -1,7 +1,6 @@
 
 <script lang="ts">
 	import { onMount } from 'svelte';
-    import { chatSocket } from '$lib/websocket-stores';
     import { goto, prefetchRoutes } from '$app/navigation';
 
     import Button from '$lib/Button.svelte';
@@ -11,9 +10,6 @@
 
     // store loaded content
 	export let data;
-
-    // chatSocket
-    // chatSocket.subscribe(() => {});
 
     let chatRooms: any[] = data.chatRooms;
     let headSize = 30;
@@ -56,20 +52,6 @@
         headSize = 1000;
         unique = {}
     }
-
-    // SOCKET
-    //function joinRoom(id: string) {
-        //console.log("JOIN ROOM: " + id);
-        //$chatSocketStore.emit('joinRoom', id);
-    //}
-
-    //$chatSocketStore.on('joinedRoom', (data) => {
-        //goto('/chat/' + data);
-    //});
-
-    // probably better to fetch ? 
-
-    //console.log("socket : " + chatSocketStore);
 
 </script>
 

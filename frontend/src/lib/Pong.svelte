@@ -175,6 +175,25 @@
 	function startSpectate()
 	{
 
+		$pongSocket.once('ballUpdate', (data) => {
+			const denormalizedBall = {
+				x: data.x * canvas.width,
+				y: data.y * canvas.height,
+				velocityX: data.velocityX * canvas.width,
+				velocityY: data.velocityY * canvas.height,
+				radius: data.radius * canvas.width,
+				speed: data.speed * canvas.width,
+			}
+
+			ball.radius = denormalizedBall.radius;
+			ball.speed = denormalizedBall.speed;
+			ball.position.server_x = denormalizedBall.x;
+			ball.position.server_y = denormalizedBall.y;
+			ball.velocityX = denormalizedBall.velocityX;
+			ball.velocityY = denormalizedBall.velocityY;
+			lastBallUpdate = performance.now();
+		})
+
 		$pongSocket.on('player1Move', (data) =>
 		{
 			player1.paddle.position.server_y = data.y * canvas.height;
@@ -337,8 +356,8 @@
 					server_y: canvas.height / 2
 			},
 			radius: 10,
-			speed: 5,
-			velocityX: 5,
+			speed: 0,
+			velocityX: 0,
 			velocityY: 0,
 			color: 'white',
 		};

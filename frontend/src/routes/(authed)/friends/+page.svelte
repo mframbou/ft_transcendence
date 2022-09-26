@@ -11,7 +11,7 @@
 	let pendingFriendsReceived = null;
 
 	onMount(async () => {
-		statusSocket.on('userStatusChanged', (data) =>
+		$statusSocket.on('userStatusChanged', (data) =>
 		{
 			for (let friend of friends)
 			{
@@ -32,8 +32,7 @@
 
 		return () =>
 		{
-			if ($statusSocket)
-				$statusSocket.off('userStatusChanged');
+			$statusSocket.off('userStatusChanged');
 		}
 	});
 

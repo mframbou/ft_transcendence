@@ -3,15 +3,12 @@
 	import { statusSocket, statusSocketConnected } from '$lib/websocket-stores';
 	import { onMount } from 'svelte';
 
-	statusSocketConnected.subscribe((connected) => {
-		if (connected) {
-			initWebsocket();
-		}
-	});
+	$: if ($statusSocketConnected) {
+		initWebsocket();
+	}
 
 	function initWebsocket() {
 		const socket = $statusSocket;
-		socket.emit('test', {test: true, pouet: false});
 	}
 
 </script>

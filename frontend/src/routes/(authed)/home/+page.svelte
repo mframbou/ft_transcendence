@@ -1,9 +1,5 @@
 <script>
     import ParticlesBackground from "$lib/ParticlesBackground.svelte";
-
-
-
-
 </script>
 
 <!--<Navbar></Navbar>-->
@@ -12,8 +8,7 @@
 		<ParticlesBackground --background-color="transparent" --z-index="1" properties={ {lineColor: '#00ff00'} }/>
 	</div>
 
-
-    <a href="/bellopongo"> BELLO PONGO </a>
+<a href="/bellopongo"> BELLO PONGO </a>
 
 </div>
 

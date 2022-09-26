@@ -28,7 +28,7 @@ function waitForConnectionComplete(socket: Socket, timeout: number = 2000): Prom
 }
 
 // https://svelte.dev/tutorial/custom-stores
-async function createWebsocket(namespace: string, timeout: number = 2000): Promise<Socket | null>
+function createWebsocket(namespace: string): Socket
 {
 	// add / if not present
 	if (namespace[0] !== '/')
@@ -40,21 +40,25 @@ async function createWebsocket(namespace: string, timeout: number = 2000): Promi
 		autoConnect: false,
 	});
 
-	return await waitForConnectionComplete(socket, timeout);
+	return socket;
 }
 
 function createWebsocketStore(namespace: string, timeout: number = 2000): { socket: any, connected: any } // Readable<> but not exported
 {
-	const socketStore = readable(null, set => {
+	const socket: Socket = createWebsocket(namespace);
+	const connectedStoreWritable = writable(false);
 
-		let socket: Socket | null = null;
-		createWebsocket(namespace, timeout).then(sock => {
-			socket = sock;
-			set(sock);
+	const socketStore = readable(socket, set => {
+		waitForConnectionComplete(socket, timeout).then(() => {
 			console.log(`Websocket '${namespace}' connected and confirmed`);
-		}).catch(e => {
-			console.error(`Failed to create websocket for '${namespace}': ${e}`);
-			return { socket: null, connected: false };
+			connectedStoreWritable.set(true);
+		}).catch((err) => {
+			console.error(`Failed to connect websocket for '${namespace}': ${err}`);
+			connectedStoreWritable.set(false);
+		});
+
+		socket.on('disconnect', (reason) => {
+			connectedStoreWritable.set(false);
 		});
 
 		return () => {
@@ -64,18 +68,15 @@ function createWebsocketStore(namespace: string, timeout: number = 2000): { sock
 	});
 
 	const connectedStore = readable(false, (set) => {
-		socketStore.subscribe((socket) => {
-			if (socket)
-				set(true);
-			else
-				set(false);
+		connectedStoreWritable.subscribe((value) => {
+			set(value);
 		});
 	});
 
 	return { socket: socketStore, connected: connectedStore };
 }
 
-// If no await and await in component, it's not working, maybe because sveltekit doesn't like async stores or handle it yet
+// Socket is always available, but connected is true only if connection is complete and first_connect event was sent and confirmed
 export const { socket: statusSocket, connected: statusSocketConnected } = createWebsocketStore('/status');
 export const { socket: chatSocket, connected: chatSocketConnected } = createWebsocketStore('/chat');
 export const { socket: pongSocket, connected: pongSocketConnected } = createWebsocketStore('/pong');
