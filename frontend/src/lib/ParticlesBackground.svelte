@@ -145,50 +145,42 @@
 	let canvas: HTMLCanvasElement;
 
 
-	// If the onMount callback returns a function, that function will be called when the component is destroyed.
+	const images: HTMLImageElement[] = properties.images.map(path =>
+	{
+		const image = new Image();
+		image.src = path;
+		return image;
+	});
+
+	function canvasClickListener(e: MouseEvent)
+	{
+		const rect = canvas.getBoundingClientRect();
+		mousePos.x = e.clientX - rect.left;
+		mousePos.y = e.clientY - rect.top;
+
+		if (points.length + 3 < properties.maxPoints)
+		{
+			const count = Math.floor(Math.random() * 3) + 1;
+			for (let i = 0; i < count; i++)
+				points.push(new Point(mousePos.x, mousePos.y, images));
+		}
+	};
+
+	function canvasMouseMoveListener(e: MouseEvent)
+	{
+		const rect = canvas.getBoundingClientRect();
+		mousePos.x = e.clientX - rect.left;
+		mousePos.y = e.clientY - rect.top;
+	};
+
+	function windowResizeListener()
+	{
+		updateCanvasSize(canvas);
+	};
+
 	onMount(() =>
 	{
-		const canvasDoubleClickListener = (e: MouseEvent) =>
-		{
-			alert('test');
-			e.preventDefault();
-			e.stopPropagation();
-		};
-
-		const canvasClickListener = (e: MouseEvent) =>
-		{
-			const rect = canvas.getBoundingClientRect();
-			mousePos.x = e.clientX - rect.left;
-			mousePos.y = e.clientY - rect.top;
-
-			if (points.length + 3 < properties.maxPoints)
-			{
-				const count = Math.floor(Math.random() * 3) + 1;
-				for (let i = 0; i < count; i++)
-					points.push(new Point(mousePos.x, mousePos.y, images));
-			}
-		};
-
-		const canvasMouseMoveListener = (e: MouseEvent) =>
-		{
-			const rect = canvas.getBoundingClientRect();
-			mousePos.x = e.clientX - rect.left;
-			mousePos.y = e.clientY - rect.top;
-		};
-
-		const windowResizeListener = () =>
-		{
-			updateCanvasSize(canvas);
-		};
-
 		const context: CanvasRenderingContext2D = canvas.getContext('2d');
-
-		const images: HTMLImageElement[] = properties.images.map(path =>
-		{
-			const image = new Image();
-			image.src = path;
-			return image;
-		});
 
 		updateCanvasSize(canvas);
 
@@ -199,25 +191,15 @@
 			points.push(new Point(x, y, images));
 		}
 
-		canvas.addEventListener('click', canvasClickListener);
-		canvas.addEventListener('mousemove', canvasMouseMoveListener);
-		window.addEventListener('resize', windowResizeListener);
-
 		render(canvas, context);
-
-
-		return () =>
-		{
-			canvas.removeEventListener('click', canvasClickListener);
-			canvas.removeEventListener('mousemove', canvasMouseMoveListener);
-			window.removeEventListener('resize', windowResizeListener);
-		}
 	});
 
 </script>
 
+<svelte:window on:resize={windowResizeListener} />
+
 <div class="wrapper">
-	<canvas bind:this={canvas} class="particles-background"></canvas>
+	<canvas on:click={canvasClickListener} on:mousemove={canvasMouseMoveListener} bind:this={canvas} class="particles-background"></canvas>
 </div>
 
 <style lang="scss">

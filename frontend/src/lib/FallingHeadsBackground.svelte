@@ -118,7 +118,7 @@
 	let lastUpdate: number = performance.now();
 	let canvas: HTMLCanvasElement;
 
-	function handleClick(e)
+	function handleClick(e: MouseEvent)
 	{
 		if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A')
 			return;
@@ -141,10 +141,13 @@
 		}
 	}
 
+	function windowResizeListener()
+	{
+		updateCanvasSize(canvas);
+	}
+
 	onMount(() =>
 	{
-		const windowResizeListener = () => updateCanvasSize(canvas);
-
 		const context: CanvasRenderingContext2D = canvas.getContext('2d');
 
 		const images: HTMLImageElement[] = properties.images.map(path =>
@@ -163,20 +166,12 @@
 			points.push(new Point(x, y, images));
 		}
 
-
-		window.addEventListener('resize', windowResizeListener);
-		window.addEventListener('click', handleClick);
-
 		render(canvas, context);
-
-		return () =>
-		{
-			window.removeEventListener('resize', windowResizeListener);
-			window.addEventListener('click', handleClick);
-		};
 	});
 
 </script>
+
+<svelte:window on:resize={windowResizeListener} on:click={handleClick} />
 
 <div class="wrapper">
 	<canvas bind:this={canvas} class="particles-background"></canvas>
