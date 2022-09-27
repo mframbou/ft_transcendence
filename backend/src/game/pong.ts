@@ -355,13 +355,6 @@ export default class ServerSidePong
 		const updateMultiplier = deltaTime / 1000;
 		computeBallUpdate(this.ball, this.player1.paddle, this.player2.paddle, updateMultiplier);
 
-
-		// Check if ball is not already going right way to avoid issue where ball is stuck on the side alterning between +velY and -velY
-		if ((this.ball.y + this.ball.height/2 > CANVAS_HEIGHT && this.ball.velocityY > 0) || (this.ball.y - this.ball.height/2 < 0 && this.ball.velocityY < 0))
-		{
-			this.ball.velocityY = -this.ball.velocityY;
-		}
-
 		if (this.ball.x + this.ball.width/2 > CANVAS_WIDTH)
 		{
 			// console.log('Player 1 scored', this.ball.y, this.player1.paddle.y);
