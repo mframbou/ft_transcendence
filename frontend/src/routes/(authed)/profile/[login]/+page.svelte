@@ -287,7 +287,7 @@
 </style>
 
 <script lang="ts">
-	import { user, friends, fetchFriends } from '$lib/stores';
+	import { user, friends, fetchFriends, fetchGameRooms, gameRooms } from '$lib/stores';
 	import { goto } from '$app/navigation';
 	import Button from '$lib/Button.svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
@@ -305,20 +305,7 @@
 		value: string | number;
 	}
 
-	let stats: IStat[] = [
-		{
-			name: 'Wins',
-			value: 'undefined',
-		},
-		{
-			name: 'Losses',
-			value: 'undefined',
-		},
-		{
-			name: 'Win %',
-			value: 'undefined',
-		},
-	];
+	let stats: IStat[] = [];
 
 	let matchHistory: any[] = [];
 
@@ -411,6 +398,19 @@
 		friendLoading = false;
 	}
 
+	async function getUserMatchLink()
+	{
+		await fetchGameRooms();
+		if ($gameRooms)
+		{
+			const room = $gameRooms.find(room => room.player1.login === targetUser.login || room.player2.login === targetUser.login);
+			if (room)
+			{
+				await goto('/game/' + room.id);
+			}
+		}
+	}
+
 </script>
 
 
@@ -426,7 +426,7 @@
 					<div class="username">
 						<h1>{targetUser.username}</h1>
 						<h2>@{targetUser.login}</h2>
-						<h2>{targetUser.status}</h2>
+						<h2>{targetUser.status} {#if targetUser.status === 'IN_GAME'}<a class="spectate-user" href={getUserMatchLink}>Spectate</a>{/if}</h2>
 					</div>
 
 					<div class="buttons">

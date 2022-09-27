@@ -1,30 +1,15 @@
 import { error } from '@sveltejs/kit';
-
-async function fetchGameRooms(fetch: any)
-{
-	try
-	{
-		const res = await fetch(`/api/game/rooms`);
-
-		if (!res.ok)
-		{
-			throw error(res.status, res.statusText);
-		}
-
-		const json = await res.json();
-		return json;
-	}
-	catch(e)
-	{
-		throw error(404, 'An error occured while fetching game rooms ' + e);
-	}
-}
-
+import { gameRooms, fetchGameRooms } from '$lib/stores';
+import { get } from 'svelte/store';
 
 // @ts-ignore
 export async function load({ fetch })
 {
+	const rooms = await fetchGameRooms(fetch);
+	if (!rooms)
+		throw error(500, 'Failed to fetch game rooms');
+
 	return {
-		rooms: await fetchGameRooms(fetch),
+		rooms: get(gameRooms),
 	};
 }

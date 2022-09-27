@@ -1,27 +1,16 @@
 <script lang="ts">
 
-	import { statusSocket, statusSocketConnected } from '$lib/websocket-stores';
-	import { onMount } from 'svelte';
-
-	$: if ($statusSocketConnected) {
-		initWebsocket();
-	}
-
-	function initWebsocket() {
-		const socket = $statusSocket;
-	}
+	import { gameRooms} from '$lib/stores';
 
 </script>
 
-{#if $statusSocketConnected}
-	Socket connected
-{:else}
-	Socket not connected
+{#if $gameRooms}
+	{#each $gameRooms as room}
+		{JSON.stringify(room)}
+	{/each}
+
+	{#if $gameRooms.length === 0}
+		No gamerooms
+	{/if}
 {/if}
-<!--{#await statusSocket}-->
-<!--	Connecting to socket-->
-<!--{:then value}-->
-<!--	connected: {JSON.stringify(value)}-->
-<!--{:catch error}-->
-<!--	error: {error}-->
-<!--{/await}-->
+

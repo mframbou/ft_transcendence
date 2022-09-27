@@ -127,7 +127,7 @@
 
         align-items: flex-end;
 
-        height: 50%;
+        height: 30px;
         width: 50%;
 
         input {

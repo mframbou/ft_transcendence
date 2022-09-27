@@ -170,7 +170,7 @@
 
 	.background
 	{
-		opacity: 1;
+		opacity: 0.6;
 
 		position: absolute;
 		top: 0;

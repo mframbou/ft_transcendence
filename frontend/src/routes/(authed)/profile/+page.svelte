@@ -322,20 +322,7 @@
 		value: string | number;
 	}
 
-	let stats: IStat[] = [
-		{
-			name: 'Wins',
-			value: 'undefined',
-		},
-		{
-			name: 'Losses',
-			value: 'undefined',
-		},
-		{
-			name: 'Win %',
-			value: 'undefined',
-		},
-	];
+	let stats: IStat[] = [];
 
 	let matchHistory: any[] = [];
 

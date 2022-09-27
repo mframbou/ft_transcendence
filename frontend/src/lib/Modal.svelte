@@ -12,7 +12,6 @@
 
 	function closeModal()
 	{
-		console.log('closing modal')
 		modalShown = false;
 
 		dispatch('close-modal', undefined);

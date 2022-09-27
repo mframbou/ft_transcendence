@@ -15,13 +15,20 @@
 		.logo
 		{
 			height: 100%;
-			left: 35px;
+			margin-right: auto;
+			margin-left: 15px;
+
+			img
+			{
+				height: 40%;
+			}
 		}
 
 		.profile
 		{
 			height: 100%;
-			right: 35px;
+			margin-left: auto;
+			margin-right: 15px;
 			justify-content: center;
 			align-items: center;
 		}
@@ -51,8 +58,8 @@
 		.logo
 		{
 			width: 100%;
-			left: 0;
-			top: 35px;
+			margin-bottom: auto;
+			margin-top: 25px;
 
 			img
 			{
@@ -63,7 +70,8 @@
 		.profile
 		{
 			width: 100%;
-			bottom: 35px;
+			margin-top: auto;
+			margin-bottom: 25px;
 			justify-content: left;
 			align-items: center;
 			padding-left: $elements-padding-left;
@@ -108,7 +116,7 @@
 
 	.logo
 	{
-		position: absolute;
+		//position: absolute;
 		vertical-align: middle;
 
 		display: flex;
@@ -118,7 +126,6 @@
 
 		img
 		{
-			height: 45%;
 			cursor: pointer;
 			position: relative;
 
@@ -133,7 +140,7 @@
 	{
 		display: flex;
 		flex-direction: row;
-		position: absolute;
+		//position: absolute;
 
 		button
 		{
