@@ -33,15 +33,8 @@ export class StatusGateway implements OnGatewayDisconnect, OnGatewayConnection
 
 	async handleConnection(client: any, ...args: any[])
 	{
-		const jwtParam = client.handshake.query.jwt;
+		const jwtPayload = await this.websocketsService.getFirstConnectionJwt(client);
 
-		if (typeof jwtParam !== 'string')
-		{
-			client.disconnect();
-			return;
-		}
-
-		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(jwtParam);
 		if (!jwtPayload)
 		{
 			client.disconnect();

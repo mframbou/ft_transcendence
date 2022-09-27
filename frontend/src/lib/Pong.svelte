@@ -168,6 +168,7 @@
 
 	function handleBallReset(serverData: any, isSpectating: boolean, isPlayerOne?: boolean)
 	{
+		console.log('ballreset');
 		const denormalizedBall = denormalizeBall(serverData);
 
 		ball.position.server_x = denormalizedBall.x;
@@ -571,7 +572,8 @@
 		ball.position.client_x = canvas.width / 2;
 		ball.position.client_y = canvas.height / 2;;
 		ball.speed = 500 * (canvas.width / 600);
-		ball.velocityX = -ball.velocityX;
+		const direction = ball.velocityX > 0 ? -1 : 1;
+		ball.velocityX = direction * (ball.speed * 0.7); // launch ball at 70% speed after reset (will be normal speeed after first hit)
 		// random angle between -30 and 30 degrees
 		const angleRad = (Math.random() -0.5) * (Math.PI / 3);
 		ball.velocityY = ball.speed * Math.sin(angleRad);
@@ -857,30 +859,6 @@
 			ball.position.client_x = lerp(ball.position.client_x, ballPredictedPosition.x, lerpFactor);
 			ball.position.client_y = lerp(ball.position.client_y, ballPredictedPosition.y, lerpFactor);
 		}
-
-		// floor and ceiling collision
-		// if ((ball.position.client_y + ball.height / 2 > canvas.height && ball.velocityY > 0) || (ball.position.client_y - ball.height / 2 < 0 && ball.velocityY < 0))
-		// {
-		// 	collisionSinceLastBallUpdate = true;
-		// 	ball.velocityY = -ball.velocityY;
-		// }
-
-		// const paddle = ball.velocityX < 0 ? player1.paddle : player2.paddle;
-		// if (checkCollision(ball, paddle))
-		// {
-		// 	// when collision, dont lerp ball position with server position until a new ball update is received
-		// 	collisionSinceLastBallUpdate = true;
-		//
-		// 	const collisionPoint = (ball.position.client_y - (paddle.position.client_y + paddle.height / 2)) / (paddle.height / 2);
-		// 	const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
-		// 	ball.speed *= 1.05;
-		// 	const direction = ball.velocityX > 0 ? -1 : 1;
-		// 	ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
-		// 	ball.velocityY = ball.speed * Math.sin(angleRad);
-		//
-		// 	if (gameMode === GameMode.SINGLEPLAYER)
-		// 		computerPaddleRandomOffset = generateRandomPaddleOffset();
-		// }
 
 		// ball out of bounds in singeplayer
 		if (gameMode === GameMode.SINGLEPLAYER)

@@ -30,15 +30,8 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
 
   async handleConnection(client: any, ...args: any[])
   {
-    const jwtParam = client.handshake.query.jwt;
+    const jwtPayload = await this.websocketsService.getFirstConnectionJwt(client);
 
-    if (typeof jwtParam !== 'string')
-    {
-      client.disconnect();
-      return;
-    }
-
-    const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(jwtParam);
     if (!jwtPayload)
     {
       client.disconnect();
@@ -52,7 +45,6 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
   // cannot use guard here because guards disconnect and if disconnect this function is called so it's a problem
   async handleDisconnect(client: Socket)
   {
-    console.log('disconnect', client.id);
     this.websocketsService.removeClient(client.id);
     this.gameService.handlePlayerDisconnect(client.id);
     this.gameService.handleSpectatorDisconnect(client.id);

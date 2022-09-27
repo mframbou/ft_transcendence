@@ -274,14 +274,17 @@ export default class ServerSidePong
 		};
 	}
 
+	// add delay so that after score ball is not going off directly
 	resetBall()
 	{
 		this.ball.x = CANVAS_WIDTH / 2;
-		this.ball.y = CANVAS_HEIGHT / 2;;
+		this.ball.y = CANVAS_HEIGHT / 2;
 		this.ball.speed = 500;
+		const direction = this.ball.velocityX > 0 ? -1 : 1;
+		this.ball.velocityX = direction * (this.ball.speed * 0.7); // launch ball at 70% speed after reset (will be normal speeed after first hit)
 		this.ball.velocityX = -this.ball.velocityX;
 		// random angle between -30 and 30 degrees
-		const angleRad = (Math.random() -0.5) * (Math.PI / 3);
+		const angleRad = (Math.random() - 0.5) * (Math.PI / 3);
 		this.ball.velocityY = this.ball.speed * Math.sin(angleRad);
 	}
 

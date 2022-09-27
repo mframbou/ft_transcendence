@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
 import { WsFirstConnectDto } from '../interfaces/dtos';
 import { AuthService } from '../auth/auth.service';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 @Injectable()
 export class WebsocketsService {
@@ -28,6 +28,20 @@ export class WebsocketsService {
 
 		// Add
 		this.clients.push(clientData);
+	}
+
+	async getFirstConnectionJwt(client: Socket): Promise<IJwtPayload | null>
+	{
+		const jwtParam = client.handshake.query.jwt;
+
+		if (typeof jwtParam !== 'string')
+			return null;
+
+		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(jwtParam);
+		if (!jwtPayload)
+			return null;
+
+		return jwtPayload;
 	}
 
 	removeClient(clientId: string)
