@@ -11,6 +11,7 @@ const BASE_ENDPOINT = `http://${host}:3002`;
 
 function waitForConnectionComplete(socket: Socket, timeout: number = 2000): Promise<Socket>
 {
+	let validated: boolean = false;
 	return new Promise((resolve, reject) => {
 		if (socket.connected)
 		{
@@ -18,17 +19,25 @@ function waitForConnectionComplete(socket: Socket, timeout: number = 2000): Prom
 			resolve(socket);
 		}
 
-		socket.once('confirmFirstConnect', () => {
-			console.log('received first connect confirm')
-			resolve(socket);
+		socket.on('connect', () => {
+
+			socket.once('confirmFirstConnect', () => {
+				console.log('received first connect confirm');
+				validated = true;
+				resolve(socket);
+			});
+
 		});
 
-		socket.connect().emit('firstConnect', {cookie: getCookie('cockies')});
-		console.log('sent first connect msg');
+		socket.connect();
 
 		setTimeout(() => {
-			console.log(`rejecting bro`);
-			reject(`Timeout of ${timeout}ms reached while waiting for 'confirmFirstConnect' event`);
+			if (!validated)
+			{
+				socket.removeAllListeners();
+				socket.disconnect();
+				reject(`Timeout of ${timeout}ms reached while waiting for 'confirmFirstConnect' event`);
+			}
 		}, timeout);
 	});
 }
@@ -45,6 +54,9 @@ function createWebsocket(namespace: string): Socket
 	const socket: Socket = ioClient(endpoint, {
 		autoConnect: false,
 		transports: ['websocket'], // to avoid long polling, which sends http request continuously
+		query: {
+			jwt: getCookie('cockies')
+		},
 	});
 
 	return socket;
@@ -54,7 +66,6 @@ function createWebsocketStore(namespace: string, timeout: number = 2000): { sock
 {
 	const socket: Socket = createWebsocket(namespace);
 	const connectedStoreWritable = writable(false);
-
 
 	const socketStore = readable(socket, set => {
 
@@ -66,16 +77,12 @@ function createWebsocketStore(namespace: string, timeout: number = 2000): { sock
 			connectedStoreWritable.set(false);
 		});
 
-		socket.on('disconnect', (reason) => {
-			console.log(`Websocket '${namespace}' disconnected, reason: ${reason}`);
-			connectedStoreWritable.set(false);
-		});
-
 		return () => {
 			if (socket)
 			{
-				console.log(`Disconnecting websocket '${namespace}'`);
+				console.log('disconnecting socket, connected:', socket.connected);
 				socket.disconnect();
+				socket.removeAllListeners();
 			}
 		};
 	});

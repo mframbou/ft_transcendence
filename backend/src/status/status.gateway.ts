@@ -1,4 +1,4 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
+import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, OnGatewayConnection, WebSocketServer } from '@nestjs/websockets';
 import { getCookie } from '../utils/utils';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
@@ -9,7 +9,6 @@ import { StatusService } from './status.service';
 import { Server } from 'socket.io';
 import { WsFirstConnectDto } from '../interfaces/dtos';
 
-
 const NAMESPACE = 'status';
 
 @WebSocketGateway(3001,{
@@ -17,9 +16,10 @@ const NAMESPACE = 'status';
 	cors: {origin: '*'},
 	// path: '/', // Default path is already '/'
 	namespace: NAMESPACE,
+	transports: ['websocket'],
 })
 // https://docs.nestjs.com/websockets/gateways
-export class StatusGateway implements OnGatewayDisconnect
+export class StatusGateway implements OnGatewayDisconnect, OnGatewayConnection
 {
 	constructor(
 			private authService: AuthService,
@@ -31,10 +31,17 @@ export class StatusGateway implements OnGatewayDisconnect
 	server: Server;
 
 
-	@SubscribeMessage('firstConnect')
-	async handleFirstConnect(client: any, payload: WsFirstConnectDto)
+	async handleConnection(client: any, ...args: any[])
 	{
-		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
+		const jwtParam = client.handshake.query.jwt;
+
+		if (typeof jwtParam !== 'string')
+		{
+			client.disconnect();
+			return;
+		}
+
+		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(jwtParam);
 		if (!jwtPayload)
 		{
 			client.disconnect();

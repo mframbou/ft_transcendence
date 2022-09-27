@@ -1,7 +1,7 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
+import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, OnGatewayConnection, WebSocketServer } from '@nestjs/websockets';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
-import { IJwtPayload, IWebsocketClient, IWsClient } from '../interfaces/interfaces';
+import { EUserStatus, IJwtPayload, IWebsocketClient, IWsClient } from '../interfaces/interfaces';
 import { AuthService } from '../auth/auth.service';
 import { getCookie } from '../utils/utils';
 import { WebsocketsService } from '../websockets/websockets.service';
@@ -16,9 +16,10 @@ const NAMESPACE = 'chat';
 @WebSocketGateway(3001,{
 	cors: {origin: '*'},
 	namespace: NAMESPACE,
+	transports: ['websocket'],
 })
 // @UseGuards(JwtTwoFactorAuthGuard)
-export class ChatGateway implements OnGatewayDisconnect
+export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection
 {
 	constructor(
 			private authService: AuthService,
@@ -29,10 +30,17 @@ export class ChatGateway implements OnGatewayDisconnect
   	@WebSocketServer()
 	server: Server;
 
-	@SubscribeMessage('firstConnect')
-	async handleFirstConnect(client: any, payload: WsFirstConnectDto)
+	async handleConnection(client: any, ...args: any[])
 	{
-		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
+		const jwtParam = client.handshake.query.jwt;
+
+		if (typeof jwtParam !== 'string')
+		{
+			client.disconnect();
+			return;
+		}
+
+		const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(jwtParam);
 		if (!jwtPayload)
 		{
 			client.disconnect();
@@ -40,6 +48,7 @@ export class ChatGateway implements OnGatewayDisconnect
 		}
 
 		this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
+		this.server.to(client.id).emit('confirmFirstConnect', {login: jwtPayload.login});
 	}
 
 	async handleDisconnect(client: any)

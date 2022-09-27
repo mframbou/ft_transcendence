@@ -1,8 +1,8 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
-import { IJwtPayload, IWebsocketClient, IWsClient } from '../interfaces/interfaces';
+import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, OnGatewayConnection, WebSocketServer } from '@nestjs/websockets';
+import { EUserStatus, IJwtPayload, IWebsocketClient, IWsClient } from '../interfaces/interfaces';
 import { AuthService } from '../auth/auth.service';
 import { WebsocketsService } from '../websockets/websockets.service';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { WsFirstConnectDto, WsPaddleMoveDto, WsSpectateDto } from '../interfaces/dtos';
 import { UseGuards } from '@nestjs/common';
@@ -14,9 +14,10 @@ const NAMESPACE = 'pong';
 @WebSocketGateway(3001,{
   cors: {origin: '*'},
   namespace: NAMESPACE,
+  transports: ['websocket'],
 })
 // @UseGuards(JwtTwoFactorAuthGuard)
-export class GameGateway implements OnGatewayDisconnect
+export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
 {
   constructor(
       private authService: AuthService,
@@ -27,10 +28,17 @@ export class GameGateway implements OnGatewayDisconnect
   @WebSocketServer()
   server: Server;
 
-  @SubscribeMessage('firstConnect')
-  async handleFirstConnect(client: any, payload: WsFirstConnectDto)
+  async handleConnection(client: any, ...args: any[])
   {
-    const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
+    const jwtParam = client.handshake.query.jwt;
+
+    if (typeof jwtParam !== 'string')
+    {
+      client.disconnect();
+      return;
+    }
+
+    const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(jwtParam);
     if (!jwtPayload)
     {
       client.disconnect();
@@ -38,14 +46,13 @@ export class GameGateway implements OnGatewayDisconnect
     }
 
     this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
-    // emit confirm after client is really added (to prevent connecting and sending msg at the same time, which will invalidate in auth guard)
-    console.log('sending confirmFirstConnect to', client.id, jwtPayload.login);
     this.server.to(client.id).emit('confirmFirstConnect', {login: jwtPayload.login});
   }
 
   // cannot use guard here because guards disconnect and if disconnect this function is called so it's a problem
-  async handleDisconnect(client: IWsClient)
+  async handleDisconnect(client: Socket)
   {
+    console.log('disconnect', client.id);
     this.websocketsService.removeClient(client.id);
     this.gameService.handlePlayerDisconnect(client.id);
     this.gameService.handleSpectatorDisconnect(client.id);
@@ -71,11 +78,10 @@ export class GameGateway implements OnGatewayDisconnect
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage('paddleMove')
-  async handleOnPaddleMove(client: any, payload: WsPaddleMoveDto)
+  async handleOnPaddleMove(client: IWsClient, payload: WsPaddleMoveDto)
   {
     const user = client.transcendenceUser;
 
-    console.log(`paddleMove from ${user.login} to ${payload.y}`);
     this.gameService.handlePlayerPaddleMove(user, payload);
   }
 

@@ -37,7 +37,7 @@ import { GameController } from './game/game.controller';
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, StatusGateway, ChatGateway, WebsocketsService, GameGateway, GameService, StatusService, FriendsService, ChatService],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, ChatGateway, WebsocketsService, GameGateway, GameService, StatusService, FriendsService, ChatService],
 })
 export class AppModule
 {}
