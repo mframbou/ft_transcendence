@@ -76,6 +76,7 @@
 	let gameMode: GameMode = GameMode.SINGLEPLAYER;
 
 	export let spectateId: string = null;
+	export let ballAspect: 'square' | 'circle' = 'circle';
 
 	$: if (spectateId)
 	{
@@ -365,8 +366,8 @@
 				server_x: canvas.width / 2,
 				server_y: canvas.height / 2
 			},
-			width: 10 * (canvas.width / 600),
-			height: 10 * (canvas.height / 400),
+			width: 20 * (canvas.width / 600),
+			height: 20 * (canvas.height / 400),
 			// speed = 500 when canvas.width = 600, 1000 when width is 1200 etc.
 			speed: 500 * (canvas.width / 600),
 			velocityX: 0,
@@ -418,7 +419,7 @@
 	{
 		context.fillStyle = color;
 		context.beginPath();
-		context.ellipse(x, y, width, height, 0, 0, 2 * Math.PI);
+		context.ellipse(x, y, width / 2, height / 2, 0, 0, 2 * Math.PI);
 		context.closePath();
 		context.fill();
 	}
@@ -438,7 +439,14 @@
 
 	function drawBall(ball: IBall)
 	{
-		drawEllipse(ball.position.client_x, ball.position.client_y, ball.width, ball.height, ball.color);
+		// ball x/y is the center of the ball
+		if (ballAspect === 'circle')
+			drawEllipse(ball.position.client_x, ball.position.client_y, ball.width, ball.height, ball.color);
+		else if (ballAspect === 'square')
+		{
+			console.log(`${ball.height} ${ball.width}`);
+			drawRect(ball.position.client_x - ball.width / 2, ball.position.client_y - ball.height / 2, ball.width, ball.height, ball.color);
+		}
 	}
 
 	function clearCanvas(color: string = 'black')
@@ -705,7 +713,7 @@
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 
 <div class="pong-wrapper">
-	<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="300" height="400"/>
+	<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
 </div>
 
 <style lang="scss">

@@ -265,8 +265,8 @@ export default class ServerSidePong
 		this.ball = {
 			x: CANVAS_WIDTH / 2,
 			y: CANVAS_HEIGHT / 2,
-			width: BALL_RADIUS,
-			height: BALL_RADIUS,
+			width: BALL_RADIUS * 2,
+			height: BALL_RADIUS * 2,
 			speed: 500, // speed = units per second
 			velocityX: 500,
 			velocityY: 0,
