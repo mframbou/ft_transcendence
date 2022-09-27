@@ -5,13 +5,26 @@
     import Button from "$lib/Button.svelte";
     import ParticlesBackground from "$lib/ParticlesBackground.svelte";
     import Modal from "$lib/Modal.svelte";
+    import PasswordPanel from './passwordPanel.svelte';
 
     export let room;
 
 
     let passwordPanel = false; 
+    let password = '';
+
+    async function pass() {
+        password = '';
+        if (!room.is_private) {
+            await joinRoom();
+            return ;
+        } else {  
+            passwordPanel = true;
+        }
+    }
 
     async function joinRoom() {
+        console.log("Joining room");
 
         // need to add error + security check
         const response = await fetch('/api/chat/joinRoom', {
@@ -22,25 +35,26 @@
             body: JSON.stringify({
                 chatId: room.id,
                 userId: $user.id,
+                password: password
             })
         });
 
         //const json = await response.json();
+        console.log("response in joinRoom : ", response);
 
-
-        if (room.is_private) {
-            passwordPanel = true;
-        } else {
-            goto('/chat/' + room.name);
-        }
+        //if (room.is_private) {
+            //passwordPanel = true;
+        //} else {
+            //goto('/chat/' + room.name);
+        //}
     }
 
 </script>
 
 {#if passwordPanel}
     <Modal on:close-modal={() => {passwordPanel = false}}>
-        <p>test</p>
-        <p>test</p>
+        <input class="test" type="text" bind:value={password} style="color:black" />
+        <Button on:click={joinRoom} on:click={() => {passwordPanel = false}}>OK</Button>
     </Modal>
 {/if}
 
@@ -58,7 +72,7 @@
     <p>
         {room.participants.length} user
     </p>
-    <button on:click={joinRoom}>join</button>
+    <button on:click={pass}>join</button>
 </div>
 
 <style lang="scss">
@@ -123,6 +137,15 @@
 		    border-radius: 20%;
 		    object-fit: cover;
             width: 5%;
+        }
+
+        .test {
+            color: black;
+            height: 1000%;
+        }
+
+        input {
+            color:black;
         }
 
 	}
