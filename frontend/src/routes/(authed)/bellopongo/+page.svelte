@@ -7,8 +7,8 @@ import { pongSocket, pongSocketConnected } from '$lib/websocket-stores';
 
 function setReady()
 {
-    console.log("CLIENT READY");
-		$pongSocket.emit('startMatchmaking', '');
+	console.log("CLIENT READY");
+	$pongSocket.emit('startMatchmaking', '');
 
 	$pongSocket.once('matchFound', (data) => {
 		console.log("MATCH FOUND, SENDING CONFIRMATION:", data);

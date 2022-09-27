@@ -1,20 +1,22 @@
 <script lang="ts">
 
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
 	import { statusSocket } from '$lib/websocket-stores';
 	import { user } from '../../../lib/stores';
 	import { goto } from '$app/navigation';
 
-	let friends = null;
-	let pendingFriendsSent = null;
-	let pendingFriendsReceived = null;
+	let friends = [];
+	let pendingFriendsSent = [];
+	let pendingFriendsReceived = [];
 
 	onMount(async () => {
 		$statusSocket.on('userStatusChanged', (data) =>
 		{
+			console.log('user status changed', data);
 			for (let friend of friends)
 			{
+				console.log(friend);
 				if (friend.login === data.login)
 				{
 					console.log('friend user status changed', data);
@@ -29,11 +31,10 @@
 		friends = friendsData;
 		pendingFriendsSent = pendingSent;
 		pendingFriendsReceived = pendingReceived;
+	});
 
-		return () =>
-		{
-			$statusSocket.off('userStatusChanged');
-		}
+	onDestroy(() => {
+		$statusSocket.off('userStatusChanged');
 	});
 
 	async function getAllFriends() {
@@ -191,7 +192,6 @@
 
 <div class="wrapper">
 
-	{#if friends !== null}
 	<section class="friends-list">
 		<h1>Friends</h1>
 		<div class="friends-list-wrapper">
@@ -212,32 +212,28 @@
 			{/if}
 		</div>
 	</section>
-	{/if}
 
-	{#if pendingFriendsReceived !== null}
-		<section class="pending-friends-received">
-			<h1>Pending friend requests received</h1>
-			<div class="friends-list-wrapper">
-				{#if pendingFriendsReceived.length > 0}
-					{#each pendingFriendsReceived as friend}
-						<a class="friend" href={`/profile/${friend.login}`}>
-							<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
-							<div class="friend-infos">
-								<span class="friend-username">{friend.username}</span>
-								<span class="friend-status">{friend.status}</span>
-							</div>
-						</a>
-					{/each}
-				{:else}
-					<div class="no-friends">
-						<h2>You have no pending friend requests received.</h2>
-					</div>
-				{/if}
-			</div>
-		</section>
-	{/if}
+	<section class="pending-friends-received">
+		<h1>Pending friend requests received</h1>
+		<div class="friends-list-wrapper">
+			{#if pendingFriendsReceived.length > 0}
+				{#each pendingFriendsReceived as friend}
+					<a class="friend" href={`/profile/${friend.login}`}>
+						<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
+						<div class="friend-infos">
+							<span class="friend-username">{friend.username}</span>
+							<span class="friend-status">{friend.status}</span>
+						</div>
+					</a>
+				{/each}
+			{:else}
+				<div class="no-friends">
+					<h2>You have no pending friend requests received.</h2>
+				</div>
+			{/if}
+		</div>
+	</section>
 
-	{#if pendingFriendsSent !== null}
 	<section class="pending-friends-sent">
 		<h1>Pending friend requests sent</h1>
 		<div class="friends-list-wrapper">
@@ -258,7 +254,6 @@
 			{/if}
 		</div>
 	</section>
-	{/if}
 
 </div>
 

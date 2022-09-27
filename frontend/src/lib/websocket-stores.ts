@@ -49,6 +49,7 @@ function createWebsocketStore(namespace: string, timeout: number = 2000): { sock
 	const connectedStoreWritable = writable(false);
 
 	const socketStore = readable(socket, set => {
+
 		waitForConnectionComplete(socket, timeout).then(() => {
 			console.log(`Websocket '${namespace}' connected and confirmed`);
 			connectedStoreWritable.set(true);

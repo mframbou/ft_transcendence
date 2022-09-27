@@ -1,6 +1,6 @@
 <script lang="ts">
 
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { pongSocket } from '$lib/websocket-stores';
 
 	interface position
@@ -76,7 +76,7 @@
 	let gameMode: GameMode = GameMode.SINGLEPLAYER;
 
 	export let spectateId: string = null;
-	export let ballAspect: 'square' | 'circle' = 'circle';
+	export let ballAspect: 'square' | 'circle' = 'square';
 
 	$: if (spectateId)
 	{
@@ -385,7 +385,9 @@
 		resetBall()
 	}
 
-	onMount(async () =>
+	// https://www.reddit.com/r/sveltejs/comments/rn3vp0/is_there_any_difference_between_ondestroy_and_the/
+	// if onMount is async, it's return value is not called
+	onMount(() =>
 	{
 		context = <CanvasRenderingContext2D> canvas.getContext('2d', { alpha: false });
 
@@ -443,10 +445,7 @@
 		if (ballAspect === 'circle')
 			drawEllipse(ball.position.client_x, ball.position.client_y, ball.width, ball.height, ball.color);
 		else if (ballAspect === 'square')
-		{
-			console.log(`${ball.height} ${ball.width}`);
 			drawRect(ball.position.client_x - ball.width / 2, ball.position.client_y - ball.height / 2, ball.width, ball.height, ball.color);
-		}
 	}
 
 	function clearCanvas(color: string = 'black')
