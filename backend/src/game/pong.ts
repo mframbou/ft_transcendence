@@ -7,7 +7,8 @@ interface IBall
 {
 	x: number;
 	y: number;
-	radius: number;
+	width: number,
+	height: number,
 	velocityX: number;
 	velocityY: number;
 	speed: number;
@@ -40,13 +41,15 @@ const CANVAS_HEIGHT = 400;
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
 
+const BALL_RADIUS = 10;
+
 // we consider the ball squared, then do this: https://www.gamedev.net/articles/programming/general-and-gameplay-programming/swept-aabb-collision-detection-and-response-r3084/
 // with deflection
 // 0.5 = collision in the middle of the frame, 0 = collision at the start, 1 = no collision
 function getCollision(ball: IBall, collider: {x: number, y: number, width: number, height: number}, deltaTimeMultiplier: number): { normalX: number, normalY: number, time: number }
 {
 	// make ball and targetBall x in the top left corner
-	const ballPos = {x: ball.x - ball.radius, y: ball.y - ball.radius}
+	const ballPos = {x: ball.x - ball.width / 2, y: ball.y - ball.height / 2};
 
 	let xInvEntry: number;
 	let yInvEntry: number;
@@ -55,24 +58,24 @@ function getCollision(ball: IBall, collider: {x: number, y: number, width: numbe
 
 	if (ball.velocityX > 0)
 	{
-		xInvEntry = collider.x - (ballPos.x + ball.radius * 2);
+		xInvEntry = collider.x - (ballPos.x + ball.width);
 		xInvExit = (collider.x + collider.width) - ballPos.x;
 	}
 	else
 	{
 		xInvEntry = (collider.x + collider.width) - ballPos.x;
-		xInvExit = collider.x - (ballPos.x + ball.radius * 2);
+		xInvExit = collider.x - (ballPos.x + ball.width);
 	}
 
 	if (ball.velocityY > 0)
 	{
-		yInvEntry = collider.y - (ballPos.y + ball.radius * 2);
+		yInvEntry = collider.y - (ballPos.y + ball.height);
 		yInvExit = (collider.y + collider.height) - ballPos.y;
 	}
 	else
 	{
 		yInvEntry = (collider.y + collider.height) - ballPos.y;
-		yInvExit = collider.y - (ballPos.y + ball.radius * 2);
+		yInvExit = collider.y - (ballPos.y + ball.height);
 	}
 
 	let xEntry: number;
@@ -140,7 +143,7 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 
 	// https://stackoverflow.com/questions/38765194/conditionally-initializing-a-constant-in-javascript
 	const collisionYObject = (() => {
-		if (ball.y + ball.radius + ball.velocityY * deltaTimeMultiplier * collision.time >= CANVAS_HEIGHT)
+		if (ball.y + ball.height / 2 + ball.velocityY * deltaTimeMultiplier * collision.time >= CANVAS_HEIGHT)
 		{
 			return { x: 0, y: CANVAS_HEIGHT, width: CANVAS_WIDTH, height: 1 };
 		}
@@ -262,7 +265,8 @@ export default class ServerSidePong
 		this.ball = {
 			x: CANVAS_WIDTH / 2,
 			y: CANVAS_HEIGHT / 2,
-			radius: 10,
+			width: BALL_RADIUS,
+			height: BALL_RADIUS,
 			speed: 500, // speed = units per second
 			velocityX: 500,
 			velocityY: 0,
@@ -300,7 +304,8 @@ export default class ServerSidePong
 			y: ball.y / CANVAS_HEIGHT,
 			velocityX: ball.velocityX / CANVAS_WIDTH,
 			velocityY: ball.velocityY / CANVAS_HEIGHT,
-			radius: ball.radius / CANVAS_WIDTH,
+			width: ball.width / CANVAS_WIDTH,
+			height: ball.height / CANVAS_HEIGHT,
 			speed: ball.speed / CANVAS_WIDTH,
 		};
 
@@ -314,7 +319,8 @@ export default class ServerSidePong
 			y: ballReset.y / CANVAS_HEIGHT,
 			velocityX: ballReset.velocityX / CANVAS_WIDTH,
 			velocityY: ballReset.velocityY / CANVAS_HEIGHT,
-			radius: ballReset.radius / CANVAS_WIDTH,
+			width: ballReset.width / CANVAS_WIDTH,
+			height: ballReset.height / CANVAS_HEIGHT,
 			speed: ballReset.speed / CANVAS_WIDTH,
 		};
 
@@ -351,12 +357,12 @@ export default class ServerSidePong
 
 
 		// Check if ball is not already going right way to avoid issue where ball is stuck on the side alterning between +velY and -velY
-		if ((this.ball.y + this.ball.radius > CANVAS_HEIGHT && this.ball.velocityY > 0) || (this.ball.y - this.ball.radius < 0 && this.ball.velocityY < 0))
+		if ((this.ball.y + this.ball.height/2 > CANVAS_HEIGHT && this.ball.velocityY > 0) || (this.ball.y - this.ball.height/2 < 0 && this.ball.velocityY < 0))
 		{
 			this.ball.velocityY = -this.ball.velocityY;
 		}
 
-		if (this.ball.x + this.ball.radius > CANVAS_WIDTH)
+		if (this.ball.x + this.ball.width/2 > CANVAS_WIDTH)
 		{
 			// console.log('Player 1 scored', this.ball.y, this.player1.paddle.y);
 			this.player1.score++;
@@ -364,7 +370,7 @@ export default class ServerSidePong
 			this.resetBall(); // reset ball before sending new ball otherwise it would only reset on the next update
 			this.sendBallReset(this.ball);
 		}
-		else if (this.ball.x - this.ball.radius < 0)
+		else if (this.ball.x - this.ball.width/2 < 0)
 		{
 			// console.log('Player 2 scored', this.ball.y, this.player2.paddle.y);
 			this.player2.score++;

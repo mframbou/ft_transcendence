@@ -14,7 +14,8 @@
 	interface IBall
 	{
 		position: position;
-		radius: number;
+		width: number;
+		height: number;
 		velocityX: number;
 		velocityY: number;
 		speed: number;
@@ -35,6 +36,16 @@
 		score: number;
 	}
 
+	interface INet
+	{
+		x: number;
+		y: number;
+		width: number;
+		dashHeight: number;
+		dashGap: number;
+		color: string;
+	}
+
 	enum GameMode
 	{
 		SINGLEPLAYER,
@@ -53,7 +64,7 @@
 	let player1: IPLayer;
 	let player2: IPLayer;
 	let ball: IBall;
-	let net: any;
+	let net: INet;
 
 	let collisionSinceLastBallUpdate: boolean;
 	let animationFrameId: number;
@@ -83,7 +94,8 @@
 			velocityX: serverData.velocityX * canvas.width,
 			velocityY: serverData.velocityY * canvas.height,
 			speed: serverData.speed * canvas.width,
-			radius: serverData.radius * canvas.width,
+			width: serverData.width * canvas.width,
+			height: serverData.height * canvas.height,
 		}
 	}
 
@@ -125,7 +137,8 @@
 		ball.velocityX = denormalizedBall.velocityX;
 		ball.velocityY = denormalizedBall.velocityY;
 		ball.speed = denormalizedBall.speed;
-		ball.radius = denormalizedBall.radius;
+		ball.width = denormalizedBall.width;
+		ball.height = denormalizedBall.height;
 
 		if (!isSpectating && !isPlayerOne)
 		{
@@ -147,7 +160,8 @@
 		ball.velocityX = denormalizedBall.velocityX;
 		ball.velocityY = denormalizedBall.velocityY;
 		ball.speed = denormalizedBall.speed;
-		ball.radius = denormalizedBall.radius;
+		ball.width = denormalizedBall.width;
+		ball.height = denormalizedBall.height;
 
 		if (!isSpectating && !isPlayerOne)
 		{
@@ -351,7 +365,8 @@
 				server_x: canvas.width / 2,
 				server_y: canvas.height / 2
 			},
-			radius: 10,
+			width: 10 * (canvas.width / 600),
+			height: 10 * (canvas.height / 400),
 			// speed = 500 when canvas.width = 600, 1000 when width is 1200 etc.
 			speed: 500 * (canvas.width / 600),
 			velocityX: 0,
@@ -399,11 +414,11 @@
 		context.fillRect(x, y, w, h);
 	}
 
-	function drawCircle(x: number, y: number, r: number, color: string)
+	function drawEllipse(x: number, y: number, width: number, height: number, color: string)
 	{
 		context.fillStyle = color;
 		context.beginPath();
-		context.arc(x, y, r, 0, Math.PI * 2);
+		context.ellipse(x, y, width, height, 0, 0, 2 * Math.PI);
 		context.closePath();
 		context.fill();
 	}
@@ -423,7 +438,7 @@
 
 	function drawBall(ball: IBall)
 	{
-		drawCircle(ball.position.client_x, ball.position.client_y, ball.radius, ball.color);
+		drawEllipse(ball.position.client_x, ball.position.client_y, ball.width, ball.height, ball.color);
 	}
 
 	function clearCanvas(color: string = 'black')
@@ -442,6 +457,7 @@
 		context.lineTo(net.x, canvas.height);
 		context.stroke();
 		context.setLineDash([]);
+		context.lineWidth = 1;
 	}
 
 	function drawScore(color: string = 'white')
@@ -537,10 +553,10 @@
 
 	function checkCollision(ball: IBall, paddle: IPaddle)
 	{
-		const ballTop = ball.position.client_y - ball.radius;
-		const ballBottom = ball.position.client_y + ball.radius;
-		const ballLeft = ball.position.client_x- ball.radius;
-		const ballRight = ball.position.client_x + ball.radius;
+		const ballTop = ball.position.client_y - ball.height / 2;
+		const ballBottom = ball.position.client_y + ball.height / 2;
+		const ballLeft = ball.position.client_x- ball.width / 2;
+		const ballRight = ball.position.client_x + ball.width / 2;
 
 		const paddleTop = paddle.position.client_y;
 		const paddleBottom = paddle.position.client_y + paddle.height;
@@ -628,7 +644,7 @@
 		}
 
 		// floor and ceiling collision
-		if ((ball.position.client_y + ball.radius > canvas.height && ball.velocityY > 0) || (ball.position.client_y - ball.radius < 0 && ball.velocityY < 0))
+		if ((ball.position.client_y + ball.height / 2 > canvas.height && ball.velocityY > 0) || (ball.position.client_y - ball.height / 2 < 0 && ball.velocityY < 0))
 		{
 			collisionSinceLastBallUpdate = true;
 			ball.velocityY = -ball.velocityY;
@@ -637,12 +653,12 @@
 		// ball out of bounds in singeplayer
 		if (gameMode === GameMode.SINGLEPLAYER)
 		{
-			if (ball.position.client_x + ball.radius > canvas.width)
+			if (ball.position.client_x + ball.width / 2 > canvas.width)
 			{
 				player1.score++;
 				resetBall(); // reset ball before sending new ball otherwise it would only reset on the next update
 			}
-			else if (ball.position.client_x - ball.radius < 0)
+			else if (ball.position.client_x - ball.width / 2 < 0)
 			{
 				player2.score++;
 				resetBall();
@@ -689,7 +705,7 @@
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 
 <div class="pong-wrapper">
-	<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
+	<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="300" height="400"/>
 </div>
 
 <style lang="scss">
