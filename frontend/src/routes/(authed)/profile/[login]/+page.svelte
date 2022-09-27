@@ -430,9 +430,11 @@
 					</div>
 
 					<div class="buttons">
-							{#if $friends?.friends.find(friend => friend.login === targetUser.login) === undefined}
+
+						{#if $friends}
+							{#if $friends.friends.find(friend => friend.login === targetUser.login) === undefined}
 								<!-- Not friend -->
-								{#if $friends?.pendingSent.find(friend => friend.login === targetUser.login) !== undefined}
+								{#if $friends.pendingSent.find(friend => friend.login === targetUser.login) !== undefined}
 									<Button disabled={friendLoading} on:click={removeFriend}>
 										<span class="banner-button">Cancel friend request</span>
 									</Button>
@@ -456,13 +458,12 @@
 									<span class="banner-button">Message</span>
 								</Button>
 
-
 							{/if}
-
 
 							<Button border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('test')}>
 								<span>...</span>
 							</Button>
+						{/if}
 					</div>
 
 				</div>

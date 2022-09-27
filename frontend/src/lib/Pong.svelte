@@ -76,7 +76,7 @@
 	let gameMode: GameMode = GameMode.SINGLEPLAYER;
 
 	export let spectateId: string = null;
-	export let ballAspect: 'square' | 'circle' = 'square';
+	export let ballAspect: 'square' | 'circle' = 'circle';
 	export let currentMode: 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER'; // to pass data to parent, prevents parent from modifying it and breaking everything by copying gameMode (+ string instead of enum)
 
 	$: {
@@ -500,7 +500,7 @@
 	function generateRandomPaddleOffset()
 	{
 		// since offset is more than half of paddle height, sometimes computer will not be able to reach the ball (because computer wants to center its target pos to paddle)
-		return Math.random() * (player2.paddle.height / 1.75);
+		return (Math.random() - 0.5) * (player2.paddle.height / 0.95);
 	}
 
 	/////////////////////

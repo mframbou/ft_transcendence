@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 
-export const user = writable(null, (set) => {
+export const user = writable(undefined, (set) => {
 	if (browser)
 	{
 		fetchUserJson().then((json) => {
@@ -14,7 +14,7 @@ export const user = writable(null, (set) => {
 	return () => {};
 });
 
-export const friends = writable(null, (set) =>
+export const friends = writable(undefined, (set) =>
 {
 	if (browser)
 	{
@@ -129,9 +129,9 @@ async function fetchFriendsJson(customFetch?: any)
 	{
 		let res;
 		if (typeof(customFetch) !== 'undefined')
-			res = await customFetch('/api/users/me/friends');
+			res = await customFetch('/api/friends/all');
 		else
-			res = await fetch('/api/users/me/friends');
+			res = await fetch('/api/friends/all');
 
 		if (res.ok)
 		{

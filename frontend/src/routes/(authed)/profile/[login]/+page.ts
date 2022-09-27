@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { resJson } from '$lib/utils';
+import { fetchFriends } from '../../../../lib/stores';
 
 async function loadUser(login: string, fetch: any)
 {

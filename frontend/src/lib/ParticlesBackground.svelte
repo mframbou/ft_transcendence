@@ -21,6 +21,7 @@
 	};
 
 	const mousePos = {x: -1, y: -1};
+	let animationFrameId: number;
 
 	class Point
 	{
@@ -132,13 +133,13 @@
 		for (let point of points)
 			point.draw(context);
 
-		requestAnimationFrame(() => loop(canvas, context));
+		animationFrameId = requestAnimationFrame(() => loop(canvas, context));
 	}
 
 	function render(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D)
 	{
 		lastUpdate = performance.now();
-		requestAnimationFrame(() => loop(canvas, context));
+		animationFrameId = requestAnimationFrame(() => loop(canvas, context));
 	}
 
 	const points: Point[] = [];
@@ -194,6 +195,10 @@
 		}
 
 		render(canvas, context);
+
+		return () => {
+			cancelAnimationFrame(animationFrameId);
+		};
 	});
 
 </script>
