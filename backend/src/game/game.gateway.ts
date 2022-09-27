@@ -30,7 +30,6 @@ export class GameGateway implements OnGatewayDisconnect
   @SubscribeMessage('firstConnect')
   async handleFirstConnect(client: any, payload: WsFirstConnectDto)
   {
-    console.log(`First connect date: ${new Date()}`);
     const jwtPayload: IJwtPayload = await this.authService.getJwtFromCookie(payload.cookie);
     if (!jwtPayload)
     {
