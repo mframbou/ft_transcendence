@@ -39,6 +39,7 @@ export class GameGateway implements OnGatewayDisconnect
 
     this.websocketsService.addClient({id: client.id, login: jwtPayload.login, namespace: NAMESPACE});
     // emit confirm after client is really added (to prevent connecting and sending msg at the same time, which will invalidate in auth guard)
+    console.log('sending confirmFirstConnect to', client.id, jwtPayload.login);
     this.server.to(client.id).emit('confirmFirstConnect', {login: jwtPayload.login});
   }
 
@@ -74,6 +75,7 @@ export class GameGateway implements OnGatewayDisconnect
   {
     const user = client.transcendenceUser;
 
+    console.log(`paddleMove from ${user.login} to ${payload.y}`);
     this.gameService.handlePlayerPaddleMove(user, payload);
   }
 

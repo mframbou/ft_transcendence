@@ -44,9 +44,6 @@ const config = {
 		watch: {
 			usePolling: true,
 		},
-		hmr: {
-			host: 'localhost'
-		}
 	}
 };
 

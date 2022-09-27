@@ -20,7 +20,7 @@ export class WsAuthGuard implements CanActivate {
 
     if (!user)
     {
-      console.log('User not found in websocketsService');
+      console.log(`User ${client.id} not found in websocketsService`);
       client.disconnect();
       return false;
     }

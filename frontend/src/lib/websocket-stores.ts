@@ -13,15 +13,21 @@ function waitForConnectionComplete(socket: Socket, timeout: number = 2000): Prom
 {
 	return new Promise((resolve, reject) => {
 		if (socket.connected)
+		{
+			console.log('socket already connected');
 			resolve(socket);
+		}
 
 		socket.once('confirmFirstConnect', () => {
+			console.log('received first connect confirm')
 			resolve(socket);
 		});
 
 		socket.connect().emit('firstConnect', {cookie: getCookie('cockies')});
+		console.log('sent first connect msg');
 
 		setTimeout(() => {
+			console.log(`rejecting bro`);
 			reject(`Timeout of ${timeout}ms reached while waiting for 'confirmFirstConnect' event`);
 		}, timeout);
 	});
@@ -38,6 +44,7 @@ function createWebsocket(namespace: string): Socket
 
 	const socket: Socket = ioClient(endpoint, {
 		autoConnect: false,
+		transports: ['websocket'], // to avoid long polling, which sends http request continuously
 	});
 
 	return socket;
@@ -47,6 +54,7 @@ function createWebsocketStore(namespace: string, timeout: number = 2000): { sock
 {
 	const socket: Socket = createWebsocket(namespace);
 	const connectedStoreWritable = writable(false);
+
 
 	const socketStore = readable(socket, set => {
 
@@ -59,12 +67,16 @@ function createWebsocketStore(namespace: string, timeout: number = 2000): { sock
 		});
 
 		socket.on('disconnect', (reason) => {
+			console.log(`Websocket '${namespace}' disconnected, reason: ${reason}`);
 			connectedStoreWritable.set(false);
 		});
 
 		return () => {
 			if (socket)
+			{
+				console.log(`Disconnecting websocket '${namespace}'`);
 				socket.disconnect();
+			}
 		};
 	});
 

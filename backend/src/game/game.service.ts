@@ -63,7 +63,7 @@ export class GameService {
 
 		console.log(`Player ${player.login} confirmed match (opponent: ${player === room.player1 ? room.player2.login : room.player1.login})`);
 
-		if (room.player1.ready && room.player2.ready)
+		if (room.player1.ready && room.player2.ready && !room.gameInstance)
 		{
 			console.log(`Game between ${room.player1.login} and ${room.player2.login} started`);
 			room.gameInstance = new ServerSidePong(room, server, this);
@@ -87,7 +87,7 @@ export class GameService {
 			// player.clientId = null;
 			// if (gameRoom.gameInstance)
 			// 	gameRoom.gameInstance.pause();
-			console.log(`Player ${player.login} disconnected from game room ${gameRoom.id}`);
+			console.log(`Player ${player.login} disconnected from game room ${gameRoom.id}, rooms number: ${this.gameRooms.length}`);
 		}
 	}
 
