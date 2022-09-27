@@ -38,7 +38,8 @@ import {
     @Post('joinRoom')
     async addParticipant(@Body() data: AddParticipantDto, @Req() req: IUserRequest) {
         const payload = req.jwtPayload;
-        return await this.chatService.addParticipant(data.chatId, data.userId);
+        console.log("data : " + JSON.stringify(data));
+        return await this.chatService.addParticipant(data.chatId, data.userId, data.password);
     }
 
 

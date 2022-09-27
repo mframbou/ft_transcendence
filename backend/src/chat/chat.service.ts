@@ -100,6 +100,18 @@ export class ChatService {
             return ;
         }
 
+        let room = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: chatId
+            },
+        });
+
+        // need to throw correct error
+        if (room.is_private && room.hash != password) {
+            console.log("incorect password");
+            return ;
+        }
+
         await this.prisma.participant.create({
             data: {
                 chatRoomId: chatId,
