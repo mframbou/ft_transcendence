@@ -168,7 +168,6 @@
 
 	function handleBallReset(serverData: any, isSpectating: boolean, isPlayerOne?: boolean)
 	{
-		console.log('ball reset', serverData, isSpectating, isPlayerOne);
 		const denormalizedBall = denormalizeBall(serverData);
 
 		ball.position.server_x = denormalizedBall.x;
@@ -193,7 +192,6 @@
 
 	function handlePaddleReset(serverData: any)
 	{
-		console.log('paddle reset', serverData);
 		const { paddle1, paddle2 } = denormalizePaddles(serverData);
 
 		player1.paddle.position.server_x = paddle1.x;

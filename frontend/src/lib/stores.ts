@@ -1,9 +1,13 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 
-export const user = writable(undefined, (set) => {
-	if (browser)
+let fetchingUser: boolean = false;
+let fetchingFriends: boolean = false;
+let fetchingGameRooms: boolean = false;
+
+export const user = writable(null, (set) => {
+	if (browser && !fetchingUser && get(user) === null) // dont get if already set (but allow refetch)
 	{
 		fetchUserJson().then((json) => {
 			if (json)
@@ -14,9 +18,9 @@ export const user = writable(undefined, (set) => {
 	return () => {};
 });
 
-export const friends = writable(undefined, (set) =>
+export const friends = writable(null, (set) =>
 {
-	if (browser)
+	if (browser && !fetchingFriends && get(friends) === null)
 	{
 		fetchFriendsJson().then((json) =>
 		{
@@ -29,7 +33,7 @@ export const friends = writable(undefined, (set) =>
 });
 
 export const gameRooms = writable(null, (set) => {
-	if (browser)
+	if (browser && !fetchingGameRooms && get(gameRooms) === null)
 	{
 		fetchGameRoomsJson().then((json) => {
 			if (json)
@@ -46,6 +50,7 @@ export const chatRooms: any = writable([]);
 
 async function fetchGameRoomsJson(customFetch?: any)
 {
+	fetchingGameRooms = true;
 	try
 	{
 		let res;
@@ -54,6 +59,7 @@ async function fetchGameRoomsJson(customFetch?: any)
 		else
 			res = await fetch('/api/game/rooms');
 
+		fetchingGameRooms = false;
 		if (res.ok)
 		{
 			const json = await res.json();
@@ -66,6 +72,7 @@ async function fetchGameRoomsJson(customFetch?: any)
 	{
 		console.log("Encountered error while fetching gameRooms: ", e);
 	}
+	fetchingGameRooms = false;
 	return null;
 }
 
@@ -82,6 +89,7 @@ export async function fetchGameRooms(customFetch?: any): Promise<boolean>
 
 async function fetchUserJson(customFetch?: any)
 {
+	fetchingUser = true;
 	try
 	{
 		let res;
@@ -90,6 +98,7 @@ async function fetchUserJson(customFetch?: any)
 		else
 			res = await fetch('/api/users/me');
 
+		fetchingUser = false;
 		if (res.ok)
 		{
 			const json = await res.json();
@@ -109,6 +118,7 @@ async function fetchUserJson(customFetch?: any)
 	{
 		console.log("Encountered error while fetching user: ", e);
 	}
+	fetchingUser = false;
 	return null;
 }
 
@@ -125,6 +135,7 @@ export async function fetchUser(customFetch?: any): Promise<boolean>
 
 async function fetchFriendsJson(customFetch?: any)
 {
+	fetchingFriends = true;
 	try
 	{
 		let res;
@@ -133,6 +144,7 @@ async function fetchFriendsJson(customFetch?: any)
 		else
 			res = await fetch('/api/friends/all');
 
+		fetchingFriends = false;
 		if (res.ok)
 		{
 			const json = await res.json();
@@ -145,6 +157,7 @@ async function fetchFriendsJson(customFetch?: any)
 	{
 		console.log("Encountered error while fetching friends: ", e);
 	}
+	fetchingFriends = false;
 	return null;
 }
 
