@@ -1,6 +1,6 @@
 <script lang="ts">
 
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { pongSocket } from '$lib/websocket-stores';
 
 	interface position
@@ -77,6 +77,22 @@
 
 	export let spectateId: string = null;
 	export let ballAspect: 'square' | 'circle' = 'square';
+	export let currentMode: 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER'; // to pass data to parent, prevents parent from modifying it and breaking everything by copying gameMode (+ string instead of enum)
+
+	$: {
+		switch(gameMode)
+		{
+			case GameMode.SINGLEPLAYER:
+				currentMode = 'SINGLEPLAYER';
+				break;
+			case GameMode.MULTIPLAYER:
+				currentMode = 'MULTIPLAYER';
+				break;
+			case GameMode.SPECTATOR:
+				currentMode = 'SPECTATOR';
+				break;
+		}
+	}
 
 	$: if (spectateId)
 	{
@@ -519,7 +535,7 @@
 	let pressedKeys: string[] = [];
 	function handleKeyDown(event: KeyboardEvent)
 	{
-		if (spectateId !== null)
+		if (gameMode === GameMode.SPECTATOR)
 			return;
 
 		pressedKeys.push(event.key);
@@ -527,7 +543,7 @@
 
 	function handleKeyUp(event: KeyboardEvent)
 	{
-		if (spectateId !== null)
+		if (gameMode === GameMode.SPECTATOR)
 			return;
 
 		pressedKeys = pressedKeys.filter((key: string) => key !== event.key);
@@ -535,7 +551,7 @@
 
 	function handleMouse(event: MouseEvent)
 	{
-		if (spectateId !== null)
+		if (gameMode === GameMode.SPECTATOR)
 			return;
 
 		let rect = canvas.getBoundingClientRect();
@@ -555,6 +571,8 @@
 		// random angle between -30 and 30 degrees
 		const angleRad = (Math.random() -0.5) * (Math.PI / 3);
 		ball.velocityY = ball.speed * Math.sin(angleRad);
+		if (gameMode === GameMode.SINGLEPLAYER)
+			computerPaddleRandomOffset = generateRandomPaddleOffset();
 	}
 
 
@@ -586,7 +604,7 @@
 		//////////////
 		// MOVEMENT //
 		//////////////
-		if (gameMode === GameMode.MULTIPLAYER)
+		if (gameMode === GameMode.MULTIPLAYER || gameMode === GameMode.SINGLEPLAYER)
 		{
 			let speedMultiplier = 1;
 			if (pressedKeys.includes('Shift'))
@@ -595,8 +613,8 @@
 			if (pressedKeys.includes('Control'))
 				speedMultiplier = 0.5;
 
-			// means 3 times the paddle height every second (at normal speeed)
-			const moveDistance = player1.paddle.height * 3 * speedMultiplier * updateMultiplier;
+			// means 5 times the paddle height every second (at normal speeed)
+			const moveDistance = player1.paddle.height * 5 * speedMultiplier * updateMultiplier;
 
 			if (pressedKeys.includes('ArrowUp'))
 			{
@@ -617,7 +635,14 @@
 		ball.position.client_x += ball.velocityX * updateMultiplier;
 		ball.position.client_y += ball.velocityY * updateMultiplier;
 
-		if (gameMode !== GameMode.SINGLEPLAYER && !collisionSinceLastBallUpdate)
+		// either user has a very bad computer (< 5 fps) or left the page and come back
+		if (gameMode !== GameMode.SINGLEPLAYER && deltaTime > 200)
+		{
+			// Set ball pos to server pos to avoid having very high velocity (eg. deltaTime = 5000) and then lerping to server pos, which would still be very far away
+			ball.position.client_x = ball.position.server_x;
+			ball.position.client_y = ball.position.server_y;
+		}
+		else if (gameMode !== GameMode.SINGLEPLAYER && !collisionSinceLastBallUpdate)
 		{
 			// lerp ball to server position if no collision (should already be almost equivalent client pos and server pos)
 			const elapsedTimeSinceBallUpdate = now - lastBallUpdate;

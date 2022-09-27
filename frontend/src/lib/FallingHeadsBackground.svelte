@@ -82,10 +82,12 @@
 		}
 	}
 
+	let windowInnerWidth: number = 0;
+	let windowInnerHeight: number = 0;
 	function updateCanvasSize(canvas: HTMLCanvasElement)
 	{
-		canvas.width = canvas.parentElement?.clientWidth ?? window.innerWidth;
-		canvas.height = canvas.parentElement?.clientHeight ?? window.innerHeight;
+		canvas.width = canvas.parentElement?.clientWidth ?? windowInnerWidth;
+		canvas.height = canvas.parentElement?.clientHeight ?? windowInnerHeight;
 	}
 
 	function loop(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D)
@@ -171,7 +173,7 @@
 
 </script>
 
-<svelte:window on:resize={windowResizeListener} on:click={handleClick} />
+<svelte:window on:resize={windowResizeListener} on:click={handleClick} bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} />
 
 <div class="wrapper">
 	<canvas bind:this={canvas} class="particles-background"></canvas>

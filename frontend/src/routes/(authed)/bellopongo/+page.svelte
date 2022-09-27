@@ -16,6 +16,8 @@ function setReady()
 	});
 }
 
+let currentMode : 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER';
+
 </script>
 
 
@@ -26,6 +28,6 @@ function setReady()
 
 </style>
 
-<Pong />
-<Button disabled={!$pongSocketConnected} on:click={setReady}>Ready</Button>
+<Pong bind:currentMode />
+<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected} on:click={setReady}>Ready</Button>
 

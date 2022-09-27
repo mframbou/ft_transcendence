@@ -91,10 +91,12 @@
 		context.stroke();
 	}
 
+	let windowInnerWidth: number = 0;
+	let windowInnerHeight: number = 0;
 	function updateCanvasSize(canvas: HTMLCanvasElement)
 	{
-		canvas.width = canvas.parentElement?.clientWidth ?? window.innerWidth;
-		canvas.height = canvas.parentElement?.clientHeight ?? window.innerHeight;
+		canvas.width = canvas.parentElement?.clientWidth ?? windowInnerWidth;
+		canvas.height = canvas.parentElement?.clientHeight ?? windowInnerHeight;
 		maxDist = properties.maxDistRatio * Math.max(canvas.width, canvas.height);
 	}
 
@@ -196,7 +198,7 @@
 
 </script>
 
-<svelte:window on:resize={windowResizeListener} />
+<svelte:window on:resize={windowResizeListener} bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} />
 
 <div class="wrapper">
 	<canvas on:click={canvasClickListener} on:mousemove={canvasMouseMoveListener} bind:this={canvas} class="particles-background"></canvas>
