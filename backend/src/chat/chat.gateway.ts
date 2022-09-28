@@ -9,6 +9,7 @@ import { Server } from 'socket.io';
 import { ChatService } from './chat.service';
 import { WsFirstConnectDto } from '../interfaces/dtos';
 import { WsAuthGuard } from '../auth/ws-auth.guard';
+import { emit } from 'process';
 
 
 const NAMESPACE = 'chat';
@@ -59,7 +60,14 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection
 		console.log("user : " + JSON.stringify(user));
 		console.log("payload : ", payload);
 		//console.log("client : ", client);
-		this.chatService.addMessage(this.server, payload.chatId, payload.userId, payload.content);
+
+		if (payload.content == '/wizz') {
+			this.server.emit('wizz');
+		} else  {
+			this.chatService.addMessage(this.server, payload.chatId, payload.userId, payload.content);
+		}
+
+
 		//this.server.to(client.id).emit('receiveMessage', payload.content);
 	}
 }

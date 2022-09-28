@@ -156,17 +156,26 @@ export class ChatService {
             //}
         //});
         console.log("content : " + content);
-            await this.prisma.message.create({
+            let message = await this.prisma.message.create({
                 data: {
                     chatId: chatId,
                     //content: "test message in chat.sercice addMessage",
                     content: content,
                     senderId: participant[0].id
+                },
+                include: {
+                    sender: {
+                        include: {
+                            user: true
+                        }
+                    },
                 }
+
             });
 
         
-		server.emit('receiveMessage', {participant : participant[0], content: content});
+		//server.emit('receiveMessage', {participant : participant[0], content: content});
+		server.emit('receiveMessage', message);
 
     }
 
@@ -183,7 +192,15 @@ export class ChatService {
                                 user: true
                             }
                         },
-                        messages: true,
+                        messages: {
+                            include: {
+                                sender: {
+                                    include: {
+                                        user: true
+                                    }
+                                }
+                            }
+                        },
                     }
                 });
         }

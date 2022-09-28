@@ -6,6 +6,7 @@
     import { user } from '$lib/stores';
     import { chatSocket } from '$lib/websocket-stores';
     import { onMount } from 'svelte';
+    import { flip } from 'svelte/animate';
 
     chatSocket.subscribe(value => {
         console.log("chatSocket : ", value);
@@ -15,8 +16,8 @@
     export let data;
     console.log("data : " + JSON.stringify(data));
     console.log("message : ", data.room.messages);
-    let msgs: any[] = [...data.room.messages]; 
-    //let msgs: any[] = [];
+    //let msgs: any[] = [...data.room.messages]; 
+    let msgs: any[] = data.room.messages;
 
     let message = '';
 
@@ -36,9 +37,14 @@
 
     $chatSocket.on("receiveMessage", (data) => {
         console.log("message received : ", data);
-        console.log("user : ", data.participant.user);
-        msgs.push({user: data.participant.user, content: data.content});
+        console.log("sender : ", data.sender);
+        msgs.push(data);
         msgs = msgs;
+    });
+
+    // future insane feature
+    $chatSocket.on("wizz", (data) => {
+        console.log("wizz");
     });
 
 </script>
@@ -57,8 +63,8 @@
                     </div> 
                     {:else} -->
                         <div class='hflex' style="justify-content: flex-start; ">
-                        <!-- <img class="profilePicture" src={msg.user.profilePicture}/> -->
-                        <p> <!-- {msg.user.login} --> {msg.content} </p>
+                        <img class="profilePicture" src={msg.sender.user.profilePicture}/>
+                        <p>  {msg.sender.user.login} {msg.content} </p>
                         </div>
                     <!-- {/if} -->
                 </div>
@@ -72,7 +78,6 @@
         <Button on:click={sendMessage}>Send</Button>
     </div>
 </section>
-
 <style lang="scss">
     .vflex {
         display: flex;
@@ -108,7 +113,7 @@
         text-align: center;
         overflow-y: scroll;
         padding: 10px 10px;
-        background-color: rgb(218, 218, 218);
+        background-color: rgb(255, 255, 255);
 
         p {
             color: black;
