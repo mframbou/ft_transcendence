@@ -14,12 +14,12 @@ async function loadData(fetch: any, room: string)
         throw error(404, 'Room not found');
     });
 
-    let current_user = await fetch(`/api/users/me`).then(res => res.json());
-    if (!current_user) {
+    out.user = await fetch(`/api/users/me`).then(res => res.json());
+    if (!out.user) {
         throw error(404, 'User not found');
     }
 
-    out.participant = out.room.participants.find((p: any) => p.userId == current_user.id);
+    out.participant = out.room.participants.find((p: any) => p.userId == out.user.id);
     if (!out.participant) {
         throw error(404, 'Looks like you are not a participant of this room');
     }

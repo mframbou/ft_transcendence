@@ -18,8 +18,10 @@ export class ChatService {
         private readonly usersService: UsersService,
     ) {}
 
+    // cringe -> better if we have map of array where key is roomId and value is array of clients
+    // TODO : stop sending userId and use client.login instead -> less optimization but more security as we can't falsify userId
+    roomsClients = [];
 
-    // TODO: better error management (without confusing errorCode)
     async addRoom(login: string, name: string, is_private: boolean, password?: string) {
 
         const user = await this.usersService.getUser(login);
@@ -96,7 +98,7 @@ export class ChatService {
         });
 
         // if user is already in the room
-        console.log("participant : ", participant);
+        //console.log("participant : ", participant);
         if (participant.length > 0) {
             console.log("user already in room");
             return ;
@@ -110,8 +112,8 @@ export class ChatService {
         });
 
         // need to throw correct error
-        console.log("room : ", room);
-        console.log("password : ", password);
+        //console.log("room : ", room);
+        //console.log("password : ", password);
         if (room.is_private && room.hash != password) {
             console.log("incorect password");
             throw new HttpException('Incorrect password', 403);
@@ -129,7 +131,9 @@ export class ChatService {
         return HttpStatus.OK;
     }
 
-    async addMessage(server: any, chatId: any, userId: any, content: string) {
+
+    // need error management
+    async addMessage(server: any, client: any, chatId: any, userId: any, content: string) {
 
         // would be better with findUnique
         let participant =  await this.prisma.participant.findMany({
@@ -146,16 +150,14 @@ export class ChatService {
             console.log("addMessage: can't find participant");
             return ;
         }
-        console.log("participant in addMessage : ", participant[0]);
 
-        //await this.prisma.message.create({
-            //data: {
-                //chatId: chatId,
-                //content: content,
-                //senderId: participant[0].id
-            //}
-        //});
-        console.log("content : " + content);
+        //console.log("participant in addMessage : ", participant[0]);
+        //console.log("content : " + content);
+        if (content.trim()[0] === '/') {
+            console.log("command");
+            return await this.command(server, client, chatId, participant[0], content);
+        }
+
             let message = await this.prisma.message.create({
                 data: {
                     chatId: chatId,
@@ -172,11 +174,29 @@ export class ChatService {
                 }
 
             });
-
         
-		//server.emit('receiveMessage', {participant : participant[0], content: content});
-		server.emit('receiveMessage', message);
+        // need to make roomsClients a map of array for optimization
+        for (let cur of this.roomsClients) {
+            if (cur.roomId == chatId) {
+                server.to(cur.clientId).emit('receiveMessage', message);
+            }
+        }
+    }
 
+    // add clientId to room when user connect
+	async enter(server: any, client: any, payload: any) {
+        console.log("enter payload : " + JSON.stringify(payload));
+        this.roomsClients.push({user: payload.user, roomId: payload.roomId, clientId: client.id});
+        console.log("--------------------------\nroomsClients after enter: ", this.roomsClients);
+    }
+
+    // remove clientId when user disconnect
+    async leave(server: any, client: any, payload: any) {
+        console.log("leave called");
+        console.log("client id: ", client.id);
+        //this.roomsClients.filter((cur) => cur.roomId === payload.roomId && cur.clientId === client.id);
+        this.roomsClients = this.roomsClients.filter((cur) => cur.clientId !== client.id);
+        console.log("----------------------\nroomsClients after leave: ", this.roomsClients);
     }
 
     async findRooms(name?: string) {
@@ -227,7 +247,91 @@ export class ChatService {
         console.log('cleared all chat data');
     }
 
-    // ____________ CHAT ROOM  _____________ 
 
+    async sendStatus(server: any, client: any, chatId: any, content: any) {
+        for (let cur of this.roomsClients) {
+            if (cur.roomId == chatId) {
+                server.to(cur.clientId).emit('receiveMessage', {isStatus: true, content: content});
+            }
+        }
+    }
+
+    // need to make command message stay in db
+    async command(server: any, client: any, chatId: any, participant: any, content: string) {
+
+        let command = content.split(' ')[0];
+        let args = content.split(' ').slice(1);
+        console.log("command : " + command);
+        console.log("args : " + args);
+
+        switch (command) {
+            case '/kick':
+                await this.kick(server, client, chatId, participant, args);
+                break;
+            //case '/ban':
+                //await this.ban(server, chatId, userId, args);
+                //break;
+            //case '/unban':
+                //await this.unban(server, chatId, userId, args);
+                //break;
+            //case '/mute':
+                //await this.mute(server, chatId, userId, args);
+                //break;
+            //case '/unmute':
+                //await this.unmute(server, chatId, userId, args);
+                //break;
+            //case '/promote':
+                //await this.promote(server, chatId, userId, args);
+                //break;
+            //case '/demote':
+                //await this.demote(server, chatId, userId, args);
+                //break;
+            default:
+                console.log("unknow command");
+                break;
+        }
+    }
+
+    async commandError(server: any, client: any, content: string) {
+        server.to(client.id).emit('commandError', content);
+    }
+    
+    async kick(server: any, client: any, chatId: any, participant: any, args: any) {
+        if (!participant.is_admin && !participant.is_moderator) {
+            this.commandError(server, client, "/kick: You don't have the permission to kick");
+            return;
+        }
+
+        if (args.length != 1) {
+            this.commandError(server, client, "/kick: Invalid number of arguments");
+            return;
+        }
+
+        for (let arg of args) {
+            let user = await this.prisma.user.findUnique({
+                where: {
+                    login: arg
+                }
+            });
+
+            if (!user) {
+                this.commandError(server, client, "/kick: User " + arg + " not found");
+                return ;
+            }
+            
+            console.log("roomsClients before kick: ", this.roomsClients);
+            console.log("target login : ", user.login);
+            console.log("target roomId : ", chatId);
+
+            for (let cur of this.roomsClients) {
+                if (cur.user && cur.user.login == user.login && cur.roomId == chatId) {// && cur.roomId == chatId) {
+                    server.to(cur.clientId).emit('kick');
+                    this.sendStatus(server, client, chatId, participant.user.login + " kicked " + args[0]);
+                } 
+            }
+        }
+
+
+    }
 
 }

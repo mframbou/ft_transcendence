@@ -47,6 +47,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection
 
 	async handleDisconnect(client: any)
 	{
+		this.chatService.leave(this.server, client, null);
 		this.websocketsService.removeClient(client.id);
 	}
 
@@ -54,20 +55,30 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection
 	@SubscribeMessage('message')
 	async handleMessage(client: IWsClient, payload: any)
 	{
-		console.log("message received");
+		console.log("message received: ", payload);
 		const user = client.transcendenceUser;
 		//console.log(`${NAMESPACE}-Gateway: ${user.login}: ${payload}`);
 		console.log("user : " + JSON.stringify(user));
 		console.log("payload : ", payload);
 		//console.log("client : ", client);
 
-		if (payload.content == '/wizz') {
-			this.server.emit('wizz');
-		} else  {
-			this.chatService.addMessage(this.server, payload.chatId, payload.userId, payload.content);
-		}
-
-
+		this.chatService.addMessage(this.server, client, payload.chatId, payload.userId, payload.content);
 		//this.server.to(client.id).emit('receiveMessage', payload.content);
+	}
+
+	@UseGuards(WsAuthGuard)
+	@SubscribeMessage('enter')
+	async handleEnter(client: IWsClient, payload: any)
+	{
+		console.log("enter received");
+		this.chatService.enter(this.server, client, payload);
+	}
+
+	@UseGuards(WsAuthGuard)
+	@SubscribeMessage('leave')
+	async handleLeave(client: IWsClient, payload: any)
+	{
+		console.log("leave received");
+		//this.chatService.leave(this.server, client, payload);
 	}
 }
