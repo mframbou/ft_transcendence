@@ -938,13 +938,13 @@
 
 		if (heightIfFullWidth <= parentHeight)
 		{
-			pongWrapper.style.width = widthIfFullWidth + 'px';
+			pongWrapper.style.width = '100%';
 			pongWrapper.style.height = 'auto';
 		}
 		else
 		{
 			pongWrapper.style.width = 'auto';
-			pongWrapper.style.height = parentHeight + 'px';
+			pongWrapper.style.height = '100%';
 		}
 	}
 
@@ -959,31 +959,23 @@
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} on:resize={handleResize} />
 
-<div class="page-wrapper">
-	<div class="pong-wrapper" bind:this={pongWrapper}>
-		<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
-	</div>
+<div class="pong-wrapper" bind:this={pongWrapper}>
+	<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
 </div>
 
 <style lang="scss">
-	.page-wrapper
-	{
-		height: 100%;
-		width: 100%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		position: absolute;
-		top: 0;
-		left: 0;
-	}
-
 	// https://stackoverflow.com/questions/65864203/how-to-make-div-element-auto-resize-maintaining-aspect-ratio
 	.pong-wrapper
 	{
 		// height / width is set in js depending on which is bigger (see https://stackoverflow.com/a/69400269)
 		aspect-ratio: 600 / 400;
 		overflow: hidden;
+	}
+
+	canvas
+	{
+		width: 100%;
+		height: 100%;
 	}
 
 </style>
