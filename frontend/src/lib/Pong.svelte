@@ -53,12 +53,20 @@
 		SPECTATOR,
 	}
 
-	// make paddle width and height dynamic, width = 10 when canvas width is 600, height = 100 when canvas height is 400
-	// these are only useful in solo because at the beginning of the game the server sends the paddle dimensions (and to avoid paddle changing size when starting game because they are same value)
-	const PADDLE_WIDTH_RATIO = 10 / 600;
-	const PADDLE_HEIGHT_RATIO = 100 / 400;
+	// when canvas is 600x400
+	const PADDLE_BASE_WIDTH = 10;
+	const PADDLE_BASE_HEIGHT = 100;
+
+	const CANVAS_BASE_WIDTH =	600;
+	const CANVAS_BASE_HEIGHT = 400;
+
+	const BALL_BASE_WIDTH = 20;
+	const BALL_BASE_HEIGHT = 20;
+
+	const SOLO_BALL_RESET_PAUSE_TIME = 500; // Time to wait between score and ball launch (0 is really not fun to play)
 
 	let canvas: HTMLCanvasElement;
+	let pongWrapper: HTMLDivElement;
 	let context: CanvasRenderingContext2D;
 
 	let player1: IPLayer;
@@ -103,36 +111,37 @@
 	//////////////////////////
 	// Data denormalization //
 	//////////////////////////
-	function denormalizeBall(serverData: any)
+	function denormalizeBall(ball: IBall): IBall
 	{
 		return {
-			x: serverData.x * canvas.width,
-			y: serverData.y * canvas.height,
-			velocityX: serverData.velocityX * canvas.width,
-			velocityY: serverData.velocityY * canvas.height,
-			speed: serverData.speed * canvas.width,
-			width: serverData.width * canvas.width,
-			height: serverData.height * canvas.height,
-		}
+			velocityX: ball.velocityX * canvas.width,
+			velocityY: ball.velocityY * canvas.height,
+			position: {
+				client_x: ball.position.client_x * canvas.width,
+				client_y: ball.position.client_y * canvas.height,
+				server_x: ball.position.server_x * canvas.width,
+				server_y: ball.position.server_y * canvas.height,
+			},
+			width: ball.width * canvas.width,
+			height: ball.height * canvas.height,
+			speed: ball.speed * canvas.width,
+			color: ball.color,
+		};
 	}
 
-	function denormalizePaddles(serverData: any)
+	function denormalizePaddle(paddle: IPaddle): IPaddle
 	{
-		const denormalizedPaddle1 = {
-			x: serverData.paddle1.x * canvas.width,
-			y: serverData.paddle1.y * canvas.height,
-			height: serverData.paddle1.height * canvas.height,
-			width: serverData.paddle1.width * canvas.width,
+		return {
+			position: {
+				client_x: paddle.position.client_x * canvas.width,
+				client_y: paddle.position.client_y * canvas.height,
+				server_x: paddle.position.server_x * canvas.width,
+				server_y: paddle.position.server_y * canvas.height,
+			},
+			width: paddle.width * canvas.width,
+			height: paddle.height * canvas.height,
+			color: paddle.color,
 		};
-
-		const denormalizedPaddle2 = {
-			x: serverData.paddle2.x * canvas.width,
-			y: serverData.paddle2.y * canvas.height,
-			height: serverData.paddle2.height * canvas.height,
-			width: serverData.paddle2.width * canvas.width,
-		};
-
-		return { paddle1: denormalizedPaddle1, paddle2: denormalizedPaddle2 };
 	}
 
 	function denormalizePaddleYPos(serverData: any)
@@ -147,20 +156,18 @@
 	//////////////////////////////
 	function handleBallUpdate(serverData: any, isSpectating: boolean, isPlayerOne?: boolean)
 	{
-		const denormalizedBall = denormalizeBall(serverData);
-
-		ball.position.server_x = denormalizedBall.x;
-		ball.position.server_y = denormalizedBall.y;
-		ball.velocityX = denormalizedBall.velocityX;
-		ball.velocityY = denormalizedBall.velocityY;
-		ball.speed = denormalizedBall.speed;
-		ball.width = denormalizedBall.width;
-		ball.height = denormalizedBall.height;
+		ball.position.server_x = serverData.x;
+		ball.position.server_y = serverData.y;
+		ball.velocityX = serverData.velocityX;
+		ball.velocityY = serverData.velocityY;
+		ball.speed = serverData.speed;
+		ball.width = serverData.width;
+		ball.height = serverData.height;
 
 		if (!isSpectating && !isPlayerOne)
 		{
 			ball.velocityX *= -1;
-			ball.position.server_x = canvas.width - ball.position.server_x;
+			ball.position.server_x = (canvas.width - (ball.position.server_x * canvas.width)) / canvas.width;
 		}
 
 		lastBallUpdate = performance.now();
@@ -168,24 +175,21 @@
 
 	function handleBallReset(serverData: any, isSpectating: boolean, isPlayerOne?: boolean)
 	{
-		console.log('ballreset');
-		const denormalizedBall = denormalizeBall(serverData);
-
-		ball.position.server_x = denormalizedBall.x;
-		ball.position.server_y = denormalizedBall.y;
-		ball.position.client_x = denormalizedBall.x;
-		ball.position.client_y = denormalizedBall.y;
-		ball.velocityX = denormalizedBall.velocityX;
-		ball.velocityY = denormalizedBall.velocityY;
-		ball.speed = denormalizedBall.speed;
-		ball.width = denormalizedBall.width;
-		ball.height = denormalizedBall.height;
+		ball.position.server_x = serverData.x;
+		ball.position.server_y = serverData.y;
+		ball.position.client_x = serverData.x;
+		ball.position.client_y = serverData.y;
+		ball.velocityX = serverData.velocityX;
+		ball.velocityY = serverData.velocityY;
+		ball.speed = serverData.speed;
+		ball.width = serverData.width;
+		ball.height = serverData.height;
 
 		if (!isSpectating && !isPlayerOne)
 		{
 			ball.velocityX *= -1;
-			ball.position.server_x = canvas.width - ball.position.server_x;
-			ball.position.client_x = canvas.width - ball.position.client_x;
+			// reverse normalized position (because it's normalized for the server) (so we need to denormalize and renormalize)
+			ball.position.server_x = (canvas.width - (ball.position.server_x * canvas.width)) / canvas.width;
 		}
 
 		lastBallUpdate = performance.now();
@@ -193,30 +197,26 @@
 
 	function handlePaddleReset(serverData: any)
 	{
-		const { paddle1, paddle2 } = denormalizePaddles(serverData);
+		player1.paddle.position.server_x = serverData.paddle1.x;
+		player1.paddle.position.server_y = serverData.paddle1.y;
+		player1.paddle.position.client_x = serverData.paddle1.x;
+		player1.paddle.position.client_y = serverData.paddle1.y;
+		player1.paddle.width = serverData.paddle1.width;
+		player1.paddle.height = serverData.paddle1.height;
 
-		player1.paddle.position.server_x = paddle1.x;
-		player1.paddle.position.server_y = paddle1.y;
-		player1.paddle.position.client_x = paddle1.x;
-		player1.paddle.position.client_y = paddle1.y;
-		player1.paddle.width = paddle1.width;
-		player1.paddle.height = paddle1.height;
-
-		player2.paddle.position.server_x = paddle2.x;
-		player2.paddle.position.server_y = paddle2.y;
-		player2.paddle.position.client_x = paddle2.x;
-		player2.paddle.position.client_y = paddle2.y;
-		player2.paddle.width = paddle2.width;
-		player2.paddle.height = paddle2.height;
+		player2.paddle.position.server_x = serverData.paddle2.x;
+		player2.paddle.position.server_y = serverData.paddle2.y;
+		player2.paddle.position.client_x = serverData.paddle2.x;
+		player2.paddle.position.client_y = serverData.paddle2.y;
+		player2.paddle.width = serverData.paddle2.width;
+		player2.paddle.height = serverData.paddle2.height;
 
 		lastPaddleMove = performance.now();
 	}
 
 	function handlePaddleMove(serverData: any, player: IPLayer)
 	{
-		const denormalizedPaddle = denormalizePaddleYPos(serverData);
-
-		player.paddle.position.server_y = denormalizedPaddle.y;
+		player.paddle.position.server_y = serverData.y;
 
 		lastPaddleMove = performance.now();
 	}
@@ -341,12 +341,12 @@
 			paddle: {
 				position: {
 					client_x: 0,
-					client_y: canvas.height / 2 - (PADDLE_HEIGHT_RATIO * canvas.height) / 2,
+					client_y: 0.5 - (PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT) / 2, // 0 = top of canvasm 1 = bottom, everything is normalized
 					server_x: 0,
-					server_y: canvas.height / 2 - (PADDLE_HEIGHT_RATIO * canvas.height) / 2
+					server_y: 0.5 - (PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT) / 2,
 				},
-				width: PADDLE_WIDTH_RATIO * canvas.width,
-				height: PADDLE_HEIGHT_RATIO * canvas.height,
+				width: PADDLE_BASE_WIDTH / CANVAS_BASE_WIDTH,
+				height: PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT,
 				color: player1Color,
 			},
 			score: 0
@@ -355,38 +355,38 @@
 		player2 = {
 			paddle: {
 				position: {
-					client_x: canvas.width - (PADDLE_WIDTH_RATIO * canvas.width),
-					client_y: canvas.height / 2 - (PADDLE_HEIGHT_RATIO * canvas.height) / 2,
-					server_x: canvas.width - (PADDLE_WIDTH_RATIO * canvas.width),
-					server_y: canvas.height / 2 - (PADDLE_HEIGHT_RATIO * canvas.height) / 2
+					client_x: 1 - (PADDLE_BASE_WIDTH / CANVAS_BASE_WIDTH),
+					client_y: 0.5 - (PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT) / 2,
+					server_x: 1 - (PADDLE_BASE_WIDTH / CANVAS_BASE_WIDTH),
+					server_y: 0.5 - (PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT) / 2,
 				},
-				width: PADDLE_WIDTH_RATIO * canvas.width,
-				height: PADDLE_HEIGHT_RATIO * canvas.height,
+				width: PADDLE_BASE_WIDTH / CANVAS_BASE_WIDTH,
+				height: PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT,
 				color: player2Color,
 			},
 			score: 0
 		};
 
 		net = {
-			x: canvas.width / 2 - 2,
+			x: 0.5 - (4 / CANVAS_BASE_WIDTH) / 2,
 			y: 0,
-			width: 4,
-			dashHeight: 20,
-			dashGap: 10,
+			width: 4 / CANVAS_BASE_WIDTH,
+			dashHeight: 20 / CANVAS_BASE_HEIGHT,
+			dashGap: 10 / CANVAS_BASE_HEIGHT,
 			color: netColor,
 		};
 
 		ball = {
 			position: {
-				client_x: canvas.width / 2,
-				client_y: canvas.height / 2,
-				server_x: canvas.width / 2,
-				server_y: canvas.height / 2
+				client_x: 0.5,
+				client_y: 0.5,
+				server_x: 0.5,
+				server_y: 0.5,
 			},
-			width: 20 * (canvas.width / 600),
-			height: 20 * (canvas.height / 400),
+			width: BALL_BASE_WIDTH / CANVAS_BASE_WIDTH,
+			height: BALL_BASE_HEIGHT / CANVAS_BASE_HEIGHT,
 			// speed = 500 when canvas.width = 600, 1000 when width is 1200 etc.
-			speed: 500 * (canvas.width / 600),
+			speed: 500 / CANVAS_BASE_WIDTH,
 			velocityX: 0,
 			velocityY: 0,
 			color: ballColor,
@@ -398,8 +398,8 @@
 	function launchSingleplayerBall()
 	{
 		const direction = Math.random() < 0.5 ? 1 : -1;
-		ball.velocityX = ball.speed * direction;
-		resetBall()
+		ball.velocityX = direction * ball.speed;
+		resetBall();
 	}
 
 	// https://www.reddit.com/r/sveltejs/comments/rn3vp0/is_there_any_difference_between_ondestroy_and_the/
@@ -407,6 +407,7 @@
 	onMount(() =>
 	{
 		context = <CanvasRenderingContext2D> canvas.getContext('2d', { alpha: false });
+		handleResize();
 
 		initGameObjects('blue', 'red', 'white', 'white');
 
@@ -452,33 +453,54 @@
 
 	function drawPaddle(paddle: IPaddle)
 	{
+		const denormalizedPaddle = {
+			x: paddle.position.client_x * canvas.width,
+			y: paddle.position.client_y * canvas.height,
+			width: paddle.width * canvas.width,
+			height: paddle.height * canvas.height,
+		};
+
 		context.fillStyle = paddle.color;
-		context.fillRect(paddle.position.client_x, paddle.position.client_y, paddle.width, paddle.height);
+		context.fillRect(denormalizedPaddle.x, denormalizedPaddle.y, denormalizedPaddle.width, denormalizedPaddle.height);
 	}
 
 	function drawBall(ball: IBall)
 	{
+		const denormalizedBall = {
+			x: ball.position.client_x * canvas.width,
+			y: ball.position.client_y * canvas.height,
+			width: ball.width * canvas.width,
+			height: ball.height * canvas.height,
+		};
+
 		// ball x/y is the center of the ball
 		if (ballAspect === 'circle')
-			drawEllipse(ball.position.client_x, ball.position.client_y, ball.width, ball.height, ball.color);
-		else if (ballAspect === 'square')
-			drawRect(ball.position.client_x - ball.width / 2, ball.position.client_y - ball.height / 2, ball.width, ball.height, ball.color);
+			drawEllipse(denormalizedBall.x, denormalizedBall.y, denormalizedBall.width, denormalizedBall.height, ball.color);
+		else
+			drawRect(denormalizedBall.x - denormalizedBall.width / 2, denormalizedBall.y - denormalizedBall.height / 2, denormalizedBall.width, denormalizedBall.height, ball.color);
 	}
 
-	function clearCanvas(color: string = 'black')
+	function clearCanvas(color: string = 'green')
 	{
 		drawRect(0, 0, canvas.width, canvas.height, color);
 	}
 
 	function drawNet()
 	{
-		context.lineWidth = net.width;
+		const denormalizedNet = {
+			x: net.x * canvas.width,
+			y: net.y * canvas.height,
+			width: net.width * canvas.width,
+			dashHeight: net.dashHeight * canvas.height,
+			dashGap: net.dashGap * canvas.height,
+		};
+
+		context.lineWidth = denormalizedNet.width;
 		context.strokeStyle = net.color;
 		context.beginPath();
-		context.setLineDash([net.dashHeight, net.dashGap]);
-		// context.lineDashOffset = net.dashHeight / 2;
-		context.moveTo(net.x + net.width / 2, net.y);
-		context.lineTo(net.x, canvas.height);
+		context.setLineDash([denormalizedNet.dashHeight, denormalizedNet.dashGap]);
+		context.moveTo(denormalizedNet.x, denormalizedNet.y);
+		context.lineTo(denormalizedNet.x, canvas.height);
 		context.stroke();
 		context.setLineDash([]);
 		context.lineWidth = 1;
@@ -512,10 +534,10 @@
 		// only emit once every 10ms at most
 		if (performance.now() - lastPaddleMove > 10)
 		{
-			const yRatio = y / canvas.height;
+			// const yRatio = y / canvas.height;
 			if ($pongSocketConnected)
 			{
-				$pongSocket.emit('paddleMove', { y: yRatio });
+				$pongSocket.emit('paddleMove', { y: y });
 			}
 			lastPaddleMove = performance.now();
 		}
@@ -525,8 +547,8 @@
 	{
 		if (paddle.position.client_y < 0)
 				paddle.position.client_y = 0;
-		else if (paddle.position.client_y + paddle.height > canvas.height)
-				paddle.position.client_y = canvas.height - paddle.height;
+		else if (paddle.position.client_y + paddle.height > 1)
+				paddle.position.client_y = 1 - paddle.height;
 	}
 
 	function movePaddle(paddle: IPaddle, y: number)
@@ -561,7 +583,7 @@
 		let rect = canvas.getBoundingClientRect();
 
 		// y is offset by half the paddle height (so when mouse is on top y = -50) so that paddle is centered
-		const y = event.clientY - rect.top - player1.paddle.height / 2;
+		const y = (event.clientY - rect.top - (player1.paddle.height * canvas.height) / 2) / canvas.height;
 		movePaddle(player1.paddle, y);
 		if (gameMode === GameMode.MULTIPLAYER)
 			emitPaddleMove(player1.paddle.position.client_y);
@@ -569,9 +591,10 @@
 
 	function resetBall()
 	{
-		ball.position.client_x = canvas.width / 2;
-		ball.position.client_y = canvas.height / 2;;
-		ball.speed = 500 * (canvas.width / 600);
+		// https://www.npmjs.com/package/set-interval-async
+		ball.position.client_x = 0.5;
+		ball.position.client_y = 0.5;
+		ball.speed = 500 / CANVAS_BASE_WIDTH;
 		const direction = ball.velocityX > 0 ? -1 : 1;
 		ball.velocityX = direction * (ball.speed * 0.7); // launch ball at 70% speed after reset (will be normal speeed after first hit)
 		// random angle between -30 and 30 degrees
@@ -581,21 +604,6 @@
 			computerPaddleRandomOffset = generateRandomPaddleOffset();
 	}
 
-
-	// function checkCollision(ball: IBall, paddle: IPaddle)
-	// {
-	// 	const ballTop = ball.position.client_y - ball.height / 2;
-	// 	const ballBottom = ball.position.client_y + ball.height / 2;
-	// 	const ballLeft = ball.position.client_x- ball.width / 2;
-	// 	const ballRight = ball.position.client_x + ball.width / 2;
-	//
-	// 	const paddleTop = paddle.position.client_y;
-	// 	const paddleBottom = paddle.position.client_y + paddle.height;
-	// 	const paddleLeft = paddle.position.client_x;
-	// 	const paddleRight = paddle.position.client_x + paddle.width;
-	//
-	// 	return ballLeft < paddleRight && ballTop < paddleBottom && ballRight > paddleLeft && ballBottom > paddleTop;
-	// }
 
 	////////////////
 	// Collisions //
@@ -701,13 +709,13 @@
 
 		// https://stackoverflow.com/questions/38765194/conditionally-initializing-a-constant-in-javascript
 		const collisionYObject = (() => {
-			if (ball.position.client_y + ball.height / 2 + ball.velocityY * deltaTimeMultiplier * collision.time >= canvas.height)
+			if (ball.position.client_y + ball.height / 2 + ball.velocityY * deltaTimeMultiplier * collision.time >= 1)
 			{
-				return { x: 0, y: canvas.height, width: canvas.width, height: 1 };
+				return { x: 0, y: 1, width: 1, height: 1 };
 			}
 			else
 			{
-				return { x: 0, y: -1, width: canvas.width, height: 1 };
+				return { x: 0, y: -1, width: 1, height: 1 };
 			}
 		})();
 		let collisionY = getCollision(ball, collisionYObject, deltaTimeMultiplier);
@@ -765,6 +773,23 @@
 			ball.position.client_x += ball.velocityX * deltaTimeMultiplier;
 			ball.position.client_y += ball.velocityY * deltaTimeMultiplier;
 			return false;
+		}
+	}
+
+	let ballScored: boolean = false;
+	function handlePlayerScore(player: IPLayer)
+	{
+		// When scoring, wait for a bit before re-launching the ball
+		if (!ballScored)
+		{
+			ballScored = true;
+
+			player.score++;
+
+			setTimeout(() => {
+				resetBall();
+				ballScored = false;
+			}, SOLO_BALL_RESET_PAUSE_TIME);
 		}
 	}
 
@@ -863,16 +888,10 @@
 		// ball out of bounds in singeplayer
 		if (gameMode === GameMode.SINGLEPLAYER)
 		{
-			if (ball.position.client_x + ball.width / 2 > canvas.width)
-			{
-				player1.score++;
-				resetBall(); // reset ball before sending new ball otherwise it would only reset on the next update
-			}
+			if (ball.position.client_x + ball.width / 2 > 1)
+				handlePlayerScore(player1);
 			else if (ball.position.client_x - ball.width / 2 < 0)
-			{
-				player2.score++;
-				resetBall();
-			}
+				handlePlayerScore(player2);
 		}
 	}
 
@@ -893,19 +912,78 @@
 		animationFrameId = requestAnimationFrame(loop);
 	}
 
+	////////////////
+	// Dimensions //
+	////////////////
+	let windowInnerWidth: number;
+	let windowInnerHeight: number;
+	function resizeCanvasToFitParent()
+	{
+		canvas.width = canvas.parentElement?.clientWidth ?? windowInnerWidth;
+		canvas.height = canvas.parentElement?.clientHeight ?? windowInnerHeight;
+	}
+
+	function resizeWrapperToKeepAspect()
+	{
+		const aspectRatio = 400 / 600;
+		// The goal is to make the canvas take up the whole width or height of it's parent, while keeping the aspect ratio and not overflowing
+		// We can't use css to do that, so we need to do it in js
+		const parentWidth = pongWrapper.parentElement?.clientWidth ?? windowInnerWidth;
+		const parentHeight = pongWrapper.parentElement?.clientHeight ?? windowInnerHeight;
+
+		const widthIfFullWidth = parentWidth;
+		const heightIfFullWidth = parentWidth * aspectRatio;
+		// const widthIfFullHeight = parentHeight / aspectRatio;
+		// const heightIfFullHeight = parentHeight;
+
+		if (heightIfFullWidth <= parentHeight)
+		{
+			pongWrapper.style.width = widthIfFullWidth + 'px';
+			pongWrapper.style.height = 'auto';
+		}
+		else
+		{
+			pongWrapper.style.width = 'auto';
+			pongWrapper.style.height = parentHeight + 'px';
+		}
+	}
+
+	function handleResize()
+	{
+		// order matters
+		resizeWrapperToKeepAspect();
+		resizeCanvasToFitParent();
+	}
+
 </script>
 
-<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
+<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} on:resize={handleResize} />
 
-<div class="pong-wrapper">
-	<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
+<div class="page-wrapper">
+	<div class="pong-wrapper" bind:this={pongWrapper}>
+		<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
+	</div>
 </div>
 
 <style lang="scss">
+	.page-wrapper
+	{
+		height: 100%;
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
 
+	// https://stackoverflow.com/questions/65864203/how-to-make-div-element-auto-resize-maintaining-aspect-ratio
 	.pong-wrapper
 	{
-
+		// height / width is set in js depending on which is bigger (see https://stackoverflow.com/a/69400269)
+		aspect-ratio: 600 / 400;
+		overflow: hidden;
 	}
 
 </style>

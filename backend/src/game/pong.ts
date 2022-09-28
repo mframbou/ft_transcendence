@@ -12,7 +12,6 @@ interface IBall
 	velocityX: number;
 	velocityY: number;
 	speed: number;
-	color: string;
 }
 
 interface IPaddle
@@ -21,7 +20,6 @@ interface IPaddle
 	y: number;
 	width: number;
 	height: number;
-	color: string;
 }
 
 interface IPLayer
@@ -42,6 +40,9 @@ const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
 
 const BALL_RADIUS = 10;
+const BALL_SPEED = 500; // units per second
+// Time in ms between scoring and re-launching the ball
+const BALL_RESET_PAUSE_TIME = 500;
 
 // we consider the ball squared, then do this: https://www.gamedev.net/articles/programming/general-and-gameplay-programming/swept-aabb-collision-detection-and-response-r3084/
 // with deflection
@@ -218,6 +219,7 @@ export default class ServerSidePong
 
 	private readonly room: IGameRoom;
 	private readonly server: Server;
+	private ballScored: boolean = false;
 
 	private paused: boolean = true;
 	private lastUpdate: number = 0;
@@ -237,7 +239,6 @@ export default class ServerSidePong
 				y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
 				width: PADDLE_WIDTH,
 				height: PADDLE_HEIGHT,
-				color: 'blue',
 			},
 			score: 0
 		};
@@ -249,7 +250,6 @@ export default class ServerSidePong
 				y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
 				width: PADDLE_WIDTH,
 				height: PADDLE_HEIGHT,
-				color: 'red',
 			},
 			score: 0
 		};
@@ -259,19 +259,9 @@ export default class ServerSidePong
 			y: 0,
 			width: 4,
 			height: 10,
-			color: 'white',
 		};
 
-		this.ball = {
-			x: CANVAS_WIDTH / 2,
-			y: CANVAS_HEIGHT / 2,
-			width: BALL_RADIUS * 2,
-			height: BALL_RADIUS * 2,
-			speed: 500, // speed = units per second
-			velocityX: 500,
-			velocityY: 0,
-			color: 'white',
-		};
+		this.ball = this.createHiddenBall();
 	}
 
 	// add delay so that after score ball is not going off directly
@@ -279,7 +269,7 @@ export default class ServerSidePong
 	{
 		this.ball.x = CANVAS_WIDTH / 2;
 		this.ball.y = CANVAS_HEIGHT / 2;
-		this.ball.speed = 500;
+		this.ball.speed = BALL_SPEED;
 		const direction = this.ball.velocityX > 0 ? -1 : 1;
 		this.ball.velocityX = direction * (this.ball.speed * 0.7); // launch ball at 70% speed after reset (will be normal speeed after first hit)
 		this.ball.velocityX = -this.ball.velocityX;
@@ -345,6 +335,23 @@ export default class ServerSidePong
 		// this.broadcastToRoom('OnPaddleMove', movedPlayer.paddle.y, movedPlayer);
 	}
 
+	handlePlayerScore(player: IPLayer)
+	{
+		if (!this.ballScored)
+		{
+			this.ballScored = true;
+
+			player.score++;
+			this.sendScoreUpdate();
+
+			setTimeout(() => {
+				this.resetBall(); // reset ball before sending new ball otherwise it would only reset on the next update
+				this.sendBallReset(this.ball);
+				this.ballScored = false;
+			}, BALL_RESET_PAUSE_TIME);
+		}
+	}
+
 	update()
 	{
 		if (this.paused)
@@ -358,26 +365,12 @@ export default class ServerSidePong
 		const updateMultiplier = deltaTime / 1000;
 		computeBallUpdate(this.ball, this.player1.paddle, this.player2.paddle, updateMultiplier);
 
-		if (this.ball.x + this.ball.width/2 > CANVAS_WIDTH)
-		{
-			// console.log('Player 1 scored', this.ball.y, this.player1.paddle.y);
-			this.player1.score++;
-			this.sendScoreUpdate();
-			this.resetBall(); // reset ball before sending new ball otherwise it would only reset on the next update
-			this.sendBallReset(this.ball);
-		}
-		else if (this.ball.x - this.ball.width/2 < 0)
-		{
-			// console.log('Player 2 scored', this.ball.y, this.player2.paddle.y);
-			this.player2.score++;
-			this.sendScoreUpdate();
-			this.resetBall();
-			this.sendBallReset(this.ball);
-		}
+		if (this.ball.x + this.ball.width / 2 > CANVAS_WIDTH)
+			this.handlePlayerScore(this.player1);
+		else if (this.ball.x - this.ball.width / 2 < 0)
+			this.handlePlayerScore(this.player2);
 
 		this.sendBallUpdate(this.ball);
-		// this.sendPaddleMove(this.player1);
-		// this.sendPaddleMove(this.player2);
 	}
 
 	sendPaddlePositions()
@@ -401,6 +394,21 @@ export default class ServerSidePong
 		this.paddleIntervalId = setInterval(this.sendPaddlePositions.bind(this), 1000 / PADDLE_UPDATES_PER_SECOND);
 	}
 
+	createHiddenBall(): IBall
+	{
+		const ball: IBall = {
+			x: -BALL_RADIUS * 2,
+			y: -BALL_RADIUS * 2,
+			width: BALL_RADIUS * 2,
+			height: BALL_RADIUS * 2,
+			velocityX: Math.random() > 0.5 ? BALL_SPEED : -BALL_SPEED,
+			velocityY: 0,
+			speed: BALL_SPEED,
+		};
+
+		return ball;
+	}
+
 	start()
 	{
 		this.lastUpdate = performance.now();
@@ -410,13 +418,25 @@ export default class ServerSidePong
 		this.broadcastEvent('gameStart', { isPlayerOne: true }, false, this.player2);
 		this.broadcastEvent('gameStart', { isPlayerOne: false }, false, this.player1);
 		this.sendScoreUpdate(); // to reset score just in case
-		this.resetBall();
-		this.sendBallReset(this.ball);
-		this.resetPaddles();
-		this.sendPaddleReset(this.player1.paddle, this.player2.paddle)
 
-		this.ballIntervalId = setInterval(this.update.bind(this), 1000 / BALL_UPDATES_PER_SECOND);
+		this.resetPaddles();
+		this.sendPaddleReset(this.player1.paddle, this.player2.paddle);
+
+		// ball = hiddenBall, just so that client doesnt display what it thinks is the ball
+		// just a dummy ball outside the canvas
+		this.sendBallReset(this.ball);
 		this.paddleIntervalId = setInterval(this.sendPaddlePositions.bind(this), 1000 / PADDLE_UPDATES_PER_SECOND);
+
+		console.log(`Starting game in ${BALL_RESET_PAUSE_TIME}ms`);
+		setTimeout(() =>
+		{
+			this.lastUpdate = performance.now();
+			console.log(`Sending ball after ${BALL_RESET_PAUSE_TIME}ms`);
+			this.resetBall();
+			this.sendBallReset(this.ball);
+
+			this.ballIntervalId = setInterval(this.update.bind(this), 1000 / BALL_UPDATES_PER_SECOND);
+		}, BALL_RESET_PAUSE_TIME);
 	}
 
 	private movePaddle(player: IPLayer, y: number)

@@ -9,7 +9,7 @@ const host = browser ? window.location.hostname : 'backend';
 // This means at the end there will only be one websocket (on path '/') listening on different namespaces to separate usages
 const BASE_ENDPOINT = `http://${host}:3002`;
 
-function waitForConnectionComplete(socket: Socket, timeout: number = 2000): Promise<Socket>
+function waitForConnectionComplete(socket: Socket, timeout: number): Promise<Socket>
 {
 	let validated: boolean = false;
 	return new Promise((resolve, reject) => {
@@ -20,13 +20,19 @@ function waitForConnectionComplete(socket: Socket, timeout: number = 2000): Prom
 		}
 
 		socket.on('connect', () => {
-
 			socket.once('confirmFirstConnect', () => {
 				console.log('received first connect confirm');
 				validated = true;
 				resolve(socket);
 			});
+		});
 
+		socket.on('reconnect', () => {
+			console.log('socket is reconnected');
+		});
+
+		socket.on('reconnect_attempt', () => {
+			console.log('trying to reconnect');
 		});
 
 		socket.connect();
@@ -62,7 +68,7 @@ function createWebsocket(namespace: string): Socket
 	return socket;
 }
 
-function createWebsocketStore(namespace: string, timeout: number = 2000): { socket: any, connected: any } // Readable<> but not exported
+function createWebsocketStore(namespace: string, timeout: number = 3000): { socket: any, connected: any } // Readable<> but not exported
 {
 	const socket: Socket = createWebsocket(namespace);
 	const connectedStoreWritable = writable(false);
