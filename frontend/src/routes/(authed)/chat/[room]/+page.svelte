@@ -6,14 +6,15 @@
     import { user } from '$lib/stores';
     import { chatSocket } from '$lib/websocket-stores';
     import { onMount } from 'svelte';
+    import { onDestroy } from 'svelte/internal';
     import { flip } from 'svelte/animate';
     import { select_option } from 'svelte/internal';
 
 
     // store loaded content
     export let data;
-    console.log("data : " + JSON.stringify(data));
-    console.log("message : ", data.room.messages);
+    //console.log("data : " + JSON.stringify(data));
+    //console.log("message : ", data.room.messages);
     //let msgs: any[] = [...data.room.messages]; 
     let msgs: any[] = data.room.messages;
 
@@ -24,6 +25,19 @@
     //}
     ////msgs.push({senderId:$user , content:(Math.random() + 1).toString(36).substring(7)});
     //console.log("data : " + JSON.stringify(data));
+
+    onMount(async () => {
+        console.log("Mount");
+        $chatSocket.emit('enter', {roomId: data.room.id});
+    });
+
+    // todo instead of leave in chatSocket disconnect
+    //onDestroy(() => {
+        //$chatSocket.emit('leave', {roomId: data.room.id});
+        //console.log("destroy");
+    //});
+
+
 
 
     async function sendMessage() {
@@ -54,20 +68,16 @@
     });
 
     function onKeyDown(e) {
-
         switch (e.keyCode) {
-            case 13: {
+            // send message on enter
+            case 13:
                 sendMessage();
-            }
         }
-        //console.log("key pressed : ", e.keyCode);
     }
 
 </script>
 
 <section class="chat_container">
-
-    <Button on:click={() => test()}>test</Button>
 
         <!-- <h1>Chat</h1> -->
     <!-- {#if $user} -->

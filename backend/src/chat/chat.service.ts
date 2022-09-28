@@ -18,8 +18,9 @@ export class ChatService {
         private readonly usersService: UsersService,
     ) {}
 
+    // cringe -> better if we have map of array where key is roomId and value is array of clients
+    roomsClients = [];
 
-    // TODO: better error management (without confusing errorCode)
     async addRoom(login: string, name: string, is_private: boolean, password?: string) {
 
         const user = await this.usersService.getUser(login);
@@ -96,7 +97,7 @@ export class ChatService {
         });
 
         // if user is already in the room
-        console.log("participant : ", participant);
+        //console.log("participant : ", participant);
         if (participant.length > 0) {
             console.log("user already in room");
             return ;
@@ -110,8 +111,8 @@ export class ChatService {
         });
 
         // need to throw correct error
-        console.log("room : ", room);
-        console.log("password : ", password);
+        //console.log("room : ", room);
+        //console.log("password : ", password);
         if (room.is_private && room.hash != password) {
             console.log("incorect password");
             throw new HttpException('Incorrect password', 403);
@@ -129,6 +130,7 @@ export class ChatService {
         return HttpStatus.OK;
     }
 
+    // need error management
     async addMessage(server: any, chatId: any, userId: any, content: string) {
 
         // would be better with findUnique
@@ -146,16 +148,10 @@ export class ChatService {
             console.log("addMessage: can't find participant");
             return ;
         }
-        console.log("participant in addMessage : ", participant[0]);
 
-        //await this.prisma.message.create({
-            //data: {
-                //chatId: chatId,
-                //content: content,
-                //senderId: participant[0].id
-            //}
-        //});
-        console.log("content : " + content);
+        //console.log("participant in addMessage : ", participant[0]);
+        //console.log("content : " + content);
+
             let message = await this.prisma.message.create({
                 data: {
                     chatId: chatId,
@@ -172,11 +168,26 @@ export class ChatService {
                 }
 
             });
-
         
-		//server.emit('receiveMessage', {participant : participant[0], content: content});
-		server.emit('receiveMessage', message);
+        // need to make roomsClients a map of array for optimization
+        for (let cur of this.roomsClients) {
+            server.to(cur.clientId).emit('receiveMessage', message);
+        }
+    }
 
+    // add clientId to room when user connect
+	async enter(server: any, client: any, payload: any) {
+        this.roomsClients.push({roomId: payload.roomId, clientId: client.id});
+        console.log("--------------------------\nroomsClients after enter: ", this.roomsClients);
+    }
+
+    // remove clientId when user disconnect
+    async leave(server: any, client: any, payload: any) {
+        console.log("leave called");
+        console.log("client id: ", client.id);
+        //this.roomsClients.filter((cur) => cur.roomId === payload.roomId && cur.clientId === client.id);
+        this.roomsClients = this.roomsClients.filter((cur) => cur.clientId !== client.id);
+        console.log("----------------------\nroomsClients after leave: ", this.roomsClients);
     }
 
     async findRooms(name?: string) {

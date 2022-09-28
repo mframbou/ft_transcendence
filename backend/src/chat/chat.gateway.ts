@@ -47,6 +47,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection
 
 	async handleDisconnect(client: any)
 	{
+		this.chatService.leave(this.server, client, null);
 		this.websocketsService.removeClient(client.id);
 	}
 
@@ -66,8 +67,22 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection
 		} else  {
 			this.chatService.addMessage(this.server, payload.chatId, payload.userId, payload.content);
 		}
-
-
 		//this.server.to(client.id).emit('receiveMessage', payload.content);
+	}
+
+	@UseGuards(WsAuthGuard)
+	@SubscribeMessage('enter')
+	async handleEnter(client: IWsClient, payload: any)
+	{
+		console.log("enter received");
+		this.chatService.enter(this.server, client, payload);
+	}
+
+	@UseGuards(WsAuthGuard)
+	@SubscribeMessage('leave')
+	async handleLeave(client: IWsClient, payload: any)
+	{
+		console.log("leave received");
+		//this.chatService.leave(this.server, client, payload);
 	}
 }
