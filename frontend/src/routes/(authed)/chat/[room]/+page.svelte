@@ -7,10 +7,8 @@
     import { chatSocket } from '$lib/websocket-stores';
     import { onMount } from 'svelte';
     import { flip } from 'svelte/animate';
+    import { select_option } from 'svelte/internal';
 
-    chatSocket.subscribe(value => {
-        console.log("chatSocket : ", value);
-    });
 
     // store loaded content
     export let data;
@@ -27,6 +25,7 @@
     ////msgs.push({senderId:$user , content:(Math.random() + 1).toString(36).substring(7)});
     //console.log("data : " + JSON.stringify(data));
 
+
     async function sendMessage() {
         if (!message)
             return ;
@@ -35,11 +34,18 @@
         message = '';
     }
 
+    let cnt = 0;
     $chatSocket.on("receiveMessage", (data) => {
+        console.log("cnt : ", cnt++);
         console.log("message received : ", data);
         console.log("sender : ", data.sender);
         msgs.push(data);
         msgs = msgs;
+
+        // don't scroll to the bottom for some reason
+        let elem = document.getElementsByClassName("chat");
+        console.log("elem : ", elem[0].scrollHeight);
+        elem[0].scrollTop = elem[0].scrollHeight;
     });
 
     // future insane feature
@@ -47,25 +53,35 @@
         console.log("wizz");
     });
 
+    function onKeyDown(e) {
+
+        switch (e.keyCode) {
+            case 13: {
+                sendMessage();
+            }
+        }
+        //console.log("key pressed : ", e.keyCode);
+    }
+
 </script>
 
 <section class="chat_container">
+
+    <Button on:click={() => test()}>test</Button>
 
         <!-- <h1>Chat</h1> -->
     <!-- {#if $user} -->
     <div class="chat">
         <!-- {#key msgs} -->
             {#each msgs as msg, i}
-                <div class="msg">
+                <div class="message">
                     <!-- {#if msg.user === $user.login}
                     <div class='hflex' style="justify-content: flex-end;">
                             <p>{msg.content} {msg.user}</p>
                     </div> 
                     {:else} -->
-                        <div class='hflex' style="justify-content: flex-start; ">
                         <img class="profilePicture" src={msg.sender.user.profilePicture}/>
-                        <p>  {msg.sender.user.login} {msg.content} </p>
-                        </div>
+                        <p>  {msg.sender.user.login}: {msg.content} </p>
                     <!-- {/if} -->
                 </div>
             {/each}
@@ -74,8 +90,7 @@
     <!-- <input type="text" id="name" name="name" required autocomplete="off" minlength="4" maxlength="8" size="10" bind={message}> -->
     <!-- {/if} -->
     <div class='hflex'>
-        <input type="text" bind:value={message}>
-        <Button on:click={sendMessage}>Send</Button>
+        <input on:keypress="{onKeyDown}" bind:value="{message}" type="text" placeholder="message" />
     </div>
 </section>
 <style lang="scss">
@@ -83,8 +98,6 @@
         display: flex;
         flex-direction: column;
         /* chat display */
-
-
     }
 
     .hflex {
@@ -95,6 +108,20 @@
         /* chat display */
         input {
             height: 30%;
+        }
+    }
+
+    .message {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        /* chat display */
+        p, h3{
+            margin: 0;
+            padding: 0;
+            color : black;
+            /* chat display */
         }
     }
 
@@ -115,9 +142,6 @@
         padding: 10px 10px;
         background-color: rgb(255, 255, 255);
 
-        p {
-            color: black;
-        }
 
     }
 
