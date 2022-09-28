@@ -9,26 +9,20 @@
     import { onDestroy } from 'svelte/internal';
     import { flip } from 'svelte/animate';
     import { select_option } from 'svelte/internal';
+    import { goto } from '$app/navigation';
 
 
     // store loaded content
     export let data;
-    //console.log("data : " + JSON.stringify(data));
-    //console.log("message : ", data.room.messages);
-    //let msgs: any[] = [...data.room.messages]; 
-    let msgs: any[] = data.room.messages;
 
+    let msgs: any[] = data.room.messages;
     let message = '';
 
-    //for (let i = 0; i < 12; i++) {
-        //msgs.push({user:(Math.random() + 1).toString(36).substring(7), msg:(Math.random() + 1).toString(36).substring(7)});
-    //}
-    ////msgs.push({senderId:$user , content:(Math.random() + 1).toString(36).substring(7)});
-    //console.log("data : " + JSON.stringify(data));
-
+    // using $user don't work on refresh (why ?)
     onMount(async () => {
         console.log("Mount");
-        $chatSocket.emit('enter', {roomId: data.room.id});
+        console.log("user onMount: " + JSON.stringify($user));
+        $chatSocket.emit('enter', {user: data.user, roomId: data.room.id});
     });
 
     // todo instead of leave in chatSocket disconnect
@@ -48,18 +42,28 @@
         message = '';
     }
 
-    let cnt = 0;
     $chatSocket.on("receiveMessage", (data) => {
-        console.log("cnt : ", cnt++);
         console.log("message received : ", data);
-        console.log("sender : ", data.sender);
+        //console.log("sender : ", data.sender);
         msgs.push(data);
         msgs = msgs;
 
-        // don't scroll to the bottom for some reason
+        // scroll (don't scroll to the bottom for some reason)
         let elem = document.getElementsByClassName("chat");
         console.log("elem : ", elem[0].scrollHeight);
         elem[0].scrollTop = elem[0].scrollHeight;
+    });
+
+    $chatSocket.on("commandError", (data) => {
+        console.log("commandError : ", data);
+        msgs.push({isError: true, content: data});
+        msgs = msgs;
+    });
+
+
+    $chatSocket.on("kick", (data) => {
+        console.log("kicked");
+        goto('/chat');
     });
 
     // future insane feature
@@ -90,8 +94,14 @@
                             <p>{msg.content} {msg.user}</p>
                     </div> 
                     {:else} -->
+                    {#if msg.isError}
+                            <p style="color:red;">{msg.content}</p> 
+                    {:else if msg.isStatus}
+                            <p style="color:gray;">*{msg.content}*</p> 
+                    {:else}
                         <img class="profilePicture" src={msg.sender.user.profilePicture}/>
                         <p>  {msg.sender.user.login}: {msg.content} </p>
+                    {/if}
                     <!-- {/if} -->
                 </div>
             {/each}
@@ -153,6 +163,10 @@
         background-color: rgb(255, 255, 255);
 
 
+    }
+
+    .error {
+        color: red;
     }
 
     input {
