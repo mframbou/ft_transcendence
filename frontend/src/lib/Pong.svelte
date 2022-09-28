@@ -447,7 +447,7 @@
 	function drawText(text: string, x: number, y: number, color: string)
 	{
 		context.fillStyle = color;
-		context.font = '75px fantasy';
+		context.font = `${(50/400) * canvas.width}px fantasy`;
 		context.fillText(text, x, y);
 	}
 
@@ -480,7 +480,7 @@
 			drawRect(denormalizedBall.x - denormalizedBall.width / 2, denormalizedBall.y - denormalizedBall.height / 2, denormalizedBall.width, denormalizedBall.height, ball.color);
 	}
 
-	function clearCanvas(color: string = 'green')
+	function clearCanvas(color: string = 'black')
 	{
 		drawRect(0, 0, canvas.width, canvas.height, color);
 	}
