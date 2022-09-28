@@ -96,9 +96,12 @@ export class ChatService {
         });
 
         // if user is already in the room
-        if (participant.length) {
+        console.log("participant : ", participant);
+        if (participant.length > 0) {
+            console.log("user already in room");
             return ;
         }
+
 
         let room = await this.prisma.chatRoom.findUnique({
             where: {
@@ -107,9 +110,11 @@ export class ChatService {
         });
 
         // need to throw correct error
+        console.log("room : ", room);
+        console.log("password : ", password);
         if (room.is_private && room.hash != password) {
             console.log("incorect password");
-            return ;
+            throw new HttpException('Incorrect password', 403);
         }
 
         await this.prisma.participant.create({
@@ -120,6 +125,49 @@ export class ChatService {
                 is_moderator: false,
             }
         });
+    
+        return HttpStatus.OK;
+    }
+
+    async addMessage(server: any, chatId: any, userId: any, content: string) {
+
+        // would be better with findUnique
+        let participant =  await this.prisma.participant.findMany({
+            where: {
+                chatRoomId: chatId,
+                userId: userId
+            },
+            include: {
+                user: true 
+            }
+        });
+
+        if (!participant[0]) {
+            console.log("addMessage: can't find participant");
+            return ;
+        }
+        console.log("participant in addMessage : ", participant[0]);
+
+        //await this.prisma.message.create({
+            //data: {
+                //chatId: chatId,
+                //content: content,
+                //senderId: participant[0].id
+            //}
+        //});
+        console.log("content : " + content);
+            await this.prisma.message.create({
+                data: {
+                    chatId: chatId,
+                    //content: "test message in chat.sercice addMessage",
+                    content: content,
+                    senderId: participant[0].id
+                }
+            });
+
+        
+		server.emit('receiveMessage', {participant : participant[0], content: content});
+
     }
 
     async findRooms(name?: string) {

@@ -1,46 +1,76 @@
 
 <script lang="ts">
 
+    import Button from '$lib/Button.svelte';
+    import ParticlesBackground from '$lib/ParticlesBackground.svelte';
     import { user } from '$lib/stores';
+    import { chatSocket } from '$lib/websocket-stores';
+    import { onMount } from 'svelte';
+
+    chatSocket.subscribe(value => {
+        console.log("chatSocket : ", value);
+    });
 
     // store loaded content
     export let data;
     console.log("data : " + JSON.stringify(data));
+    console.log("message : ", data.room.messages);
+    let msgs: any[] = [...data.room.messages]; 
+    //let msgs: any[] = [];
 
-    let msgs: any[] = data.room.messages; 
-
-    //let msgs: any = [];
-
+    let message = '';
 
     //for (let i = 0; i < 12; i++) {
         //msgs.push({user:(Math.random() + 1).toString(36).substring(7), msg:(Math.random() + 1).toString(36).substring(7)});
     //}
-    //msgs.push({senderId:$user , content:(Math.random() + 1).toString(36).substring(7)});
-    console.log("data : " + JSON.stringify(data));
+    ////msgs.push({senderId:$user , content:(Math.random() + 1).toString(36).substring(7)});
+    //console.log("data : " + JSON.stringify(data));
+
+    async function sendMessage() {
+        if (!message)
+            return ;
+        console.log("sending message : ", message);
+        await $chatSocket.emit("message", {chatId: data.room.id, userId: $user.id, content: message});
+        message = '';
+    }
+
+    $chatSocket.on("receiveMessage", (data) => {
+        console.log("message received : ", data);
+        console.log("user : ", data.participant.user);
+        msgs.push({user: data.participant.user, content: data.content});
+        msgs = msgs;
+    });
 
 </script>
 
 <section class="chat_container">
 
         <!-- <h1>Chat</h1> -->
-    {#if $user}
+    <!-- {#if $user} -->
     <div class="chat">
-        {#each msgs as msg, i}
-            <div class="msg">
-                <!-- {#if msg.user === $user.login}
-                  <div class='hflex' style="justify-content: flex-end;">
-                        <p>{msg.content} {msg.user}</p>
-                </div> 
-                {:else} -->
-                    <div class='hflex' style="justify-content: flex-start; ">
-                    <p>{msg.content} </p>
-                    </div>
-                <!-- {/if} -->
-            </div>
-        {/each}
+        <!-- {#key msgs} -->
+            {#each msgs as msg, i}
+                <div class="msg">
+                    <!-- {#if msg.user === $user.login}
+                    <div class='hflex' style="justify-content: flex-end;">
+                            <p>{msg.content} {msg.user}</p>
+                    </div> 
+                    {:else} -->
+                        <div class='hflex' style="justify-content: flex-start; ">
+                        <!-- <img class="profilePicture" src={msg.user.profilePicture}/> -->
+                        <p> <!-- {msg.user.login} --> {msg.content} </p>
+                        </div>
+                    <!-- {/if} -->
+                </div>
+            {/each}
+        <!-- {/key} -->
     </div>
-    <input type="text" id="name" name="name" required autocomplete="off" minlength="4" maxlength="8" size="10">
-    {/if}
+    <!-- <input type="text" id="name" name="name" required autocomplete="off" minlength="4" maxlength="8" size="10" bind={message}> -->
+    <!-- {/if} -->
+    <div class='hflex'>
+        <input type="text" bind:value={message}>
+        <Button on:click={sendMessage}>Send</Button>
+    </div>
 </section>
 
 <style lang="scss">
@@ -55,7 +85,12 @@
     .hflex {
         display: flex;
         flex-direction: row;
+
+        align-items:center;
         /* chat display */
+        input {
+            height: 30%;
+        }
     }
 
     .chat_container {
@@ -81,6 +116,23 @@
 
     }
 
+    input {
+        color: black;
+    }
+
+        .profilePicture {
+            size: inherit;
+            //width: 50px;
+
+            //height: 50px;
+            //border-radius: 50%;
+            //margin: 0;
+            //padding: 0;
+		    //aspect-ratio: 1;
+		    border-radius: 20%;
+		    object-fit: cover;
+            width: 5%;
+        }
     /*.chat {
         width: 50%;
         height: 80%;

@@ -19,6 +19,7 @@ import {
   import { JwtTwoFactorAuthGuard } from 'src/auth/jwt-two-factor-auth.guard';
   import { IUserRequest } from 'src/interfaces/interfaces';
   import { AddRoomDto, AddParticipantDto} from 'src/interfaces/dtos';
+import { get } from 'http';
   //import { PermissionService } from '../permission/permission.service';
   
   @UseGuards(JwtTwoFactorAuthGuard)
@@ -38,10 +39,9 @@ import {
     @Post('joinRoom')
     async addParticipant(@Body() data: AddParticipantDto, @Req() req: IUserRequest) {
         const payload = req.jwtPayload;
-        console.log("data : " + JSON.stringify(data));
+        console.log("data in joinRoom (controller): " + JSON.stringify(data));
         return await this.chatService.addParticipant(data.chatId, data.userId, data.password);
     }
-
 
     @Get('rooms')
     async rooms(@Req() req: IUserRequest, @Query('name') params?): Promise<any> {

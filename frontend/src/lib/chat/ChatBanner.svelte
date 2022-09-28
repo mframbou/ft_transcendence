@@ -13,8 +13,14 @@
     let passwordPanel = false; 
     let password = '';
 
+    let error = '';
+
     async function pass() {
+        error = '';
         password = '';
+        //console.log("room participant : ", room.participant);
+        //let me = room.participant.find(p => p.userID === user.id);
+        //console.log("me : ", me);
         if (!room.is_private) {
             await joinRoom();
             return ;
@@ -24,7 +30,7 @@
     }
 
     async function joinRoom() {
-        console.log("Joining room");
+        console.log("try to join room");
 
         // need to add error + security check
         const response = await fetch('/api/chat/joinRoom', {
@@ -39,8 +45,18 @@
             })
         });
 
+        console.log("response : ", response);
+
+        if (!response.ok) {
+            //console.log("error : ", response);
+            let json = await response.json();
+            error = json.message;
+        } else {
+            goto('/chat/' + room.name);
+        }
+
         //const json = await response.json();
-        console.log("response in joinRoom : ", response);
+        //console.log("response in joinRoom : ", json);
 
         //if (room.is_private) {
             //passwordPanel = true;
@@ -53,8 +69,19 @@
 
 {#if passwordPanel}
     <Modal on:close-modal={() => {passwordPanel = false}}>
+        <div class='vflex'>
+            <h3 style = 'background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;'>Enter password</h3>
         <input class="test" type="text" bind:value={password} style="color:black" />
         <Button on:click={joinRoom} on:click={() => {passwordPanel = false}}>OK</Button>
+        </div>
+    </Modal>
+{/if}
+
+{#if error}
+    <Modal on:close-modal={() => {error = ''}}>
+        <p>{error}</p>
     </Modal>
 {/if}
 
@@ -79,6 +106,14 @@
     .hflex {
         display: flex;
         flex-direction: row;
+
+    }
+
+    .vflex {
+        display: flex;
+        flex-direction: column;
+
+        gap: 0.5rem;
     }
     
     .wrapper
@@ -93,7 +128,7 @@
 		margin: 1px;
         width: 50%;
         min-width: 500px;
-		//widows: 100%;
+        
 		background-color: $bg-color;
 		gap: 10px;
 		border-radius: 10px;
@@ -148,5 +183,10 @@
             color:black;
         }
 
+        .🌈 {
+            background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+	    }
 	}
 </style>
