@@ -86,6 +86,8 @@ function createWebsocketStore(namespace: string, timeout: number = 3000): { sock
 		return () => {
 			if (socket)
 			{
+				// log buffer
+				connectedStoreWritable.set(false);
 				console.log('disconnecting socket, connected:', socket.connected);
 				socket.disconnect();
 				socket.removeAllListeners();

@@ -580,10 +580,23 @@
 		if (gameMode === GameMode.SPECTATOR)
 			return;
 
-		let rect = canvas.getBoundingClientRect();
+		const rect = canvas.getBoundingClientRect();
 
 		// y is offset by half the paddle height (so when mouse is on top y = -50) so that paddle is centered
 		const y = (event.clientY - rect.top - (player1.paddle.height * canvas.height) / 2) / canvas.height;
+		movePaddle(player1.paddle, y);
+		if (gameMode === GameMode.MULTIPLAYER)
+			emitPaddleMove(player1.paddle.position.client_y);
+	}
+
+	function handleDrag(event: TouchEvent)
+	{
+		if (gameMode === GameMode.SPECTATOR)
+			return;
+
+		const rect = canvas.getBoundingClientRect();
+
+		const y = (event.touches[0].clientY - rect.top - (player1.paddle.height * canvas.height) / 2) / canvas.height;
 		movePaddle(player1.paddle, y);
 		if (gameMode === GameMode.MULTIPLAYER)
 			emitPaddleMove(player1.paddle.position.client_y);
@@ -960,7 +973,7 @@
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} on:resize={handleResize} />
 
 <div class="pong-wrapper" bind:this={pongWrapper}>
-	<canvas class="pouet" on:mousemove={handleMouse} bind:this={canvas} width="600" height="400"/>
+	<canvas class="pouet" on:mousemove={handleMouse} on:touchmove={handleDrag} bind:this={canvas} width="600" height="400"/>
 </div>
 
 <style lang="scss">

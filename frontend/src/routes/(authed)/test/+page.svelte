@@ -1,16 +1,16 @@
 <script lang="ts">
 
-	import { gameRooms} from '$lib/stores';
+	import { pongSocket, chatSocketConnected } from '$lib/websocket-stores';
+	import { onDestroy } from 'svelte';
+
+	onDestroy(() => {
+		console.log('destroy');
+		if ($chatSocketConnected)
+		{
+			console.log('emitting');
+			$pongSocket.emit("message", '');
+			console.log('emitted')
+		}
+	})
 
 </script>
-
-{#if $gameRooms}
-	{#each $gameRooms as room}
-		{JSON.stringify(room)}
-	{/each}
-
-	{#if $gameRooms.length === 0}
-		No gamerooms
-	{/if}
-{/if}
-

@@ -58,6 +58,7 @@
 		flex-grow: 1;
 		position: relative;
 		overflow: auto;
+		z-index: 0; // so that child can have different z-index without going behind 'wrapper'
 		//transform-style: preserve-3d;
 	}
 
