@@ -1,6 +1,6 @@
 
 <script lang="ts">
-	import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { goto, prefetchRoutes } from '$app/navigation';
 
 	import Modal from '$lib/Modal.svelte';
@@ -46,9 +46,6 @@
             //console.log("rooms " + i + " " + rooms[i].participants[0].user.login);
         //}
     }
-
-
-
 
     async function clearAll() {
         await fetch('/api/chat/clearAll');

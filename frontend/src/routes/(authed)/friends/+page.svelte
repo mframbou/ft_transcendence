@@ -3,57 +3,45 @@
 	import { onDestroy, onMount } from 'svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
 	import { statusSocket } from '$lib/websocket-stores';
-	import { user } from '../../../lib/stores';
-	import { goto } from '$app/navigation';
+	import { friends, users, user } from '$lib/stores';
 
-	let friends = [];
-	let pendingFriendsSent = [];
-	let pendingFriendsReceived = [];
+	let availableUsers = [];
+
+
+	$: if ($users && $friends && $user)
+	{
+		availableUsers = $users.filter((usr) => {
+
+			const isFriend: boolean = $friends.friends.find((friend) => friend.login === usr.login) !== undefined;
+			const isSelf: boolean = $user.login === usr.login;
+			const isPending: boolean = $friends.pendingSent.find((friend) => friend.login === usr.login) !== undefined;
+
+			return !isFriend && !isSelf && !isPending;
+		});
+	}
 
 	onMount(async () => {
 		$statusSocket.on('userStatusChanged', (data) =>
 		{
 			console.log('user status changed', data);
-			for (let friend of friends)
+			if ($friends && $friends.friends)
 			{
-				console.log(friend);
-				if (friend.login === data.login)
+				for (let friend of $friends.friends)
 				{
-					console.log('friend user status changed', data);
-					friend.status = data.status;
-					break;
+					if (friend.login === data.login)
+					{
+						console.log('friend user status changed', data);
+						friend.status = data.status;
+						break;
+					}
 				}
 			}
 		});
-
-		const { friends: friendsData, pendingSent, pendingReceived } = await getAllFriends();
-
-		friends = friendsData;
-		pendingFriendsSent = pendingSent;
-		pendingFriendsReceived = pendingReceived;
 	});
 
 	onDestroy(() => {
 		$statusSocket.off('userStatusChanged');
 	});
-
-	async function getAllFriends() {
-		try
-		{
-			const response = await fetch('/api/friends/all');
-
-			if (!response.ok)
-			{
-				throw new Error('Failed to get friends (status' + response.status + '): ' + response.statusText);
-			}
-			const data = await response.json();
-			return data;
-		}
-		catch (error)
-		{
-			console.error('an error occured while fetching friends: ' + error);
-		}
-	}
 
 </script>
 
@@ -195,8 +183,8 @@
 	<section class="friends-list">
 		<h1>Friends</h1>
 		<div class="friends-list-wrapper">
-			{#if friends.length > 0}
-				{#each friends as friend}
+			{#if $friends && $friends.friends.length > 0}
+				{#each $friends.friends as friend}
 					<a class="friend" href={`/profile/${friend.login}`}>
 						<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
 						<div class="friend-infos">
@@ -216,8 +204,8 @@
 	<section class="pending-friends-received">
 		<h1>Pending friend requests received</h1>
 		<div class="friends-list-wrapper">
-			{#if pendingFriendsReceived.length > 0}
-				{#each pendingFriendsReceived as friend}
+			{#if $friends && $friends.pendingReceived.length > 0}
+				{#each $friends.pendingReceived as friend}
 					<a class="friend" href={`/profile/${friend.login}`}>
 						<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
 						<div class="friend-infos">
@@ -237,8 +225,8 @@
 	<section class="pending-friends-sent">
 		<h1>Pending friend requests sent</h1>
 		<div class="friends-list-wrapper">
-			{#if pendingFriendsSent.length > 0}
-				{#each pendingFriendsSent as friend}
+			{#if $friends && $friends.pendingSent.length > 0}
+				{#each $friends.pendingSent as friend}
 					<a class="friend" href={`/profile/${friend.login}`}>
 						<img class="friend-profile-picture" src={friend.profilePicture} alt="profile-picture"/>
 						<div class="friend-infos">
@@ -250,6 +238,27 @@
 			{:else}
 				<div class="no-friends">
 					<h2>You have no pending friend requests sent.</h2>
+				</div>
+			{/if}
+		</div>
+	</section>
+
+	<section class="find-new-frineds">
+		<h1>Find new friends</h1>
+		<div class="friends-list-wrapper">
+			{#if availableUsers.length > 0}
+				{#each availableUsers as potentialFriend}
+					<a class="friend" href={`/profile/${potentialFriend.login}`}>
+						<img class="friend-profile-picture" src={potentialFriend.profilePicture} alt="profile-picture"/>
+						<div class="friend-infos">
+							<span class="friend-username">{potentialFriend.username}</span>
+							<span class="friend-status">{potentialFriend.status}</span>
+						</div>
+					</a>
+				{/each}
+			{:else}
+				<div class="no-friends">
+					<h2>There are no users you can add as friend.</h2>
 				</div>
 			{/if}
 		</div>

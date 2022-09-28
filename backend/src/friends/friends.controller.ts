@@ -30,8 +30,6 @@ export class FriendsController {
 	async addFriend(@Body() body: any, @Req() req: IUserRequest) {
 		const payload: IJwtPayload = req.jwtPayload;
 
-		console.log("BODY IS ", body.login, body);
-
 		await this.friendsService.addFriend(payload.login, body.login);
 	}
 
