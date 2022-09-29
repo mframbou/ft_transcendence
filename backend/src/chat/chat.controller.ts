@@ -37,24 +37,20 @@ import { get } from 'http';
     }
 
     @Post('joinRoom')
-    async addParticipant(@Body() data: AddParticipantDto, @Req() req: IUserRequest) {
+    async join(@Body() data: AddParticipantDto, @Req() req: IUserRequest) {
         const payload = req.jwtPayload;
         console.log("data in joinRoom (controller): " + JSON.stringify(data));
-        return await this.chatService.addParticipant(data.chatId, data.userId, data.password);
+        return await this.chatService.join(data.chatId, data.userId, data.password);
     }
 
     @Get('rooms')
     async rooms(@Req() req: IUserRequest, @Query('name') params?): Promise<any> {
-        let res = await this.chatService.findRooms(params);
-        //if (!res)
-          //throw new HttpException('Room not found', 404);
-        return res;
+        return await this.chatService.rooms(params);
     }
 
+    // dbg
     @Get('clearAll')
     async clearAll(@Req() req: IUserRequest): Promise<any> {
-        const payload = req.jwtPayload;
-  
         return await this.chatService.clearAll();
     }
   

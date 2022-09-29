@@ -55,15 +55,10 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection
 	@SubscribeMessage('message')
 	async handleMessage(client: IWsClient, payload: any)
 	{
-		console.log("message received: ", payload);
 		const user = client.transcendenceUser;
-		//console.log(`${NAMESPACE}-Gateway: ${user.login}: ${payload}`);
-		console.log("user : " + JSON.stringify(user));
-		console.log("payload : ", payload);
-		//console.log("client : ", client);
+		console.log(`${NAMESPACE}-Gateway: ${user.login}: ${payload}`);
 
-		this.chatService.addMessage(this.server, client, payload.chatId, payload.userId, payload.content);
-		//this.server.to(client.id).emit('receiveMessage', payload.content);
+		this.chatService.handleMessage(this.server, client, payload.chatId, payload.userId, payload.content);
 	}
 
 	@UseGuards(WsAuthGuard)

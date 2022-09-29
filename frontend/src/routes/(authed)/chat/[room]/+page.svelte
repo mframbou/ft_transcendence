@@ -50,12 +50,11 @@
 
         // scroll (don't scroll to the bottom for some reason)
         let elem = document.getElementsByClassName("chat");
-        console.log("elem : ", elem[0].scrollHeight);
         elem[0].scrollTop = elem[0].scrollHeight;
     });
 
     $chatSocket.on("commandError", (data) => {
-        console.log("commandError : ", data);
+        //console.log("commandError : ", data);
         msgs.push({isError: true, content: data});
         msgs = msgs;
     });

@@ -18,16 +18,64 @@ export class ChatService {
         private readonly usersService: UsersService,
     ) {}
 
+    // roomsclients store the client id of each user in each room
     // cringe -> better if we have map of array where key is roomId and value is array of clients
     // TODO : stop sending userId and use client.login instead -> less optimization but more security as we can't falsify userId
     roomsClients = [];
 
+    // enter/leave update roomsClients
+	async enter(server: any, client: any, payload: any) {
+        console.log("enter");
+        this.roomsClients.push({user: payload.user, roomId: payload.roomId, clientId: client.id});
+    }
+
+    async leave(server: any, client: any, payload: any) {
+        console.log("leave");
+        this.roomsClients = this.roomsClients.filter((cur) => cur.clientId !== client.id);
+    }
+
+    // utils function to send stuff to client in a room (if client provided send only to him)
+    async sendTo(server: any, chatId: any, trigger: string, content: any, client?: any) {
+        if (client) {
+            server.to(client.id).emit(trigger, content);
+        } else {
+            for (let cur of this.roomsClients) {
+                if (chatId == cur.roomId) {
+                    server.to(cur.clientId).emit(trigger, content);
+                }
+            }
+        }
+    }
+
+    async sendError(server: any, client: any, content: string) {
+        server.to(client.id).emit('commandError', content);
+    }
+
+    async sendStatus(server: any, client: any, participant: any, chatId: any, content: any) {
+
+        try {
+            let message = await this.prisma.message.create({
+                data: {
+                    chatId: chatId,
+                    content: content,
+                    senderId: participant.id,
+                    isStatus: true
+                },
+            });
+
+            this.sendTo(server, chatId, 'receiveMessage', {isStatus: true, content: content});
+        }
+        catch (e) {
+            // should send error only to the client who emit the command
+            this.sendError(server, client, "Unknown error");
+            return ; 
+        }
+    }
+
+
     async addRoom(login: string, name: string, is_private: boolean, password?: string) {
 
         const user = await this.usersService.getUser(login);
-
-        console.log("addRoom request from " + JSON.stringify(user));
-        console.log("is private : " + is_private);
 
         if (await this.prisma.chatRoom.findUnique({where: {name: name}})) {
             throw new HttpException('Room already exist with this name', 403);
@@ -36,7 +84,6 @@ export class ChatService {
         if (is_private && password.length < 4) {
             throw new HttpException('Passord is too short', 403);
         }
-
 
         try {
             let cur_room = await this.prisma.chatRoom.create({
@@ -54,210 +101,103 @@ export class ChatService {
                 },
                 include: {
                     participants: {
-                        include: {
-                            user: true
-                        }
+                        include: { user: true }
                     },
                     messages: {
-                        include: {
-                            sender: true,
-                        }
+                        include: { sender: true }
                     },
                 }
             });
 
             console.log("room created: " + JSON.stringify(cur_room));
 
-            // to be removed ( message testing )
-            //await this.prisma.message.create({
-                //data: {
-                    //chatId: cur_room.id,
-                    //content: "test message in chat.sercice addRoom",
-                    //senderId: cur_room.participants[0].id
-                //}
-            //});
-
-            console.log("room added: " + JSON.stringify(cur_room));
-            console.log('-------------------');
-
             return HttpStatus.OK;
         }
         catch (e) {
-            console.log("e : " + e);
             throw new HttpException('Unknown error', 403);
         }
     }
 
-    async addParticipant(chatId: number, userId: number, password?: string) {
+    async join(chatId: number, userId: number, password?: string) {
 
-        let participant =  await this.prisma.participant.findMany({
+        let participant = await this.prisma.participant.findMany({
             where: {
-                chatRoomId: chatId,
+                chatId: chatId,
                 userId: userId
             },
         });
 
-        // if user is already in the room
-        //console.log("participant : ", participant);
-        if (participant.length > 0) {
-            console.log("user already in room");
-            return ;
-        }
+        if (participant.length > 0) // already in room
+            return;
 
-
-        let room = await this.prisma.chatRoom.findUnique({
-            where: {
-                id: chatId
-            },
+        let current_room = await this.prisma.chatRoom.findUnique({
+            where: { id: chatId },
         });
 
-        // need to throw correct error
-        //console.log("room : ", room);
-        //console.log("password : ", password);
-        if (room.is_private && room.hash != password) {
-            console.log("incorect password");
+        // need to encrypt password :)
+        if (current_room.is_private && current_room.hash != password) {
             throw new HttpException('Incorrect password', 403);
         }
 
-        await this.prisma.participant.create({
-            data: {
-                chatRoomId: chatId,
-                userId: userId,
-                is_admin: false,
-                is_moderator: false,
-            }
-        });
+        // create participant for user in room
+        try {
+            await this.prisma.participant.create({
+                data: {
+                    chatId: chatId,
+                    userId: userId,
+                    is_admin: false,
+                    is_moderator: false,
+                }
+            });
+        } catch (e) {
+            throw new HttpException('Unknown error', 403);
+        }
     
         return HttpStatus.OK;
     }
 
 
     // need error management
-    async addMessage(server: any, client: any, chatId: any, userId: any, content: string) {
+    async handleMessage(server: any, client: any, chatId: any, userId: any, content: string) {
 
         // would be better with findUnique
         let participant =  await this.prisma.participant.findMany({
             where: {
-                chatRoomId: chatId,
+                chatId: chatId,
                 userId: userId
             },
-            include: {
-                user: true 
-            }
+            include: { user: true }
         });
 
         if (!participant[0]) {
-            console.log("addMessage: can't find participant");
+            this.sendError(server, client, "You are not in this room");
             return ;
         }
 
-        //console.log("participant in addMessage : ", participant[0]);
-        //console.log("content : " + content);
         if (content.trim()[0] === '/') {
             console.log("command");
-            return await this.command(server, client, chatId, participant[0], content);
+            return await this.command(server, client, participant[0], chatId, content);
         }
 
+        try {
             let message = await this.prisma.message.create({
                 data: {
                     chatId: chatId,
-                    //content: "test message in chat.sercice addMessage",
                     content: content,
                     senderId: participant[0].id
                 },
-                include: {
-                    sender: {
-                        include: {
-                            user: true
-                        }
-                    },
-                }
-
+                include: { sender: { include: { user: true } } }
             });
-        
-        // need to make roomsClients a map of array for optimization
-        for (let cur of this.roomsClients) {
-            if (cur.roomId == chatId) {
-                server.to(cur.clientId).emit('receiveMessage', message);
-            }
+            this.sendTo(server, chatId, 'receiveMessage', message);
         }
-    }
-
-    // add clientId to room when user connect
-	async enter(server: any, client: any, payload: any) {
-        console.log("enter payload : " + JSON.stringify(payload));
-        this.roomsClients.push({user: payload.user, roomId: payload.roomId, clientId: client.id});
-        console.log("--------------------------\nroomsClients after enter: ", this.roomsClients);
-    }
-
-    // remove clientId when user disconnect
-    async leave(server: any, client: any, payload: any) {
-        console.log("leave called");
-        console.log("client id: ", client.id);
-        //this.roomsClients.filter((cur) => cur.roomId === payload.roomId && cur.clientId === client.id);
-        this.roomsClients = this.roomsClients.filter((cur) => cur.clientId !== client.id);
-        console.log("----------------------\nroomsClients after leave: ", this.roomsClients);
-    }
-
-    async findRooms(name?: string) {
-
-        if (name) {
-                return await this.prisma.chatRoom.findUnique({
-                    where: {
-                        name: name
-                    },
-                    include: {
-                        participants: {
-                            include: {
-                                user: true
-                            }
-                        },
-                        messages: {
-                            include: {
-                                sender: {
-                                    include: {
-                                        user: true
-                                    }
-                                }
-                            }
-                        },
-                    }
-                });
-        }
-
-
-        // if name is not provided, returns all rooms
-        return await this.prisma.chatRoom.findMany({
-            include: {
-                participants: {
-                    include: {
-                        user: true
-                    }
-                },
-                messages: false,
-            }
-        });
-    }
-
-    async clearAll() {
-        await this.prisma.message.deleteMany();
-        await this.prisma.participant.deleteMany();
-        await this.prisma.chatRoom.deleteMany();
-
-        console.log('cleared all chat data');
-    }
-
-
-    async sendStatus(server: any, client: any, chatId: any, content: any) {
-        for (let cur of this.roomsClients) {
-            if (cur.roomId == chatId) {
-                server.to(cur.clientId).emit('receiveMessage', {isStatus: true, content: content});
-            }
+        catch (e) {
+            this.sendError(server, client, "Unknown error");
+            return ; 
         }
     }
 
     // need to make command message stay in db
-    async command(server: any, client: any, chatId: any, participant: any, content: string) {
+    async command(server: any, client: any, participant: any, chatId: any, content: string) {
 
         let command = content.split(' ')[0];
         let args = content.split(' ').slice(1);
@@ -266,7 +206,7 @@ export class ChatService {
 
         switch (command) {
             case '/kick':
-                await this.kick(server, client, chatId, participant, args);
+                await this.kick(server, client, participant, chatId, args);
                 break;
             //case '/ban':
                 //await this.ban(server, chatId, userId, args);
@@ -292,46 +232,75 @@ export class ChatService {
         }
     }
 
-    async commandError(server: any, client: any, content: string) {
-        server.to(client.id).emit('commandError', content);
-    }
     
-    async kick(server: any, client: any, chatId: any, participant: any, args: any) {
+    async kick(server: any, client: any, participant: any, chatId: any, args: any) {
         if (!participant.is_admin && !participant.is_moderator) {
-            this.commandError(server, client, "/kick: You don't have the permission to kick");
+            this.sendError(server, client, "kick: You don't have the permission to kick");
             return;
         }
 
         if (args.length != 1) {
-            this.commandError(server, client, "/kick: Invalid number of arguments");
+            this.sendError(server, client, "Usage: /kick <username>");
             return;
         }
 
-        for (let arg of args) {
-            let user = await this.prisma.user.findUnique({
-                where: {
-                    login: arg
-                }
-            });
+        let target = await this.prisma.user.findUnique({
+            where: { login: args[0] }
+        });
 
-            if (!user) {
-                this.commandError(server, client, "/kick: User " + arg + " not found");
-                return ;
-            }
-            
-            console.log("roomsClients before kick: ", this.roomsClients);
-            console.log("target login : ", user.login);
-            console.log("target roomId : ", chatId);
-
-            for (let cur of this.roomsClients) {
-                if (cur.user && cur.user.login == user.login && cur.roomId == chatId) {// && cur.roomId == chatId) {
-                    server.to(cur.clientId).emit('kick');
-                    this.sendStatus(server, client, chatId, participant.user.login + " kicked " + args[0]);
-                } 
-            }
+        if (!target) {
+            this.sendError(server, client, "kick: User " + args[0] + " not found");
+            return ;
         }
-
-
+            
+        // find clientId of target and send him kick
+        for (let cur of this.roomsClients) {
+            if (cur.user && cur.user.login == target.login && cur.roomId == chatId) {
+                server.to(cur.clientId).emit('kick');
+            } 
+        }
+        this.sendStatus(server, client, participant, chatId, participant.user.login + " kicked " + args[0]);
+        
+        // remove target from roomsclients
+        this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
     }
 
+    async rooms(name?: string) {
+
+        // room by name
+        if (name) {
+                return await this.prisma.chatRoom.findUnique({
+                    where: {
+                        name: name
+                    },
+                    include: {
+                        participants: { 
+                            include: { user: true } 
+                        },
+                        messages: { 
+                            include: { sender: { include: { user: true } } } 
+                        },
+                    }
+                });
+        }
+
+        // all rooms
+        return await this.prisma.chatRoom.findMany({
+            include: {
+                participants: { 
+                    include: { user: true }
+                },
+                messages: false,
+            }
+        });
+    }
+
+    // dbg
+    async clearAll() {
+        await this.prisma.message.deleteMany();
+        await this.prisma.participant.deleteMany();
+        await this.prisma.chatRoom.deleteMany();
+
+        console.log('cleared all chat data');
+    }
 }
