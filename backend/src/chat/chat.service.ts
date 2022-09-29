@@ -27,6 +27,14 @@ export class ChatService {
     // enter/leave update roomsClients
 	async enter(server: any, client: any, payload: any) {
         console.log("enter");
+        let cur_room = await this.prisma.chatRoom.findUnique({
+            where: { id: payload.roomId },
+        });
+
+        if (cur_room.banned.find((cur) => cur == client.login)) {
+            this.sendError(server, client, "You are banned from this room");
+            return ;
+        }
         this.roomsClients.push({user: payload.user, roomId: payload.roomId, clientId: client.id});
     }
 
@@ -268,6 +276,7 @@ export class ChatService {
         // remove target from roomsclients
         this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
     }
+
     async unban(server: any, client: any, participant: any, chatId: any, args: any) {
         if (args.length != 1) {
             this.sendError(server, client, "Usage: /unban <login>");
