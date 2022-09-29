@@ -215,9 +215,9 @@ export class ChatService {
             case '/ban':
                 await this.ban(server, client, participant, chatId, args);
                 break;
-            //case '/unban':
-                //await this.unban(server, chatId, userId, args);
-                //break;
+            case '/unban':
+                await this.unban(server, client, participant, chatId, args);
+                break;
             //case '/mute':
                 //await this.mute(server, chatId, userId, args);
                 //break;
@@ -244,7 +244,7 @@ export class ChatService {
         }
 
         if (args.length != 1) {
-            this.sendError(server, client, "Usage: /kick <username>");
+            this.sendError(server, client, "Usage: /kick <login>");
             return;
         }
 
@@ -268,15 +268,60 @@ export class ChatService {
         // remove target from roomsclients
         this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
     }
+    async unban(server: any, client: any, participant: any, chatId: any, args: any) {
+        if (args.length != 1) {
+            this.sendError(server, client, "Usage: /unban <login>");
+        }
+
+        let cur_user = await this.prisma.user.findMany({where: { login: args[0] } })
+        if (!cur_user) {
+            this.sendError(server, client, "unban: User " + args[0] + " not found");
+            return ;
+        }
+
+        let cur_room = await this.prisma.chatRoom.findUnique({
+            where: { id: chatId },
+        });
+
+        if (!cur_room) {
+            this.sendError(server, client, "unban: Room not found wtf?");
+            return;
+        }
+
+        if (!cur_room.banned.find((cur) => cur == args[0])) {
+            this.sendError(server, client, "unban: " + args[0] + " is not banned");
+            return;
+        }
+
+        // recreate banned list without target and re-assign it -> very slow but prisma cringe so it's better like this
+        const new_banned = cur_room.banned.filter((cur) => cur != args[0]);
+
+        await this.prisma.chatRoom.update({
+            where: { id: chatId },
+            data: {
+                banned: {
+                    set: new_banned,
+                }
+            }
+        });
+
+        cur_room = await this.prisma.chatRoom.findUnique({
+            where: { id: chatId },
+        });
+
+        console.log("cur_room after unban: " + JSON.stringify(cur_room));
+
+        this.sendStatus(server, client, participant, chatId, participant.user.login + " unbanned " + args[0]);
+    }
 
     async ban(server: any, client: any, participant: any, chatId: any, args: any) {
-        //if (!participant.is_admin) {
-            //this.sendError(server, client, "ban: You don't have the permission to ban");
-            //return;
-        //}
+        if (!participant.is_admin) {
+            this.sendError(server, client, "ban: You don't have the permission to ban");
+            return;
+        }
 
         if (args.length != 1) {
-            this.sendError(server, client, "Usage: /ban <username>");
+            this.sendError(server, client, "Usage: /ban <login>");
             return;
         }
 
@@ -284,19 +329,19 @@ export class ChatService {
             where: { login: args[0] }
         });
 
-        let room = await this.prisma.chatRoom.findUnique({
-            where: {
-                id: chatId,
-            }
-        });
-
-        if (room.banned.find((cur) => args[0] == cur)) {
-            this.sendError(server, client, "ban: User " + args[0] + " is already banned");
+        // check if user exist
+        if (!target) {
+            this.sendError(server, client, "ban: User " + args[0] + " not found");
             return ;
         }
 
-        if (!target) {
-            this.sendError(server, client, "ban: User " + args[0] + " not found");
+        let target_room = await this.prisma.chatRoom.findUnique({
+            where: { id: chatId }
+        });
+
+        // check if user is already banned
+        if (target_room.banned.find((cur) => args[0] == cur)) {
+            this.sendError(server, client, "ban: User " + args[0] + " is already banned");
             return ;
         }
 
@@ -306,36 +351,36 @@ export class ChatService {
             } 
         }
         
-        // remove target from roomsclients
-        this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
-
-        // delete participant
         try {
+            // delete participant
             const update_participant = await this.prisma.participant.deleteMany({
                 where: {
                     chatId: chatId,
                     userId: target.id
                 }
             });
+
+            // add user to banned list
+            await this.prisma.chatRoom.update({
+                where: {
+                    id: chatId
+                },
+                data: {
+                    banned: {
+                        push: target.login,
+                    }
+                },
+            });
         }
         catch (e) {
             this.sendError(server, client, "Unknown error");
         }
 
-        let up_room = await this.prisma.chatRoom.update({
-            where: {
-                id: chatId
-            },
-            data: {
-                banned: {
-                    push: target.login,
-                }
-            },
-        });
+        // remove target from roomsclients
+        this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
 
-        console.log("up_room: " + JSON.stringify(up_room));
+        this.sendStatus(server, client, participant, chatId, participant.user.login + " banned " + args[0]);
 
-        //this.sendStatus(server, client, participant, chatId, participant.user.login + " banned " + args[0]);
     }
 
     async rooms(name?: string) {
