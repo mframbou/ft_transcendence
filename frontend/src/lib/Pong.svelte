@@ -862,6 +862,7 @@
 		else
 		{
 			// real player 2
+			player2.paddle.position.client_y = player2.paddle.position.server_y;
 			player2.paddle.position.client_y = lerp(player2.paddle.position.client_y, player2.paddle.position.server_y, 0.2);
 		}
 
