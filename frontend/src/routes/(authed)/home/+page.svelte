@@ -46,7 +46,7 @@
 			<div class="friend">
 				<img src={friend.profilePicture} alt={friend.username}/>
 				<h3>{friend.username}</h3>
-				<div class="invite-icon" on:click={() => alert(`Inviting ${friend.username}`)}/>
+				<div style="margin-left:auto" class="invite-icon" on:click={() => alert(`Inviting ${friend.username}`)}/>
 				<div class="chat-icon" on:click={() => alert(`Chatting with ${friend.username}`)}/>
 <!--					<button on:click={() => invite(friend.id)}>Invite</button>-->
 			</div>

@@ -184,10 +184,10 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 					ball.x += ball.velocityX * remainingTime * deltaTimeMultiplier;
 				}
 
-				// will probably never happen
+				// will probably never happen (I was wrong, it happens sometimes)
 				if (collision.normalY !== 0)
 				{
-					ball.velocityY *= -1;
+					// ball.velocityY *= -1; // Don't revert either, since new angle is alreaedy calculated, if we hit on y and reverse (which rarely happeens), if ball hits on bottom, it gets redirected to top and inverse
 					ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
 				}
 			}

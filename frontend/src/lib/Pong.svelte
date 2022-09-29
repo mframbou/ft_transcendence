@@ -761,10 +761,10 @@
 						ball.position.client_x += ball.velocityX * remainingTime * deltaTimeMultiplier;
 					}
 
-					// will probably never happen
+					// will probably never happen (I was wrong, it happens sometimes)
 					if (collision.normalY !== 0)
 					{
-						ball.velocityY *= -1;
+						// ball.velocityY *= -1; // Don't revert either, since new angle is alreaedy calculated, if we hit on y and reverse (which rarely happeens), if ball hits on bottom, it gets redirected to top and inverse
 						ball.position.client_y += ball.velocityY * remainingTime * deltaTimeMultiplier;
 					}
 				}
@@ -872,7 +872,13 @@
 		// ball.position.client_y += ball.velocityY * updateMultiplier;
 		const collision = computeBallUpdate(ball, player1.paddle, player2.paddle, updateMultiplier)
 		if (collision)
+		{
 			collisionSinceLastBallUpdate = true;
+
+			// We can change the random only on score, so that paddle doesnt move weirdly on collision
+			// if (gameMode === GameMode.SINGLEPLAYER)
+			// 	computerPaddleRandomOffset = generateRandomPaddleOffset();
+		}
 
 		// either user has a very bad computer (< 5 fps) or left the page and come back
 		if (gameMode !== GameMode.SINGLEPLAYER && deltaTime > 200)
