@@ -208,9 +208,9 @@ export class ChatService {
             case '/kick':
                 await this.kick(server, client, participant, chatId, args);
                 break;
-            //case '/ban':
-                //await this.ban(server, chatId, userId, args);
-                //break;
+            case '/ban':
+                await this.ban(server, client, participant, chatId, args);
+                break;
             //case '/unban':
                 //await this.unban(server, chatId, userId, args);
                 //break;
@@ -227,7 +227,7 @@ export class ChatService {
                 //await this.demote(server, chatId, userId, args);
                 //break;
             default:
-                console.log("unknow command");
+                this.sendError(server, client, "Unknown command");
                 break;
         }
     }
@@ -263,6 +263,80 @@ export class ChatService {
         
         // remove target from roomsclients
         this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
+    }
+
+    async ban(server: any, client: any, participant: any, chatId: any, args: any) {
+        if (!participant.is_admin) {
+            this.sendError(server, client, "ban: You don't have the permission to ban");
+            return;
+        }
+
+        if (args.length != 1) {
+            this.sendError(server, client, "Usage: /ban <username>");
+            return;
+        }
+
+        let target = await this.prisma.user.findUnique({
+            where: { login: args[0] }
+        });
+
+        if (!target) {
+            this.sendError(server, client, "ban: User " + args[0] + " not found");
+            return ;
+        }
+
+        for (let cur of this.roomsClients) {
+            if (cur.user && cur.user.login == target.login && cur.roomId == chatId) {
+                server.to(cur.clientId).emit('kick');
+            } 
+        }
+        
+        // remove target from roomsclients
+        this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
+
+        try {
+
+            //const update_room = await this.prisma.chatRoom.update({
+                //where: {
+                    //id: chatId,
+                //},
+                //data: {
+                    //participants: {
+                        //set: []
+                    //}
+                //},
+                //include: {
+                    //participants: true,
+                //}
+            //});
+        
+            //console.log("update_room :", update_room);
+
+            //const update_participant = await this.prisma.participant.updateMany({
+                //where: {
+                    //chatId: chatId,
+                //},
+                //data: {
+                    //chatId: -1
+                //},
+                ////include: {
+                    ////chatRoom: true,
+                ////}
+            //});
+        
+            //console.log("update_participant :", update_participant);
+        //const res = await this.prisma.participant.deleteMany({
+            //where: {
+                //userId: target.id,
+            //}
+        //});
+        //console.log("ban res : ", res);
+        }
+        catch (e) {
+            console.log("ban e : ", e);
+        }
+
+        //this.sendStatus(server, client, participant, chatId, participant.user.login + " banned " + args[0]);
     }
 
     async rooms(name?: string) {
