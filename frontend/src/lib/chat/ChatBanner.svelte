@@ -21,6 +21,13 @@
         //console.log("room participant : ", room.participant);
         //let me = room.participant.find(p => p.userID === user.id);
         //console.log("me : ", me);
+
+        // check if user is banned
+        if (room.banned.find(b => b.userID === user.id)) {
+            error = "You are banned from this room";
+            return ;
+        }
+
         if (!room.is_private) {
             await joinRoom();
             return ;

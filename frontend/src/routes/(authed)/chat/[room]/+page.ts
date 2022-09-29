@@ -14,9 +14,15 @@ async function loadData(fetch: any, room: string)
         throw error(404, 'Room not found');
     });
 
+
+
     out.user = await fetch(`/api/users/me`).then(res => res.json());
     if (!out.user) {
         throw error(404, 'User not found');
+    }
+
+    if (out.room.banned.find((cur) => cur == out.user.login)) {
+        throw error(404, 'You are banned from this room');
     }
 
     out.participant = out.room.participants.find((p: any) => p.userId == out.user.id);

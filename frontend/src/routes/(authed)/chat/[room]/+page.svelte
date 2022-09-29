@@ -10,6 +10,7 @@
     import { flip } from 'svelte/animate';
     import { select_option } from 'svelte/internal';
     import { goto } from '$app/navigation';
+    import ChatBanner from '$lib/chat/ChatBanner.svelte';
 
 
     // store loaded content
@@ -48,13 +49,12 @@
         msgs.push(data);
         msgs = msgs;
 
-        // scroll (don't scroll to the bottom for some reason)
         let elem = document.getElementsByClassName("chat");
         elem[0].scrollTop = elem[0].scrollHeight;
     });
 
     $chatSocket.on("commandError", (data) => {
-        //console.log("commandError : ", data);
+        console.log("commandError : ", data);
         msgs.push({isError: true, content: data});
         msgs = msgs;
     });
@@ -98,10 +98,11 @@
                     {:else if msg.isStatus}
                             <p style="color:gray;">*{msg.content}*</p> 
                     {:else}
-                        <img class="profilePicture" src={msg.sender.user.profilePicture}/>
-                        <p>  {msg.sender.user.login}: {msg.content} </p>
+                        <img class="profilePicture" src={msg.sender.profilePicture}/> 
+                        <!-- <p>  {msg.sender.user.login}: {msg.content} </p> -->
+                        <p> {msg.sender.login} {msg.content} </p>
+                   
                     {/if}
-                    <!-- {/if} -->
                 </div>
             {/each}
         <!-- {/key} -->

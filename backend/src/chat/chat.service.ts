@@ -10,6 +10,7 @@ import { UsersService } from '../users/users.service';
 import { connect, sensitiveHeaders } from 'http2';
 import errorDispatcher from 'src/utils/error-dispatcher';
 import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
+import { disconnect } from 'process';
 
 @Injectable()
 export class ChatService {
@@ -58,7 +59,7 @@ export class ChatService {
                 data: {
                     chatId: chatId,
                     content: content,
-                    senderId: participant.id,
+                    senderId: participant.user.id,
                     isStatus: true
                 },
             });
@@ -184,10 +185,13 @@ export class ChatService {
                 data: {
                     chatId: chatId,
                     content: content,
-                    senderId: participant[0].id
+                    //senderId: participant[0].id
+                    senderId: userId
                 },
-                include: { sender: { include: { user: true } } }
+                //include: { sender: { include: { user: true } } }
+                include: { sender: true }
             });
+            console.log("message created: " + JSON.stringify(message));
             this.sendTo(server, chatId, 'receiveMessage', message);
         }
         catch (e) {
@@ -266,10 +270,10 @@ export class ChatService {
     }
 
     async ban(server: any, client: any, participant: any, chatId: any, args: any) {
-        if (!participant.is_admin) {
-            this.sendError(server, client, "ban: You don't have the permission to ban");
-            return;
-        }
+        //if (!participant.is_admin) {
+            //this.sendError(server, client, "ban: You don't have the permission to ban");
+            //return;
+        //}
 
         if (args.length != 1) {
             this.sendError(server, client, "Usage: /ban <username>");
@@ -279,6 +283,17 @@ export class ChatService {
         let target = await this.prisma.user.findUnique({
             where: { login: args[0] }
         });
+
+        let room = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: chatId,
+            }
+        });
+
+        if (room.banned.find((cur) => args[0] == cur)) {
+            this.sendError(server, client, "ban: User " + args[0] + " is already banned");
+            return ;
+        }
 
         if (!target) {
             this.sendError(server, client, "ban: User " + args[0] + " not found");
@@ -294,47 +309,31 @@ export class ChatService {
         // remove target from roomsclients
         this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
 
+        // delete participant
         try {
-
-            //const update_room = await this.prisma.chatRoom.update({
-                //where: {
-                    //id: chatId,
-                //},
-                //data: {
-                    //participants: {
-                        //set: []
-                    //}
-                //},
-                //include: {
-                    //participants: true,
-                //}
-            //});
-        
-            //console.log("update_room :", update_room);
-
-            //const update_participant = await this.prisma.participant.updateMany({
-                //where: {
-                    //chatId: chatId,
-                //},
-                //data: {
-                    //chatId: -1
-                //},
-                ////include: {
-                    ////chatRoom: true,
-                ////}
-            //});
-        
-            //console.log("update_participant :", update_participant);
-        //const res = await this.prisma.participant.deleteMany({
-            //where: {
-                //userId: target.id,
-            //}
-        //});
-        //console.log("ban res : ", res);
+            const update_participant = await this.prisma.participant.deleteMany({
+                where: {
+                    chatId: chatId,
+                    userId: target.id
+                }
+            });
         }
         catch (e) {
-            console.log("ban e : ", e);
+            this.sendError(server, client, "Unknown error");
         }
+
+        let up_room = await this.prisma.chatRoom.update({
+            where: {
+                id: chatId
+            },
+            data: {
+                banned: {
+                    push: target.login,
+                }
+            },
+        });
+
+        console.log("up_room: " + JSON.stringify(up_room));
 
         //this.sendStatus(server, client, participant, chatId, participant.user.login + " banned " + args[0]);
     }
@@ -352,7 +351,8 @@ export class ChatService {
                             include: { user: true } 
                         },
                         messages: { 
-                            include: { sender: { include: { user: true } } } 
+                            //include: { sender: { include: { user: true } } } 
+                            include: { sender: true },
                         },
                     }
                 });
