@@ -781,9 +781,9 @@
 					ball.position.client_y += ball.velocityY * remainingTime * deltaTimeMultiplier;
 				}
 
+				deltaTimeMultiplier *= remainingTime;
 				collision = getCollision(ball, paddleObject, deltaTimeMultiplier);
 				collisionY = getCollision(ball, collisionYObject, deltaTimeMultiplier);
-				deltaTimeMultiplier *= remainingTime;
 			}
 			return true;
 		}

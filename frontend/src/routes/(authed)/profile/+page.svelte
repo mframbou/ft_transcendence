@@ -291,9 +291,8 @@
 </style>
 
 <script lang="ts">
-	import { user, fetchUser } from '$lib/stores';
+	import { user, fetchUser, matchesHistory } from '$lib/stores';
 	import { goto } from '$app/navigation';
-	import Button from '$lib/Button.svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
 	import { onMount } from 'svelte';
 	import { statusSocket } from '$lib/websocket-stores';
@@ -316,6 +315,44 @@
 		};
 	});
 
+
+	interface IMatch
+	{
+		player1: string;
+		player2: string;
+		player1Score: number;
+		player2Score: number;
+		outcome: 'victory' | 'defeat';
+	}
+
+	let matchHistory: IMatch[] = [];
+
+	$: if ($matchesHistory)
+	{
+		matchHistory = $matchesHistory.map((match) =>
+		{
+			const player1 = match.player1;
+			const player2 = match.player2;
+			const player1Score = match.player1Score;
+			const player2Score = match.player2Score;
+
+			const winner = player1Score > player2Score ? player1 : player2;
+
+			const outcome = ($user.login === winner) ? 'victory' : 'defeat';
+
+			const matchResult: IMatch = {
+				player1: player1,
+				player2: player2,
+				player1Score: player1Score,
+				player2Score: player2Score,
+				outcome: outcome
+			};
+
+			return matchResult;
+
+		});
+	}
+
 	interface IStat
 	{
 		name: string;
@@ -324,7 +361,6 @@
 
 	let stats: IStat[] = [];
 
-	let matchHistory = [];
 
 	// $:
 
@@ -413,17 +449,17 @@
 				<section class="user-section match-history-section">
 					<h1 class="user-section-title">Match history</h1>
 					<div class="match-history-wrapper">
-						{#if matchHistory.length === 0}
+						{#if matchHistory.length > 0}
+							{#each matchHistory as match}
+								<div class="match" class:match-victory={match.outcome === 'victory'} class:match-defeat={match.outcome === 'defeat'} class:match-draw={match.outcome === 'draw'}>
+									<h1 class="match-name"><strong>{match.player1.username}</strong><span class="user-separator">-</span>{match.player2.username}</h1>
+									<span class="match-score"><strong>{match.player1Score}</strong><span class="score-separator">-</span>{match.player2Score}</span>
+								</div>
+							{/each}
+						{:else}
 							<div class="no-match-history">
 								<h1>No match history</h1>
 							</div>
-						{:else}
-							{#each matchHistory as match}
-								<div class="match" class:match-victory={match.outcome === 'victory'} class:match-defeat={match.outcome === 'defeat'} class:match-draw={match.outcome === 'draw'}>
-									<h1 class="match-name"><strong>{$user.username}</strong><span class="user-separator">-</span>{match.oponnent}</h1>
-									<span class="match-score"><strong>{match.score.you}</strong><span class="score-separator">-</span>{match.score.opponent}</span>
-								</div>
-							{/each}
 						{/if}
 					</div>
 				</section>
