@@ -89,6 +89,7 @@ export class UsersService
 					isAdmin: true,
 					twoFactorEnabled: true,
 					status: true,
+					blockedUsers: true,
 				}
 			});
 		}

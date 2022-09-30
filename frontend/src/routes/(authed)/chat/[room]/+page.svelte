@@ -12,7 +12,6 @@
     import { goto } from '$app/navigation';
     import ChatBanner from '$lib/chat/ChatBanner.svelte';
 
-
     // store loaded content
     export let data;
 
@@ -22,7 +21,7 @@
     // using $user don't work on refresh (why ?)
     onMount(async () => {
         console.log("Mount");
-        console.log("user onMount: " + JSON.stringify($user));
+        //console.log("user onMount: " + JSON.stringify($user));
         $chatSocket.emit('enter', {chatId: data.room.id});
     });
 
@@ -33,9 +32,8 @@
     //});
 
 
-
-
     async function sendMessage() {
+        console.log("user : " + JSON.stringify($user));
         if (!message)
             return ;
         console.log("sending message : ", message);
@@ -101,7 +99,7 @@
                             <p style="color:red;">{msg.content}</p> 
                     {:else if msg.isStatus}
                             <p style="color:gray;">*{msg.content}*</p> 
-                    {:else}
+                    {:else if !$user.blockedUsers.find((cur) => cur == msg.sender.login)}
                         <img class="profilePicture" src={msg.sender.profilePicture}/> 
                         <!-- <p>  {msg.sender.user.login}: {msg.content} </p> -->
                         <p> {msg.sender.login} {msg.content} </p>
