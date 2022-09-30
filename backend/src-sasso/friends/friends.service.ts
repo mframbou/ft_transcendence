@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from "../prisma/prisma.service";
 import ErrorDispatcher from "../error-dispatcher/error-dispatcher";
-import {IFollower} from "../../interfaces/interfaces";
+import { IFollower } from "../../interfaces/interfaces";
 
 @Injectable()
 export class FriendsService {

@@ -33,7 +33,7 @@ export class BlacklistService {
 			if (!user)
 				throw new NotFoundException(`User with login ${userLogin} not found`);
 
-			const alreadyBlocked = await this.prismaService.blockedUsers.findUnique({
+			const alreadyBlocked = await this.prismaService.blockedUser.findUnique({
 				where: {
 					login_blockedLogin: {
 						login: user.login,
@@ -46,7 +46,7 @@ export class BlacklistService {
 				throw new BadRequestException(`User with login ${blockedLogin} already blocked`);
 
 			console.log(`User ${user.login} blocked user ${blockedUser.login}`);
-			await this.prismaService.blockedUsers.create({
+			await this.prismaService.blockedUser.create({
 				data: {
 					login: user.login,
 					blockedLogin: blockedUser.login,
@@ -86,7 +86,7 @@ export class BlacklistService {
 			if (!user)
 				throw new NotFoundException(`User with login ${userLogin} not found`);
 
-			const alreadyBlocked = await this.prismaService.blockedUsers.findUnique({
+			const alreadyBlocked = await this.prismaService.blockedUser.findUnique({
 				where: {
 					login_blockedLogin: {
 						login: user.login,
@@ -98,7 +98,7 @@ export class BlacklistService {
 				throw new BadRequestException(`User with login ${blockedLogin} is not blocked`);
 
 			console.log(`User ${user.login} unblocked user ${blockedUser.login}`);
-			await this.prismaService.blockedUsers.delete({
+			await this.prismaService.blockedUser.delete({
 				where: {
 					login_blockedLogin: {
 						login: user.login,
@@ -121,7 +121,7 @@ export class BlacklistService {
 			if (!user)
 				throw new NotFoundException(`User with login ${userLogin} not found`);
 
-			const blockedUsersLogin = await this.prismaService.blockedUsers.findMany({
+			const blockedUsersLogin = await this.prismaService.blockedUser.findMany({
 				where: {
 					login: user.login,
 				},
@@ -155,7 +155,7 @@ export class BlacklistService {
 			if (!user)
 				throw new NotFoundException(`User with login ${userLogin} not found`);
 
-			const alreadyBlocked = await this.prismaService.blockedUsers.findUnique({
+			const alreadyBlocked = await this.prismaService.blockedUser.findUnique({
 				where: {
 					login_blockedLogin: {
 						login: user.login,

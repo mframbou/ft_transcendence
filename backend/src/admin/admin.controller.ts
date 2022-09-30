@@ -63,7 +63,7 @@ export class AdminController {
 	@Get('show_all_friends')
 	async showAllFriends()
 	{
-		return await this.prismaService.friends.findMany();
+		return await this.prismaService.friend.findMany();
 	}
 
 }

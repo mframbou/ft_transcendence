@@ -11,12 +11,16 @@ import { Server } from 'socket.io';
 import  ServerSidePong  from './pong';
 import { WsPaddleMoveDto } from '../interfaces/dtos';
 import { UsersService } from '../users/users.service';
+import errorDispatcher from '../utils/error-dispatcher';
+import { PrismaService } from '../prisma/prisma.service';
+import { IMatch } from '../interfaces/interfaces';
 
 @Injectable()
 export class GameService {
 
 	constructor(
 			private usersService: UsersService,
+			private prismaService: PrismaService,
 	) {}
 
 	matchmakingPlayers: IGamePlayer[] = [];
@@ -194,4 +198,69 @@ export class GameService {
 			player2: player2,
 		};
 	}
+
+	async addMatchToHistory(p1Login: string, p1Score: number, p2Login: string, p2Score: number)
+	{
+		try
+		{
+			const player1 = await this.usersService.getUser(p1Login);
+			if (!player1)
+				throw new NotFoundException('Player 1 not found');
+
+			const player2 = await this.usersService.getUser(p2Login);
+			if (!player2)
+				throw new NotFoundException('Player 2 not found');
+
+			await this.prismaService.match.create({
+				data: {
+					player1Login: p1Login,
+					player1Score: p1Score,
+					player2Login: p2Login,
+					player2Score: p2Score,
+				}
+			});
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
+	}
+
+	endGame(room: IGameRoom, server: Server)
+	{
+		const player1 = { login: room.player1.login, score: room.gameInstance.player1.score };
+		const player2 = { login: room.player2.login, score: room.gameInstance.player2.score };
+
+		room.gameInstance?.stop();
+		room.gameInstance = null;
+
+		this.broadcastEvent(room, 'gameEnd', {player1Score: player1.score, player2Score: player2.score}, server, true);
+		this.gameRooms = this.gameRooms.filter(r => r.id !== room.id);
+		this.addMatchToHistory(player1.login, player1.score, player2.login, player2.score);
+	}
+
+	async getPlayerMatches(login: string): Promise<IMatch[]>
+	{
+		try
+		{
+			const matches = await this.prismaService.match.findMany({
+				where: {
+					OR: [
+						{ player1Login: login },
+						{ player2Login: login },
+					]
+				},
+				orderBy: {
+					timestamp: 'desc',
+				}
+			});
+
+			return matches;
+		}
+		catch (e)
+		{
+			errorDispatcher(e);
+		}
+	}
+
 }

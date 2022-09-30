@@ -31,14 +31,17 @@ model User {
 	isAdmin          Boolean         @default(false)
 	status           Status          @default(OFFLINE)
 
-    userFriends      Friends[]       @relation(name: "userFriends")
-    friendUsers      Friends[]       @relation(name: "friendsUser")
+    userFriends      Friend[]       @relation(name: "userFriends")
+    friendUsers      Friend[]       @relation(name: "friendsUser")
 
-    blockingUsers    BlockedUsers[]  @relation(name: "blockingUser")
-    blockedUsers     BlockedUsers[]  @relation(name: "blockedUser")
+    blockingUsers    BlockedUser[]  @relation(name: "blockingUser")
+    blockedUsers     BlockedUser[]  @relation(name: "blockedUser")
 
 	participants	 Participant[]
 	messages		 Message[]
+
+	matchesAsPlayer1 Match[]        @relation(name: "player1Match")
+	matchesAsPlayer2 Match[]        @relation(name: "player2Match")
 }
 
 model Message {
@@ -86,7 +89,7 @@ enum Status {
     IN_GAME
 }
 
-model   Friends {
+model Friend {
     login       String
     friendLogin String
     Users       User     @relation(name: "userFriends", fields: [login], references: [login])
@@ -96,11 +99,27 @@ model   Friends {
     @@id([login, friendLogin])
 }
 
-model   BlockedUsers {
+model BlockedUser {
     login         String
     blockedLogin  String
     Users         User     @relation(name: "blockingUser", fields: [login], references: [login])
     Friends       User     @relation(name: "blockedUser", fields: [blockedLogin], references: [login])
 
     @@id([login, blockedLogin])
+}
+
+model Match {
+    id           Int       @default(autoincrement()) @id
+
+    player1Login String
+    player2Login String
+
+    // We should use OR (https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#or) when finding players
+    player1      User      @relation(name: "player1Match", fields: [player1Login], references: [login])
+    player2      User      @relation(name: "player2Match", fields: [player2Login], references: [login])
+
+    player1Score Int
+    player2Score Int
+
+    timestamp	 DateTime  @default(now())
 }

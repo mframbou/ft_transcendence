@@ -281,6 +281,12 @@
 			handleBallUpdate(data, false, isPlayerOne);
 		});
 
+		$pongSocket.on('gameEnd', (data) => {
+			console.log('game ended, data:', data);
+			player1.score = -1;
+			player2.score = -1;
+		});
+
 		lastGameUpdate = performance.now();
 	}
 

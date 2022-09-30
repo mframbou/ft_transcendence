@@ -44,6 +44,8 @@ const BALL_SPEED = 500; // units per second
 // Time in ms between scoring and re-launching the ball
 const BALL_RESET_PAUSE_TIME = 500;
 
+const MAX_SCORE = 11;
+
 // we consider the ball squared, then do this: https://www.gamedev.net/articles/programming/general-and-gameplay-programming/swept-aabb-collision-detection-and-response-r3084/
 // with deflection
 // 0.5 = collision in the middle of the frame, 0 = collision at the start, 1 = no collision
@@ -344,6 +346,12 @@ export default class ServerSidePong
 			player.score++;
 			this.sendScoreUpdate();
 
+			if (player.score >= MAX_SCORE)
+			{
+				this.gameService.endGame(this.room, this.server);
+				return;
+			}
+
 			setTimeout(() => {
 				this.resetBall(); // reset ball before sending new ball otherwise it would only reset on the next update
 				this.sendBallReset(this.ball);
@@ -393,6 +401,13 @@ export default class ServerSidePong
 		this.paused = false;
 		this.ballIntervalId = setInterval(this.update.bind(this), 1000 / BALL_UPDATES_PER_SECOND);
 		this.paddleIntervalId = setInterval(this.sendPaddlePositions.bind(this), 1000 / PADDLE_UPDATES_PER_SECOND);
+	}
+
+	stop()
+	{
+		this.pause();
+		clearInterval(this.ballIntervalId);
+		clearInterval(this.paddleIntervalId);
 	}
 
 	createHiddenBall(): IBall

@@ -21,7 +21,7 @@ export class FriendsService {
 		try
 		{
 			const user = await this.usersService.getUser(userLogin);
-			const pendingFriendsLogin = await this.prismaService.friends.findMany({
+			const pendingFriendsLogin = await this.prismaService.friend.findMany({
 				where: {
 					login: user.login,
 					pending: true,
@@ -50,7 +50,7 @@ export class FriendsService {
 		try
 		{
 			const user = await this.usersService.getUser(userLogin);
-			const pendingFriendsLogin = await this.prismaService.friends.findMany({
+			const pendingFriendsLogin = await this.prismaService.friend.findMany({
 				where: {
 					friendLogin: user.login,
 					pending: true,
@@ -101,7 +101,7 @@ export class FriendsService {
 				throw new NotFoundException(`User with login ${userLogin} not found`);
 
 			// check if already friend
-			const alreadyFriend = await this.prismaService.friends.findUnique({
+			const alreadyFriend = await this.prismaService.friend.findUnique({
 				where: {
 					login_friendLogin: {
 						login: userLogin,
@@ -113,7 +113,7 @@ export class FriendsService {
 			if (alreadyFriend)
 				throw new BadRequestException(`User with login ${userLogin} is already ${alreadyFriend.pending ? 'pending' : 'friend'} with user with login ${friendLogin}`);
 
-			const pendingAcceptFromFriend = await this.prismaService.friends.findUnique({
+			const pendingAcceptFromFriend = await this.prismaService.friend.findUnique({
 				where: {
 					login_friendLogin: {
 						login: friendLogin,
@@ -124,7 +124,7 @@ export class FriendsService {
 
 			// If other user has already sent friend request, then acceept directly instead of pending
 			// And set other user not pending if so
-			await this.prismaService.friends.create({
+			await this.prismaService.friend.create({
 				data: {
 					login: userLogin,
 					friendLogin: friendLogin,
@@ -134,7 +134,7 @@ export class FriendsService {
 
 			if (pendingAcceptFromFriend)
 			{
-				await this.prismaService.friends.update({
+				await this.prismaService.friend.update({
 					where: {
 						login_friendLogin: {
 							login: friendLogin,
@@ -157,7 +157,7 @@ export class FriendsService {
 	{
 		try
 		{
-			const alreadyFriend = await this.prismaService.friends.findUnique({
+			const alreadyFriend = await this.prismaService.friend.findUnique({
 				where: {
 					login_friendLogin: {
 						login: userLogin,
@@ -176,7 +176,7 @@ export class FriendsService {
 			if (!user)
 				throw new NotFoundException(`User with login ${userLogin} not found`);
 
-			await this.prismaService.friends.delete({
+			await this.prismaService.friend.delete({
 				where: {
 					login_friendLogin: {
 						login: userLogin,
@@ -188,7 +188,7 @@ export class FriendsService {
 			if (!alreadyFriend.pending)
 			{
 				// delete the reverse friendship
-				await this.prismaService.friends.delete({
+				await this.prismaService.friend.delete({
 					where: {
 						login_friendLogin: {
 							login: friendLogin,
@@ -209,7 +209,7 @@ export class FriendsService {
 	{
 		try
 		{
-			const friendsLogin = await this.prismaService.friends.findMany({
+			const friendsLogin = await this.prismaService.friend.findMany({
 				where: {
 					login: login,
 					pending: false,
