@@ -23,7 +23,7 @@
     onMount(async () => {
         console.log("Mount");
         console.log("user onMount: " + JSON.stringify($user));
-        $chatSocket.emit('enter', {user: data.user, roomId: data.room.id});
+        $chatSocket.emit('enter', {chatId: data.room.id});
     });
 
     // todo instead of leave in chatSocket disconnect

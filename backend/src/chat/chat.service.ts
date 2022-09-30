@@ -20,7 +20,7 @@ export class ChatService {
     ) {}
 
     // roomsclients store the client id of each user in each room
-    // cringe -> better if we have map of array where key is roomId and value is array of clients
+    // cringe -> better if we have map of array where key is chatId and value is array of clients
     // TODO : stop sending userId and use client.login instead -> less optimization but more security as we can't falsify userId
     roomsClients = [];
 
@@ -28,14 +28,15 @@ export class ChatService {
 	async enter(server: any, client: any, payload: any) {
         console.log("enter");
         let cur_room = await this.prisma.chatRoom.findUnique({
-            where: { id: payload.roomId },
+            where: { id: payload.chatId },
         });
 
         if (cur_room.banned.find((cur) => cur == client.login)) {
             this.sendError(server, client, "You are banned from this room");
             return ;
         }
-        this.roomsClients.push({user: payload.user, roomId: payload.roomId, clientId: client.id});
+        //this.roomsClients.push({user: payload.user, chatId: payload.chatId, clientId: client.id});
+        this.roomsClients.push({clientId: client.id, chatId: payload.chatId, login: client.transcendenceUser.login});
     }
 
     async leave(server: any, client: any, payload: any) {
@@ -49,7 +50,7 @@ export class ChatService {
             server.to(client.id).emit(trigger, content);
         } else {
             for (let cur of this.roomsClients) {
-                if (chatId == cur.roomId) {
+                if (chatId == cur.chatId) {
                     server.to(cur.clientId).emit(trigger, content);
                 }
             }
@@ -167,13 +168,21 @@ export class ChatService {
 
 
     // need error management
-    async handleMessage(server: any, client: any, chatId: any, userId: any, content: string) {
+    async handleMessage(server: any, client: any, chatId: any, content: string) {
 
+        //console.log("client : ", client);
+        let user = await this.usersService.getUser(client.transcendenceUser.login);
+
+        if (!user) {
+            this.sendError(server, client, "Unknown user");
+            return ;
+        }
+        
         // would be better with findUnique
         let participant =  await this.prisma.participant.findMany({
             where: {
                 chatId: chatId,
-                userId: userId
+                userId: user.id
             },
             include: { user: true }
         });
@@ -194,7 +203,7 @@ export class ChatService {
                     chatId: chatId,
                     content: content,
                     //senderId: participant[0].id
-                    senderId: userId
+                    senderId: user.id
                 },
                 //include: { sender: { include: { user: true } } }
                 include: { sender: true }
@@ -267,14 +276,14 @@ export class ChatService {
             
         // find clientId of target and send him kick
         for (let cur of this.roomsClients) {
-            if (cur.user && cur.user.login == target.login && cur.roomId == chatId) {
+            if (cur.login == target.login && cur.chatId == chatId) {
                 server.to(cur.clientId).emit('kick');
             } 
         }
         this.sendStatus(server, client, participant, chatId, participant.user.login + " kicked " + args[0]);
         
         // remove target from roomsclients
-        this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
+        this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== chatId);
     }
 
     async unban(server: any, client: any, participant: any, chatId: any, args: any) {
@@ -355,7 +364,7 @@ export class ChatService {
         }
 
         for (let cur of this.roomsClients) {
-            if (cur.user && cur.user.login == target.login && cur.roomId == chatId) {
+            if (cur.login == target.login && cur.chatId == chatId) {
                 server.to(cur.clientId).emit('kick');
             } 
         }
@@ -386,7 +395,7 @@ export class ChatService {
         }
 
         // remove target from roomsclients
-        this.roomsClients = this.roomsClients.filter((cur) => cur.user.login !== target.login || cur.roomId !== chatId);
+        this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== chatId);
 
         this.sendStatus(server, client, participant, chatId, participant.user.login + " banned " + args[0]);
 

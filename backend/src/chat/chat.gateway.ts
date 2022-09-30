@@ -58,7 +58,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection
 		const user = client.transcendenceUser;
 		console.log(`${NAMESPACE}-Gateway: ${user.login}: ${payload}`);
 
-		this.chatService.handleMessage(this.server, client, payload.chatId, payload.userId, payload.content);
+		this.chatService.handleMessage(this.server, client, payload.chatId, payload.content);
 	}
 
 	@UseGuards(WsAuthGuard)
