@@ -27,7 +27,7 @@ export class FriendsController {
 	}
 
 	@Post('add')
-	async addFriend(@Body() body: any, @Req() req: IUserRequest) {
+	async addFriend(@Body() body: AddFriendDto, @Req() req: IUserRequest) {
 		const payload: IJwtPayload = req.jwtPayload;
 
 		await this.friendsService.addFriend(payload.login, body.login);

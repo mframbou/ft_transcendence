@@ -34,6 +34,9 @@ model User {
     userFriends      Friends[]       @relation(name: "userFriends")
     friendUsers      Friends[]       @relation(name: "friendsUser")
 
+    blockingUsers    BlockedUsers[]  @relation(name: "blockingUser")
+    blockedUsers     BlockedUsers[]  @relation(name: "blockedUser")
+
 	participants	 Participant[]
 	messages		 Message[]
 }
@@ -91,4 +94,13 @@ model   Friends {
     pending     Boolean  @default(true)
 
     @@id([login, friendLogin])
+}
+
+model   BlockedUsers {
+    login         String
+    blockedLogin  String
+    Users         User     @relation(name: "blockingUser", fields: [login], references: [login])
+    Friends       User     @relation(name: "blockedUser", fields: [blockedLogin], references: [login])
+
+    @@id([login, blockedLogin])
 }

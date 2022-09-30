@@ -79,3 +79,10 @@ export class WsSpectateDto
 	@IsNotEmpty()
 	roomId: string;
 }
+
+export class BlockUserDto
+{
+	@IsString()
+	@IsNotEmpty()
+	login: string;
+}

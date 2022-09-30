@@ -863,12 +863,12 @@
 			if (Math.abs(targetPosition - player2.paddle.position.client_y) > player2.paddle.height * 0.1)
 			{
 				const distToTarget = Math.abs(targetPosition - player2.paddle.position.client_y) / player2.paddle.height; // 1 = 100% of paddle height
-				computerPosition = lerp(player2.paddle.position.client_y, targetPosition, distToTarget * 0.1); // if far from target, move faster
+				computerPosition = lerp(player2.paddle.position.client_y, targetPosition, distToTarget * 0.2); // if far from target, move faster
 				movePaddle(player2.paddle, computerPosition);
 			}
 			else
 			{
-				movePaddle(player2.paddle, lerp(player2.paddle.position.client_y, computerPosition, 0.1));
+				movePaddle(player2.paddle, computerPosition);
 			}
 
 		}

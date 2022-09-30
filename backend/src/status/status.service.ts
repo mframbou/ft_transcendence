@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EUserStatus } from '../interfaces/interfaces';
 import { PrismaService } from '../prisma/prisma.service';
 import { Status } from '@prisma/client';
@@ -19,6 +19,7 @@ export class StatusService {
 		try
 		{
 			let userStatus: Status;
+			// console.log(status+  ' pouet pouet');
 			switch (status)
 			{
 				case EUserStatus.ONLINE:
@@ -31,7 +32,7 @@ export class StatusService {
 					userStatus = Status.IN_GAME;
 					break;
 				default:
-					throw new Error(`Unknown status '${status}'`);
+					throw new InternalServerErrorException(`Unknown status '${status}'`);
 			}
 
 			await this.prismaService.user.update({

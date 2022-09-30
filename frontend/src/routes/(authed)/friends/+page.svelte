@@ -3,20 +3,30 @@
 	import { onDestroy, onMount } from 'svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
 	import { statusSocket } from '$lib/websocket-stores';
-	import { friends, users, user } from '$lib/stores';
+	import { friends, users, user, blockedUsers } from '$lib/stores';
 
 	let availableUsers = [];
 
 
-	$: if ($users && $friends && $user)
+	$: if ($users)
 	{
 		availableUsers = $users.filter((usr) => {
 
-			const isFriend: boolean = $friends.friends.find((friend) => friend.login === usr.login) !== undefined;
-			const isSelf: boolean = $user.login === usr.login;
-			const isPending: boolean = $friends.pendingSent.find((friend) => friend.login === usr.login) !== undefined;
+			if ($user && $user.login === usr.login)
+				return false;
 
-			return !isFriend && !isSelf && !isPending;
+			if ($friends)
+			{
+				if ($friends.friends.find((f) => f.login === usr.login) !== undefined)
+					return false;
+				if ($friends.pendingSent.find((f) => f.login === usr.login) !== undefined)
+					return false;
+			}
+
+			if ($blockedUsers && $blockedUsers.find((b) => b.login === usr.login) !== undefined)
+				return false;
+
+			return true;
 		});
 	}
 

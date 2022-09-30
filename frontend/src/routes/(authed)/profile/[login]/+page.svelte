@@ -287,7 +287,7 @@
 </style>
 
 <script lang="ts">
-	import { user, friends, fetchFriends, fetchGameRooms, gameRooms } from '$lib/stores';
+	import { user, friends, fetchFriends, fetchGameRooms, gameRooms, blockedUsers, fetchBlockedUsers } from '$lib/stores';
 	import { goto } from '$app/navigation';
 	import Button from '$lib/Button.svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
@@ -298,11 +298,17 @@
 	let targetUser = data.user;
 	let error = null;
 	let friendLoading: boolean = false;
+	let isUserBlocked: boolean = false;
 
 	interface IStat
 	{
 		name: string;
 		value: string | number;
+	}
+
+	$: if ($blockedUsers)
+	{
+		isUserBlocked = $blockedUsers.some((blockedUser) => blockedUser.login === targetUser.login);
 	}
 
 	let stats: IStat[] = [];
@@ -364,12 +370,6 @@
 			}),
 		});
 
-		if (!res.ok)
-		{
-			alert('An error occured while adding user as friend: ' + await res.text());
-			return;
-		}
-
 		await fetchFriends();
 		friendLoading = false;
 	}
@@ -411,6 +411,44 @@
 		}
 	}
 
+	let moreMenuShown: boolean = false;
+	let blockingUser: boolean = false;
+
+	async function handleBlockButtonClick()
+	{
+		blockingUser = true;
+
+		if ($blockedUsers && $blockedUsers.some(user => user.login === targetUser.login))
+		{
+			await fetch('/api/blacklist/unblock', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					login: targetUser.login,
+				}),
+			});
+		}
+		else
+		{
+			await fetch('/api/blacklist/block', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					login: targetUser.login,
+				}),
+			});
+			console.log('blocked');
+			await fetchFriends(); // to remove friend if user was friend or pending
+		}
+
+		await fetchBlockedUsers();
+		blockingUser = false;
+	}
+
 </script>
 
 
@@ -432,15 +470,15 @@
 					<div class="buttons">
 
 						{#if $friends}
-							{#if $friends.friends.find(friend => friend.login === targetUser.login) === undefined}
+							{#if $friends.friends.some(friend => friend.login === targetUser.login) === false}
 								<!-- Not friend -->
-								{#if $friends.pendingSent.find(friend => friend.login === targetUser.login) !== undefined}
+								{#if $friends.pendingSent.some(friend => friend.login === targetUser.login)}
 									<Button disabled={friendLoading} on:click={removeFriend}>
 										<span class="banner-button">Cancel friend request</span>
 									</Button>
 								{:else}
-									<Button disabled={friendLoading} on:click={addFriend}>
-										{#if $friends?.pendingReceived.find(friend => friend.login === targetUser.login) !== undefined}
+									<Button disabled={friendLoading || isUserBlocked} on:click={addFriend}>
+										{#if $friends?.pendingReceived.some(friend => friend.login === targetUser.login)}
 											<span class="banner-button">Accept friend request</span>
 										{:else}
 											<span class="banner-button">Add friend</span>
@@ -460,9 +498,24 @@
 
 							{/if}
 
-							<Button border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('test')}>
-								<span>...</span>
-							</Button>
+							<div class="more-button" on:mouseleave={() => moreMenuShown = false}>
+								<Button border={false}
+												disabled={moreMenuShown && blockingUser}
+												--background={moreMenuShown ? 'linear-gradient(to right bottom, rgb(230 39 39), rgb(214 35 35))' : 'linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))'}
+												on:click={async () => moreMenuShown ? await handleBlockButtonClick() : moreMenuShown = true}>
+									{#if moreMenuShown}
+										<div class="more-menu">
+											{#if $blockedUsers && $blockedUsers.some(user => user.login === targetUser.login) === false}
+												Block
+											{:else}
+												Unblock
+											{/if}
+										</div>
+									{:else}
+										<span>...</span>
+									{/if}
+								</Button>
+							</div>
 						{/if}
 					</div>
 

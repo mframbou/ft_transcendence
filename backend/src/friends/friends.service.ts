@@ -1,13 +1,17 @@
-import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, HttpException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import errorDispatcher from '../utils/error-dispatcher';
 import { UsersService } from '../users/users.service';
 import { IPublicUser } from '../interfaces/interfaces';
+import { BlacklistService } from '../blacklist/blacklist.service';
 
 @Injectable()
 export class FriendsService {
 
+	// https://docs.nestjs.com/fundamentals/circular-dependency
 	constructor(
+			@Inject(forwardRef(() => BlacklistService))
+			private blacklistService: BlacklistService,
 			private prismaService: PrismaService,
 			private usersService: UsersService,
 	) {}
@@ -75,6 +79,15 @@ export class FriendsService {
 		if (userLogin === friendLogin)
 		{
 			throw new BadRequestException('You cannot add yourself as a friend');
+		}
+
+		if (await this.blacklistService.isUserBlocked(userLogin, friendLogin))
+		{
+			throw new BadRequestException(`User ${friendLogin} is blocked by ${userLogin}`);
+		}
+		else if (await this.blacklistService.isUserBlocked(friendLogin, userLogin))
+		{
+			throw new BadRequestException(`User ${userLogin} is blocked by ${friendLogin}`);
 		}
 
 		try

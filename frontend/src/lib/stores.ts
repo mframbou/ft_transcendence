@@ -6,6 +6,7 @@ let fetchingUser: boolean = false;
 let fetchingFriends: boolean = false;
 let fetchingGameRooms: boolean = false;
 let fetchingUsers: boolean = false;
+let fetchingBlockedUsers: boolean = false;
 
 export const user = writable(null, (set) => {
 	if (browser && !fetchingUser && get(user) === null) // dont get if already set (but allow refetch)
@@ -49,6 +50,18 @@ export const users = writable(null, (set) => {
 	if (browser && !fetchingUsers && get(users) === null)
 	{
 		fetchUsersJson().then((json) => {
+			if (json)
+				set(json);
+		});
+	}
+
+	return () => {};
+});
+
+export const blockedUsers = writable(null, (set) => {
+	if (browser && !fetchingBlockedUsers && get(blockedUsers) === null)
+	{
+		fetchBlockedUsersJson().then((json) => {
 			if (json)
 				set(json);
 		});
@@ -179,6 +192,7 @@ export async function fetchFriends(customFetch?: any): Promise<boolean>
 	const json = await fetchFriendsJson(customFetch);
 	if (json)
 	{
+		console.log(`Friends json: ${JSON.stringify(json)}`);
 		friends.set(json);
 		return true;
 	}
@@ -226,6 +240,45 @@ export async function fetchUsers(customFetch?: any): Promise<boolean>
 	if (json)
 	{
 		user.set(json);
+		return true;
+	}
+	return false;
+}
+
+async function fetchBlockedUsersJson(customFetch?: any)
+{
+	fetchingBlockedUsers = true;
+	try
+	{
+		let res;
+		if (typeof(customFetch) !== 'undefined')
+			res = await customFetch('/api/blacklist/blocked_users');
+		else
+			res = await fetch('/api/blacklist/blocked_users');
+
+		fetchingBlockedUsers = false;
+		if (res.ok)
+		{
+			const json = await res.json();
+			return json;
+		}
+
+		console.log("Blocked users fetch failed: ", res.status);
+	}
+	catch (e)
+	{
+		console.log("Encountered error while fetching blocked users: ", e);
+	}
+	fetchingBlockedUsers = false;
+	return null;
+}
+
+export async function fetchBlockedUsers(customFetch?: any): Promise<boolean>
+{
+	const json = await fetchBlockedUsersJson(customFetch);
+	if (json)
+	{
+		blockedUsers.set(json);
 		return true;
 	}
 	return false;

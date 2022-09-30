@@ -28,16 +28,18 @@ import { FriendsService } from './friends/friends.service';
 import { ChatService } from './chat/chat.service';
 import { ChatController } from './chat/chat.controller';
 import { GameController } from './game/game.controller';
+import { BlacklistController } from './blacklist/blacklist.controller';
+import { BlacklistService } from './blacklist/blacklist.service';
 
 @Module({
-	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController, ChatController, GameController],
+	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController, ChatController, GameController, BlacklistController],
 	imports: [
 		PrismaModule,
 		JwtModule.register({
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, ChatGateway, WebsocketsService, GameGateway, GameService, StatusService, FriendsService, ChatService],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, ChatGateway, WebsocketsService, GameGateway, GameService, StatusService, FriendsService, ChatService, BlacklistService],
 })
 export class AppModule
 {}

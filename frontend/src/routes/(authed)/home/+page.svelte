@@ -8,8 +8,29 @@
 	let onlineFriends = [];
 	let currentMode : 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER';
 	let matchmaking: boolean = false;
+	let matchmakingTime: number = 0;
+	let matchmakingTimeInterval: number = null;
 
-	$: if ($friends)
+	function secondsToMinutesSeconds(seconds: number) {
+		const minutes = Math.floor(seconds / 60);
+		const secondsLeft = seconds % 60;
+		return `${minutes}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`;
+	}
+
+	$: if(matchmaking && matchmakingTimeInterval === null) // otherwise it runs every second idk why it reruns since matchmaing does not change, probably because matchmakingTime does
+	{
+		matchmakingTimeInterval = window.setInterval(() => {
+			matchmakingTime++;
+		}, 1000);
+	}
+	else if (!matchmaking && matchmakingTimeInterval !== null)
+	{
+		window.clearInterval(matchmakingTimeInterval);
+		matchmakingTimeInterval = null;
+		matchmakingTime = 0;
+	}
+
+	$: if($friends)
 	{
 		onlineFriends = $friends.friends.filter(friend => friend.status === 'OFFLINE');
 	}
@@ -38,7 +59,13 @@
 <div class="content-wrapper">
 	<section class="game">
 		<Pong bind:currentMode/>
-		<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected || matchmaking} on:click={setReady}>Start matchmaking</Button>
+		<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected || matchmaking} on:click={setReady}>
+			{#if matchmaking}
+				Matchmaking ({secondsToMinutesSeconds(matchmakingTime)})
+			{:else}
+				Start matchmaking
+			{/if}
+		</Button>
 	</section>
 
 	<section class="invite">
@@ -153,7 +180,7 @@
 			{
 				aspect-ratio: 1 / 1;
 				height: 70%;
-				content: url('/images/plus-solid.svg');
+				content: url("/images/plus-solid.svg");
 			}
 		}
 
@@ -173,7 +200,7 @@
 			{
 				aspect-ratio: 1 / 1;
 				height: 50%;
-				content: url('/images/message-solid.svg');
+				content: url("/images/message-solid.svg");
 			}
 		}
 

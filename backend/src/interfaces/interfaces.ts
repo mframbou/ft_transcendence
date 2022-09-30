@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { Status } from '@prisma/client';
 import ServerSidePong from '../game/pong';
-import { User, Friends } from '@prisma/client';
+import { User, Friends, BlockedUsers } from '@prisma/client';
 import { Socket } from 'socket.io';
 
 export interface ISession
@@ -15,6 +15,9 @@ export interface IUser extends User
 {}
 
 export interface IFriend extends Friends
+{}
+
+export interface IBlockedUser extends  BlockedUsers
 {}
 
 export interface IPublicUser
