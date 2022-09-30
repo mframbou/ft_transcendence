@@ -169,25 +169,25 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 
 			if (collision.time < collisionY.time)
 			{
-				// collisionPoint is between -1 and 1
-				const collisionPoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
-				const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
-				ball.speed *= 1.05;
-				const direction = ball.velocityX > 0 ? -1 : 1;
-				ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
-				ball.velocityY = ball.speed * Math.sin(angleRad);
-				// console.log(`Paddle y: ${paddle.y}, ball y: ${ball.y}, collision point: ${collisionPoint}, angle: ${angleRad}, velocityX: ${ball.velocityX}, velocityY: ${ball.velocityY}`);
-
 				if (collision.normalX !== 0)
 				{
+					// collisionPoint is between -1 and 1
+					const collisionPoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
+					const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
+					ball.speed *= 1.05;
+					const direction = ball.velocityX > 0 ? -1 : 1;
+					ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
+					ball.velocityY = ball.speed * Math.sin(angleRad);
+
 					// ball.velocityX *= -1; // velocity already inversed above
 					ball.x += ball.velocityX * remainingTime * deltaTimeMultiplier;
 				}
 
 				// will probably never happen (I was wrong, it happens sometimes)
+				// when colliding on Y (bottom / top of paddle), just reverse Y velocity, but so it will still score, just avoid ball going into the paddlee
 				if (collision.normalY !== 0)
 				{
-					// ball.velocityY *= -1; // Don't revert either, since new angle is alreaedy calculated, if we hit on y and reverse (which rarely happeens), if ball hits on bottom, it gets redirected to top and inverse
+					ball.velocityY *= -1;
 					ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
 				}
 			}
@@ -365,9 +365,10 @@ export default class ServerSidePong
 		const updateMultiplier = deltaTime / 1000;
 		computeBallUpdate(this.ball, this.player1.paddle, this.player2.paddle, updateMultiplier);
 
-		if (this.ball.x + this.ball.width / 2 > CANVAS_WIDTH)
+		// check if bal is fully out of bounds (to avoid bug when hitting on Y and ball is partly outside
+		if (this.ball.x - this.ball.width / 2 > CANVAS_WIDTH)
 			this.handlePlayerScore(this.player1);
-		else if (this.ball.x - this.ball.width / 2 < 0)
+		else if (this.ball.x + this.ball.width / 2 < 0)
 			this.handlePlayerScore(this.player2);
 
 		this.sendBallUpdate(this.ball);

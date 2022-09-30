@@ -747,24 +747,25 @@
 
 				if (collision.time < collisionY.time)
 				{
-					// collisionPoint is between -1 and 1
-					const collisionPoint = (ball.position.client_y - (paddle.position.client_y + paddle.height / 2)) / (paddle.height / 2);
-					const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
-					ball.speed *= 1.05;
-					const direction = ball.velocityX > 0 ? -1 : 1;
-					ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
-					ball.velocityY = ball.speed * Math.sin(angleRad);
-
 					if (collision.normalX !== 0)
 					{
+						// collisionPoint is between -1 and 1
+						const collisionPoint = (ball.position.client_y - (paddle.position.client_y + paddle.height / 2)) / (paddle.height / 2);
+						const angleRad = (Math.PI / 4) * collisionPoint; // anglee is between -45 and 45 degrees
+						ball.speed *= 1.05;
+						const direction = ball.velocityX > 0 ? -1 : 1;
+						ball.velocityX = ball.speed * Math.cos(angleRad) * direction;
+						ball.velocityY = ball.speed * Math.sin(angleRad);
+
 						// ball.velocityX *= -1; // velocity already inversed above
 						ball.position.client_x += ball.velocityX * remainingTime * deltaTimeMultiplier;
 					}
 
 					// will probably never happen (I was wrong, it happens sometimes)
+					// when colliding on Y (bottom / top of paddle), just reverse Y velocity, but so it will still score, just avoid ball going into the paddlee
 					if (collision.normalY !== 0)
 					{
-						// ball.velocityY *= -1; // Don't revert either, since new angle is alreaedy calculated, if we hit on y and reverse (which rarely happeens), if ball hits on bottom, it gets redirected to top and inverse
+						ball.velocityY *= -1;
 						ball.position.client_y += ball.velocityY * remainingTime * deltaTimeMultiplier;
 					}
 				}
@@ -855,9 +856,21 @@
 		if (gameMode === GameMode.SINGLEPLAYER)
 		{
 			// Computer player2
+			// 2 lerps: 1 for position to target random offset position (which is slow), another just for position to ball (which is fast)
 			const targetPosition = ball.position.client_y - player2.paddle.height / 2 + computerPaddleRandomOffset;
-			const computerPosition = lerp(player2.paddle.position.client_y, targetPosition, 0.1);
-			movePaddle(player2.paddle, computerPosition);
+
+			let computerPosition = targetPosition;
+			if (Math.abs(targetPosition - player2.paddle.position.client_y) > player2.paddle.height * 0.1)
+			{
+				const distToTarget = Math.abs(targetPosition - player2.paddle.position.client_y) / player2.paddle.height; // 1 = 100% of paddle height
+				computerPosition = lerp(player2.paddle.position.client_y, targetPosition, distToTarget * 0.1); // if far from target, move faster
+				movePaddle(player2.paddle, computerPosition);
+			}
+			else
+			{
+				movePaddle(player2.paddle, lerp(player2.paddle.position.client_y, computerPosition, 0.1));
+			}
+
 		}
 		else
 		{
@@ -876,9 +889,9 @@
 		{
 			collisionSinceLastBallUpdate = true;
 
-			// We can change the random only on score, so that paddle doesnt move weirdly on collision
-			// if (gameMode === GameMode.SINGLEPLAYER)
-			// 	computerPaddleRandomOffset = generateRandomPaddleOffset();
+			// Change only when computer hits the ball
+			if (gameMode === GameMode.SINGLEPLAYER && ball.velocityX < 0)
+				computerPaddleRandomOffset = generateRandomPaddleOffset();
 		}
 
 		// either user has a very bad computer (< 5 fps) or left the page and come back
@@ -908,9 +921,10 @@
 		// ball out of bounds in singeplayer
 		if (gameMode === GameMode.SINGLEPLAYER)
 		{
-			if (ball.position.client_x + ball.width / 2 > 1)
+			// check if bal is fully out of bounds (to avoid bug when hitting on Y and ball is partly outside
+			if (ball.position.client_x - ball.width / 2 > 1)
 				handlePlayerScore(player1);
-			else if (ball.position.client_x - ball.width / 2 < 0)
+			else if (ball.position.client_x + ball.width / 2 < 0)
 				handlePlayerScore(player2);
 		}
 	}

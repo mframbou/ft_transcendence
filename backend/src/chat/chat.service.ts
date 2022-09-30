@@ -22,7 +22,7 @@ export class ChatService {
     // roomsclients store the client id of each user in each room
     // cringe -> better if we have map of array where key is roomId and value is array of clients
     // TODO : stop sending userId and use client.login instead -> less optimization but more security as we can't falsify userId
-    roomsClients = [{roomid: pouet, particpants: []}];
+    roomsClients = [];
 
     // enter/leave update roomsClients
 	async enter(server: any, client: any, payload: any) {
