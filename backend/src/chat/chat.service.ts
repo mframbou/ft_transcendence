@@ -103,6 +103,7 @@ export class ChatService {
                     hash: password,
                     participants: {
                         create: [{
+                            is_owner: true,
                             is_admin: true,
                             is_moderator: false,
                             userId: user.id
@@ -296,9 +297,31 @@ export class ChatService {
             return;
         }
 
-        let target = await this.prisma.user.findUnique({
-            where: { login: args[0] }
-        });
+        try {
+            var target = await this.prisma.user.findUnique({
+                where: { login: args[0] }
+            });
+
+
+            const participant_target = await this.prisma.participant.findMany({
+                where: {
+                    chatId: chatId,
+                    userId: target.id
+
+                }
+            });
+
+            console.log("participant_target: ", participant_target);
+            if (participant_target[0].is_owner) {
+                this.sendError(server, client, "kick: You can't kick the owner of the room");
+                return;
+            }
+        }
+        catch (e) {
+            this.sendError(server, client, "Unknown error");
+            return ;
+        }
+
 
         if (!target) {
             this.sendError(server, client, "kick: User " + args[0] + " not found");
@@ -374,9 +397,27 @@ export class ChatService {
             return;
         }
 
-        let target = await this.prisma.user.findUnique({
-            where: { login: args[0] }
-        });
+        try {
+            var target = await this.prisma.user.findUnique({
+                where: { login: args[0] }
+            });
+
+            const participant_target = await this.prisma.participant.findMany({
+                where: {
+                    chatId: chatId,
+                    userId: target.id
+                }
+            });
+
+            if (participant_target[0].is_owner) {
+                this.sendError(server, client, "ban: You can't ban the owner of the room");
+                return;
+            }
+        }
+        catch (e) {
+            this.sendError(server, client, "Unknown error");
+            return ;
+        }
 
         // check if user exist
         if (!target) {
@@ -384,9 +425,12 @@ export class ChatService {
             return ;
         }
 
+
         let target_room = await this.prisma.chatRoom.findUnique({
             where: { id: chatId }
         });
+
+
 
         // check if user is already banned
         if (target_room.banned.find((cur) => args[0] == cur)) {
