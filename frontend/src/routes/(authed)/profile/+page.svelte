@@ -324,7 +324,7 @@
 
 	let stats: IStat[] = [];
 
-	let matchHistory: any[] = [];
+	let matchHistory = [];
 
 	// $:
 
