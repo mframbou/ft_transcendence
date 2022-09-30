@@ -199,9 +199,9 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 				ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
 			}
 
+			deltaTimeMultiplier *= remainingTime;
 			collision = getCollision(ball, paddle, deltaTimeMultiplier);
 			collisionY = getCollision(ball, collisionYObject, deltaTimeMultiplier);
-			deltaTimeMultiplier *= remainingTime;
 		}
 	}
 	else

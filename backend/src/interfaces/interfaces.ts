@@ -20,8 +20,14 @@ export interface IFriend extends Friend
 export interface IBlockedUser extends BlockedUser
 {}
 
-export interface IMatch extends Match
-{}
+export interface IMatchResults
+{
+	player1: IPublicUser;
+	player2: IPublicUser;
+	player1Score: number;
+	player2Score: number;
+	timestamp: Date;
+}
 
 export interface IPublicUser
 {

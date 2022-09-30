@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import {
 	IGamePlayer,
 	IGameRoom,
-	IGameSpectator,
+	IGameSpectator, IMatchResults,
 	IPublicGameRoom,
 	IPublicUser,
 	IWebsocketClient
@@ -13,7 +13,6 @@ import { WsPaddleMoveDto } from '../interfaces/dtos';
 import { UsersService } from '../users/users.service';
 import errorDispatcher from '../utils/error-dispatcher';
 import { PrismaService } from '../prisma/prisma.service';
-import { IMatch } from '../interfaces/interfaces';
 
 @Injectable()
 export class GameService {
@@ -226,7 +225,7 @@ export class GameService {
 		}
 	}
 
-	endGame(room: IGameRoom, server: Server)
+	async endGame(room: IGameRoom, server: Server)
 	{
 		const player1 = { login: room.player1.login, score: room.gameInstance.player1.score };
 		const player2 = { login: room.player2.login, score: room.gameInstance.player2.score };
@@ -236,10 +235,10 @@ export class GameService {
 
 		this.broadcastEvent(room, 'gameEnd', {player1Score: player1.score, player2Score: player2.score}, server, true);
 		this.gameRooms = this.gameRooms.filter(r => r.id !== room.id);
-		this.addMatchToHistory(player1.login, player1.score, player2.login, player2.score);
+		await this.addMatchToHistory(player1.login, player1.score, player2.login, player2.score);
 	}
 
-	async getPlayerMatches(login: string): Promise<IMatch[]>
+	async getPlayerMatches(login: string): Promise<IMatchResults[]>
 	{
 		try
 		{
@@ -255,7 +254,20 @@ export class GameService {
 				}
 			});
 
-			return matches;
+			const matchesResults = await Promise.all(matches.map(async match => {
+				const player1 = await this.usersService.getPublicUser(match.player1Login);
+				const player2 = await this.usersService.getPublicUser(match.player2Login);
+
+				return {
+					player1: player1,
+					player1Score: match.player1Score,
+					player2: player2,
+					player2Score: match.player2Score,
+					timestamp: match.timestamp,
+				};
+			}));
+
+			return matchesResults;
 		}
 		catch (e)
 		{

@@ -2,284 +2,74 @@ import { get, writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 
-let fetchingUser: boolean = false;
-let fetchingFriends: boolean = false;
-let fetchingGameRooms: boolean = false;
-let fetchingUsers: boolean = false;
-let fetchingBlockedUsers: boolean = false;
-
-export const user = writable(null, (set) => {
-	if (browser && !fetchingUser && get(user) === null) // dont get if already set (but allow refetch)
-	{
-		fetchUserJson().then((json) => {
-			if (json)
-				set(json);
-		});
-	}
-
-	return () => {};
-});
-
-export const friends = writable(null, (set) =>
-{
-	if (browser && !fetchingFriends && get(friends) === null)
-	{
-		fetchFriendsJson().then((json) =>
-		{
-			if (json)
-				set(json);
-		});
-	}
-
-	return () => {};
-});
-
-export const gameRooms = writable(null, (set) => {
-	if (browser && !fetchingGameRooms && get(gameRooms) === null)
-	{
-		fetchGameRoomsJson().then((json) => {
-			if (json)
-				set(json);
-		});
-	}
-
-	return () => {};
-});
-
-export const users = writable(null, (set) => {
-	if (browser && !fetchingUsers && get(users) === null)
-	{
-		fetchUsersJson().then((json) => {
-			if (json)
-				set(json);
-		});
-	}
-
-	return () => {};
-});
-
-export const blockedUsers = writable(null, (set) => {
-	if (browser && !fetchingBlockedUsers && get(blockedUsers) === null)
-	{
-		fetchBlockedUsersJson().then((json) => {
-			if (json)
-				set(json);
-		});
-	}
-
-	return () => {};
-});
-
 export const otpVerifyAndClear = writable(undefined);
-
 export const chatRooms: any = writable([]);
 
-async function fetchGameRoomsJson(customFetch?: any)
-{
-	fetchingGameRooms = true;
-	try
-	{
-		let res;
-		if (typeof(customFetch) !== 'undefined')
-			res = await customFetch('/api/game/rooms');
-		else
-			res = await fetch('/api/game/rooms');
+export const { store: user, fetchFunction: fetchUser } = createStandardFetchStore('/api/users/me', 'user');
+export const { store: friends, fetchFunction: fetchFriends } = createStandardFetchStore('/api/friends/all', 'friends');
+export const { store: gameRooms, fetchFunction: fetchGameRooms } = createStandardFetchStore('/api/game/rooms', 'gameRooms');
+export const { store: users, fetchFunction: fetchUsers } = createStandardFetchStore('/api/users', 'users');
+export const { store: blockedUsers, fetchFunction: fetchBlockedUsers } = createStandardFetchStore('/api/blacklist/blocked_users', 'blockedUsers');
+export const { store: matchesHistory, fetchFunction: fetchMatchesHistory } = createStandardFetchStore('/api/game/history', 'matchesHistory');
 
-		fetchingGameRooms = false;
-		if (res.ok)
+// declare function type
+type FetchFunction = (customFetch?: any) => Promise<boolean>;
+function createStandardFetchStore(url: string, name: string): {store: any, fetchFunction: FetchFunction}
+{
+	let fetching = false;
+
+	const store = writable(null, (set) =>
+	{
+		if (browser && !fetching && get(store) === null)
 		{
-			const json = await res.json();
-			return json;
+			fetchStandardJson().then((json) => {
+				if (json)
+					set(json);
+			});
 		}
 
-		console.log("GameRooms fetch failed: ", res.status);
-	}
-	catch (e)
-	{
-		console.log("Encountered error while fetching gameRooms: ", e);
-	}
-	fetchingGameRooms = false;
-	return null;
-}
+		return () => {};
+	});
 
-export async function fetchGameRooms(customFetch?: any): Promise<boolean>
-{
-	const json = await fetchGameRoomsJson(customFetch);
-	if (json)
+	async function fetchStandardJson(customFetch?: any)
 	{
-		gameRooms.set(json);
-		return true;
-	}
-	return false;
-}
-
-async function fetchUserJson(customFetch?: any)
-{
-	fetchingUser = true;
-	try
-	{
-		let res;
-		if (typeof(customFetch) !== 'undefined')
-			res = await customFetch('/api/users/me');
-		else
-			res = await fetch('/api/users/me');
-
-		fetchingUser = false;
-		if (res.ok)
+		console.log(`Fetching ${name}...`);
+		fetching = true;
+		try
 		{
-			const json = await res.json();
-			return json;
+			let res;
+			if (typeof(customFetch) !== 'undefined')
+				res = await customFetch(url);
+			else
+				res = await fetch(url);
+
+			fetching = false;
+			if (res.ok)
+			{
+				const json = await res.json();
+				return json;
+			}
+
+			console.log(`Fetch for '${name}' failed, status: ${res.status}`);
 		}
-
-		console.log("User fetch failed: ", res.status);
-
-		if (res.status === 404)
+		catch (e)
 		{
-			// 404 = user not found, probably removed from DB (or DB reset), so delete coookie by logging out
-			// await fetch('/api/auth/logout');
-			await goto('/api/auth/logout');
+			console.log(`Encountered error while fetching '${name}': ${e}`);
 		}
+		fetching = false;
+		return null;
 	}
-	catch (e)
-	{
-		console.log("Encountered error while fetching user: ", e);
-	}
-	fetchingUser = false;
-	return null;
-}
 
-export async function fetchUser(customFetch?: any): Promise<boolean>
-{
-	const json = await fetchUserJson(customFetch);
-	if (json)
+	async function fetchFunction(customFetch?: any): Promise<boolean>
 	{
-		user.set(json);
-		return true;
-	}
-	return false;
-}
-
-async function fetchFriendsJson(customFetch?: any)
-{
-	fetchingFriends = true;
-	try
-	{
-		let res;
-		if (typeof(customFetch) !== 'undefined')
-			res = await customFetch('/api/friends/all');
-		else
-			res = await fetch('/api/friends/all');
-
-		fetchingFriends = false;
-		if (res.ok)
+		const json = await fetchStandardJson(customFetch);
+		if (json)
 		{
-			const json = await res.json();
-			return json;
+			store.set(json);
+			return true;
 		}
-
-		console.log("Friends fetch failed: ", res.status);
+		return false;
 	}
-	catch (e)
-	{
-		console.log("Encountered error while fetching friends: ", e);
-	}
-	fetchingFriends = false;
-	return null;
-}
 
-export async function fetchFriends(customFetch?: any): Promise<boolean>
-{
-	const json = await fetchFriendsJson(customFetch);
-	if (json)
-	{
-		console.log(`Friends json: ${JSON.stringify(json)}`);
-		friends.set(json);
-		return true;
-	}
-	return false;
-}
-
-async function fetchUsersJson(customFetch?: any)
-{
-	fetchingUsers = true;
-	try
-	{
-		let res;
-		if (typeof(customFetch) !== 'undefined')
-			res = await customFetch('/api/users');
-		else
-			res = await fetch('/api/users');
-
-		fetchingUsers = false;
-		if (res.ok)
-		{
-			const json = await res.json();
-			return json;
-		}
-
-		console.log("User fetch failed: ", res.status);
-
-		if (res.status === 404)
-		{
-			// 404 = user not found, probably removed from DB (or DB reset), so delete coookie by logging out
-			// await fetch('/api/auth/logout');
-			await goto('/api/auth/logout');
-		}
-	}
-	catch (e)
-	{
-		console.log("Encountered error while fetching user: ", e);
-	}
-	fetchingUsers = false;
-	return null;
-}
-
-export async function fetchUsers(customFetch?: any): Promise<boolean>
-{
-	const json = await fetchUserJson(customFetch);
-	if (json)
-	{
-		user.set(json);
-		return true;
-	}
-	return false;
-}
-
-async function fetchBlockedUsersJson(customFetch?: any)
-{
-	fetchingBlockedUsers = true;
-	try
-	{
-		let res;
-		if (typeof(customFetch) !== 'undefined')
-			res = await customFetch('/api/blacklist/blocked_users');
-		else
-			res = await fetch('/api/blacklist/blocked_users');
-
-		fetchingBlockedUsers = false;
-		if (res.ok)
-		{
-			const json = await res.json();
-			return json;
-		}
-
-		console.log("Blocked users fetch failed: ", res.status);
-	}
-	catch (e)
-	{
-		console.log("Encountered error while fetching blocked users: ", e);
-	}
-	fetchingBlockedUsers = false;
-	return null;
-}
-
-export async function fetchBlockedUsers(customFetch?: any): Promise<boolean>
-{
-	const json = await fetchBlockedUsersJson(customFetch);
-	if (json)
-	{
-		blockedUsers.set(json);
-		return true;
-	}
-	return false;
+	return {store, fetchFunction};
 }

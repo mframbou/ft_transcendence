@@ -20,7 +20,7 @@ export class GameController {
 			return this.gameService.getGameRoom(id);
 	}
 
-	@Get('matches')
+	@Get('history')
 	async getMatches(@Req() req: IUserRequest)
 	{
 		const payload: IJwtPayload = req.jwtPayload;
