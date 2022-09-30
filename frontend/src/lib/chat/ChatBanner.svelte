@@ -9,7 +9,6 @@
 
     export let room;
 
-
     let passwordPanel = false; 
     let password = '';
 
@@ -18,15 +17,12 @@
     async function pass() {
         error = '';
         password = '';
-        //console.log("room participant : ", room.participant);
-        //let me = room.participant.find(p => p.userID === user.id);
-        //console.log("me : ", me);
 
-        // check if user is banned
-        // if (room.banned.find(b => b.userID === user.id)) {
-        //     error = "You are banned from this room";
-        //     return ;
-        // }
+        // if already in room go to chat
+        if (room.participants.find(p => p.user.login === $user.login)) {
+            goto('/chat/' + room.name);
+            return ;
+        } 
 
         if (!room.is_private) {
             await joinRoom();
@@ -47,7 +43,6 @@
             },
             body: JSON.stringify({
                 chatId: room.id,
-                userId: $user.id,
                 password: password
             })
         });

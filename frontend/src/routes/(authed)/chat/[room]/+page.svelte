@@ -80,6 +80,10 @@
 
 </script>
 
+<div class='background'>
+    <ParticlesBackground properties={{minVelocity: 0.4, maxVelocity: .8, lineColor: '#0097e3', initialCount: 50, maxPointSize: 40}} />
+</div>
+
 <section class="chat_container">
 
         <!-- <h1>Chat</h1> -->
@@ -249,6 +253,18 @@
 		backdrop-filter: blur(5px);
     }
 
+	.background
+	{
+		opacity: 0.6;
+
+        color: #0097e3;
+		transform: translateZ(-1px);
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 100%;
+	}
 
 </style>
 

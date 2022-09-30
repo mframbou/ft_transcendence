@@ -128,40 +128,71 @@ export class ChatService {
         }
     }
 
-    async join(chatId: number, userId: number, password?: string) {
-
-        let participant = await this.prisma.participant.findMany({
-            where: {
-                chatId: chatId,
-                userId: userId
-            },
-        });
-
-        if (participant.length > 0) // already in room
-            return;
+    async join(login: string, chatId: number, password?: string) {
 
         let current_room = await this.prisma.chatRoom.findUnique({
             where: { id: chatId },
         });
 
+        if (!current_room) {
+            throw new HttpException('Room does not exist', 403);
+        };
+
+        if (current_room.banned.find((cur) => cur == login)) {
+            throw new HttpException('You are banned from this room', 403);
+        };
+
+        const user = await this.usersService.getUser(login);
+        console.log("user in join: ", user);
+        const participant = await this.prisma.participant.findMany({
+            where: { 
+                chatId: chatId,
+                userId: user.id
+            },
+            include: {
+                user: true,
+            }
+        });
+
+        //console.log("participant in join: ", participant);
+
+        console.log("participant in join: ", participant);
+        // check if user is already in the room
+        if (participant.length > 0)
+            return;
+
+        console.log("password: ", password, "hash: ", current_room.hash);
         // need to encrypt password :)
         if (current_room.is_private && current_room.hash != password) {
             throw new HttpException('Incorrect password', 403);
         }
+        console.log("mdp");
 
+        let cur_room = await this.prisma.chatRoom.findUnique({
+            where: { id: chatId },
+            include: {
+                participants: {
+                    include: { user: true }
+                }
+            }
+        });
+        console.log("cur room in join", cur_room);
         // create participant for user in room
         try {
             await this.prisma.participant.create({
                 data: {
                     chatId: chatId,
-                    userId: userId,
+                    userId: user.id,
                     is_admin: false,
                     is_moderator: false,
+                    entered_hash: password,
                 }
             });
         } catch (e) {
             throw new HttpException('Unknown error', 403);
         }
+
+
     
         return HttpStatus.OK;
     }
@@ -401,11 +432,14 @@ export class ChatService {
 
     }
 
-    async rooms(name?: string) {
+    // need to stop sending rooms hash and partitipant.entered_hash
+    async rooms(login: string, name?: string) {
 
         // room by name
         if (name) {
-                return await this.prisma.chatRoom.findUnique({
+
+            try {
+                var room = await this.prisma.chatRoom.findUnique({
                     where: {
                         name: name
                     },
@@ -413,23 +447,51 @@ export class ChatService {
                         participants: { 
                             include: { user: true } 
                         },
-                        messages: { 
-                            //include: { sender: { include: { user: true } } } 
-                            include: { sender: true },
-                        },
                     }
                 });
+
+                // if user is in room send him the messages with it
+                if (room.participants.find((cur) => cur.user.login == login)) {
+                    room = await this.prisma.chatRoom.findUnique({
+                        where: {
+                            name: name
+                        },
+                        include: {
+                            participants: { 
+                                include: { user: true } 
+                            },
+                            messages: { 
+                                //include: { sender: { include: { user: true } } } 
+                                include: { sender: true },
+                            },
+                        }
+                    });
+                }
+
+                return room;
+            }
+            catch (e) {
+                console.log("get rooms error: " + e);
+            }
+
+
+
         }
 
         // all rooms
-        return await this.prisma.chatRoom.findMany({
-            include: {
-                participants: { 
-                    include: { user: true }
-                },
-                messages: false,
-            }
-        });
+        try {
+            return await this.prisma.chatRoom.findMany({
+                include: {
+                    participants: { 
+                        include: { user: true }
+                    },
+                    messages: false,
+                }
+            });
+        }
+        catch (e) {
+            console.log("get rooms error: " + e);
+        }
     }
 
     // dbg

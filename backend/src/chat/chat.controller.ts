@@ -39,13 +39,16 @@ import { get } from 'http';
     @Post('joinRoom')
     async join(@Body() data: AddParticipantDto, @Req() req: IUserRequest) {
         const payload = req.jwtPayload;
+        console.log("join payload: ", payload);
         console.log("data in joinRoom (controller): " + JSON.stringify(data));
-        return await this.chatService.join(data.chatId, data.userId, data.password);
+        return await this.chatService.join(payload.login, data.chatId, data.password);
     }
 
     @Get('rooms')
     async rooms(@Req() req: IUserRequest, @Query('name') params?): Promise<any> {
-        return await this.chatService.rooms(params);
+        const payload = req.jwtPayload;
+
+        return await this.chatService.rooms(payload.login, params);
     }
 
     // dbg

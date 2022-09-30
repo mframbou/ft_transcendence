@@ -17,11 +17,16 @@
 			'/images/sspina-transparent.png',
 			'/images/mframbou-transparent.png'],
 		maxDistRatio: properties.maxDistRatio ?? 1 / 8,
-		maxPoints: properties.maxPoints ?? 300
+		maxPoints: properties.maxPoints ?? 300,
+		keyEvent: properties.keyEvent ?? false
+		
 	};
+
+	properties.initialCount = Math.min(properties.initialCount, properties.maxPoints);
 
 	const mousePos = {x: -1, y: -1};
 	let animationFrameId: number;
+	let sprinkle: boolean = false;
 
 	class Point
 	{
@@ -155,18 +160,39 @@
 		return image;
 	});
 
+	function keyListeners(e)
+	{
+		if (!properties.keyEvent)
+			return ;
+		if (e.key == 'Control')
+		{
+			sprinkle = !sprinkle;
+		}
+	}
+
+	function addHeads()
+	{
+
+			const count = Math.floor(Math.random() * 3) + 1;
+			for (let i = 0; i < count; i++)
+				points.push(new Point(mousePos.x, mousePos.y, images));
+
+			while (points.length >= properties.maxPoints) {
+				// pop a random point
+				let rand = Math.floor(Math.random() * points.length);
+				[points[rand], points[points.length - 1]] = [points[points.length - 1], points[rand]];
+				points.pop();
+			}
+	}
+
 	function canvasClickListener(e: MouseEvent)
 	{
+		console.log("mouseEvent ", e);
 		const rect = canvas.getBoundingClientRect();
 		mousePos.x = e.clientX - rect.left;
 		mousePos.y = e.clientY - rect.top;
 
-		if (points.length + 3 < properties.maxPoints)
-		{
-			const count = Math.floor(Math.random() * 3) + 1;
-			for (let i = 0; i < count; i++)
-				points.push(new Point(mousePos.x, mousePos.y, images));
-		}
+		addHeads();
 	};
 
 	function canvasMouseMoveListener(e: MouseEvent)
@@ -174,6 +200,10 @@
 		const rect = canvas.getBoundingClientRect();
 		mousePos.x = e.clientX - rect.left;
 		mousePos.y = e.clientY - rect.top;
+
+		if (sprinkle) {
+			addHeads();
+		}
 	};
 
 	function windowResizeListener()
@@ -203,7 +233,7 @@
 
 </script>
 
-<svelte:window on:resize={windowResizeListener} bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} />
+<svelte:window on:resize={windowResizeListener} bind:innerWidth={windowInnerWidth} bind:innerHeight={windowInnerHeight} on:keydown={keyListeners} on:keyup={keyListeners}/>
 
 <div class="wrapper">
 	<canvas on:click={canvasClickListener} on:mousemove={canvasMouseMoveListener} bind:this={canvas} class="particles-background"></canvas>
