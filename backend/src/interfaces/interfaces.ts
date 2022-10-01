@@ -3,6 +3,7 @@ import { Status } from '@prisma/client';
 import ServerSidePong from '../game/pong';
 import { User, Friend, BlockedUser, Match } from '@prisma/client';
 import { Socket } from 'socket.io';
+import internal from 'stream';
 
 export interface ISession
 {
@@ -125,6 +126,19 @@ export interface IChatRoom
 	users: IChatUser[];
 	is_private: boolean;
 	password?: string;
+}
+
+export interface ICommand
+{
+	command: string;
+	argsCount: [number, number] // [min, max]
+	usage: string;
+	description: string;
+	handler: any;
+	owner: boolean;	
+	admin: boolean;	
+	moderator: boolean;	
+	user: boolean;	
 }
 
 export enum EUserStatus

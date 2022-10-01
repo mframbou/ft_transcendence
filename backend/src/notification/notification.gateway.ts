@@ -24,13 +24,27 @@ const NAMESPACE = 'notification';
 // https://docs.nestjs.com/websockets/gateways
 export class NotificationGateway implements OnGatewayDisconnect, OnGatewayConnection
 {
+
 	constructor(
 			private authService: AuthService,
 			private websocketsService: WebsocketsService,
 			private statusService: NotificationService,
             private usersService: UsersService,
             private prisma: PrismaService,
-    ) {}
+    ) {
+        // export interface ICommand
+        // {
+	    //     command: string;
+	    //     args: string[];
+	    //     usage: string;
+	    //     description: string;
+	    //     function: any;
+	    //     owner: boolean;	
+	    //     admin: boolean;	
+	    //     moderator: boolean;	
+	    //     user: boolean;	
+        // }
+    }
 
 	@WebSocketServer()
 	server: Server;
