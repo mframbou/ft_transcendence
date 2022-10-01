@@ -65,7 +65,7 @@ export class ChatService {
     }
 
     // utils function to send stuff to client in a room (if client provided send only to him)
-    async sendTo(server: any, room: any, event: string, content: any, client: any, auto: boolean = false) {
+    async sendTo(server: any, room: any, event: string, content: any, client: any, notify: boolean = false, auto: boolean = false) {
         console.log("sendTo roomsclients : ", this.roomsClients);
         if (auto) { // send to himself
             server.to(client.id).emit(event, content);
@@ -78,10 +78,12 @@ export class ChatService {
         }
 
         // need to add check for blocked user
-        for (let participant of room.participants) {
-            if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
-                continue;
-            this.notificationGateway.notify(participant.user.login, 'chat', `${room.name}: New Message`, content.content, client.transcendenceUser.login);
+        if (notify) {
+            for (let participant of room.participants) {
+                if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
+                    continue;
+                this.notificationGateway.notify(participant.user.login, 'chat', `${room.name}: New Message`, content.content, client.transcendenceUser.login);
+            }
         }
 
 
@@ -300,7 +302,7 @@ export class ChatService {
                 include: { sender: true }
             });
             console.log("message created: " + JSON.stringify(message));
-            this.sendTo(server, room, 'receiveMessage', message, client);
+            this.sendTo(server, room, 'receiveMessage', message, client, true);
         }
         catch (e) {
             console.log("handleMessage error: " + e);
@@ -329,6 +331,9 @@ export class ChatService {
             case '/password': // change the password
                 await this.password(server, client, participant, room, args);
                 break;
+            case '/remove':
+                await this.remove(server, client, participant, room, args);
+                break;
             //case '/mute':
                 //await this.mute(server, chatId, userId, args);
                 //break;
@@ -349,10 +354,46 @@ export class ChatService {
                 break;
         }
     }
-    async remove(server: any, client: any, participant: any, chatId: any, args: any) {
+    async remove(server: any, client: any, participant: any, room: any, args: any) {
         if (!participant.is_admin) {
             this.sendError(server, client, "remove: You don't have the permission to remove");
             return ;
+        }
+
+        if (args.length != 1) {
+            this.sendError(server, client, "Usage: /remove <login>");
+            return ;
+        }
+
+        let target = room.participants.find((cur) => cur.user.login == args[0]);
+        if (!target) {
+            this.sendError(server, client, "remove: User is not in the room");
+            return ;
+        }
+
+        if (target.is_owner) {
+            this.sendError(server, client, "remove: You can't remove the owner");
+            return ;
+        }
+
+        try {
+            await this.prisma.participant.delete({
+                where: {
+                    id: target.id
+                }
+            });
+
+            for (let cur of this.roomsClients) {
+                if (room.id == cur.chatId && 'dsamain' == cur.login) {
+                    server.to(cur.clientId).emit('kick');
+                }
+            }
+
+            this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.user.login);
+        }
+        catch (e) {
+            console.log("remove error: " + e);
+            return;
         }
     }
 
@@ -377,7 +418,7 @@ export class ChatService {
                     hash: await bcrypt.hash(password, await bcrypt.genSalt()),
                 }
             });
-            this.sendStatus(server, client, participant, room.id, "New password set");
+            this.sendStatus(server, client, participant, room, "New password set");
             this.sendError(server, client, "/!\\ Users already in room can still access it without the password\nto force them to enter the password, remove them");
         }
         catch (e) {
