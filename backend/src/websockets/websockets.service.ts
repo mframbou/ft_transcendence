@@ -62,7 +62,7 @@ export class WebsocketsService {
 	}
 
 	getClientbyLogin(login: string, namespace: string) {
-		return this.clients.find(client => client.login === login && client.namespace === namespace);
+		return this.clients.filter(client => client.login === login && client.namespace === namespace);
 	}
 
 	async validateFirstConnect(payload: WsFirstConnectDto, namespace: string): Promise<IJwtPayload | null>
