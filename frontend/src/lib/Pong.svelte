@@ -941,13 +941,13 @@
 			{
 				console.log('test');
 				// disable special mode
-				specialMode = null;
 				const centeredPos = player1.paddle.position.client_y + player1.paddle.height / 2;
 				player1.paddle.height = PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT;
 				movePaddle(player1.paddle, centeredPos - player1.paddle.height / 2);
 				limitPaddleMovement(player1.paddle);
 				if (gameMode === GameMode.MULTIPLAYER)
 					$pongSocket.emit('disableSpecialMode', { mode: specialMode });
+				specialMode = null;
 			}
 		}
 
