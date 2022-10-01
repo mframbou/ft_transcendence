@@ -82,6 +82,15 @@
 		});
 	}
 
+	function handleGameFinished(event)
+	{
+		const myScore = event.detail.player1Score;
+		const opponentScore = event.detail.player2Score;
+
+		// alert(`Game finished! Your score: ${myScore}, opponent score: ${opponentScore}`);
+		opponentPlayer = null;
+	}
+
 
 </script>
 
@@ -109,14 +118,16 @@
 		</div>
 		{/if}
 
-		<Pong bind:currentMode/>
-		<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected || matchmaking} on:click={setReady}>
-			{#if matchmaking}
-				Matchmaking ({secondsToMinutesSeconds(matchmakingTime)})
-			{:else}
-				Start matchmaking
-			{/if}
-		</Button>
+		<Pong bind:currentMode on:game-end={handleGameFinished}/>
+		<div class="matchmaking-button">
+			<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected || matchmaking} on:click={setReady}>
+				{#if matchmaking}
+					Matchmaking ({secondsToMinutesSeconds(matchmakingTime)})
+				{:else}
+					Start matchmaking
+				{/if}
+			</Button>
+		</div>
 	</section>
 
 	<section class="invite">
@@ -212,13 +223,16 @@
 				border-radius: inherit;
 				transition: background-color 0.2s ease-in-out;
 
-
 				&:hover
 				{
 					background-color: rgba(149, 142, 190, 0.2);
 				}
 			}
+		}
 
+		.matchmaking-button
+		{
+			margin-top: 1.5rem;
 		}
 	}
 
