@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { pongSocket, pongSocketConnected } from '$lib/websocket-stores';
 	import { user } from '$lib/stores';
+	import { createEventDispatcher } from 'svelte';
 
 	interface position
 	{
@@ -89,6 +90,8 @@
 	export let spectateId: string = null;
 	export let ballAspect: 'square' | 'circle' = 'circle';
 	export let currentMode: 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER'; // to pass data to parent, prevents parent from modifying it and breaking everything by copying gameMode (+ string instead of enum)
+
+	const dispatch = createEventDispatcher();
 
 	$: {
 		switch(gameMode)
@@ -345,7 +348,10 @@
 		stopListeningToUpdateEvents();
 		if (isSpectating)
 		{
-
+			dispatch('game-end', {
+				player1Score: serverData.player1Score,
+				player2Score: serverData.player2Score,
+			});
 		}
 		else
 		{
@@ -355,8 +361,13 @@
 			const myScore = isPlayerOne ? serverData.player1Score : serverData.player2Score;
 			const opponentScore = isPlayerOne ? serverData.player2Score : serverData.player1Score;
 			const win = myScore > opponentScore;
-			let imageUrl;
 
+			dispatch('game-end', {
+				player1Score: myScore,
+				player2Score: opponentScore,
+			});
+
+			let imageUrl;
 			if (win)
 				imageUrl = '/images/gain_social_credit.jpeg';
 			else
@@ -366,6 +377,7 @@
 			image.src = imageUrl;
 			image.onload = () => {
 				pause();
+				console.log('show image');
 				context.drawImage(image, 0, 0, canvas.width, canvas.height);
 			}
 
