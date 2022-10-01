@@ -18,7 +18,21 @@
 		outline: none;
 		border: none;
 		cursor: pointer;
-		background: transparent; // to avoid ugly thing
+		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
+
+		&:disabled
+		{
+			cursor: default;
+			$overlay-color: rgba(80, 80, 80, 0.85);
+			background:  linear-gradient(to right bottom, $overlay-color, $overlay-color), var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
+			//box-shadow: none;
+		}
+
+		// https://stackoverflow.com/questions/11600687/hover-and-active-only-when-not-disabled
+		&:hover:enabled, &:hover:after:enabled
+		{
+			box-shadow: inset 0 -16px 32px rgba(255, 255, 255, 0.05);
+		}
 	}
 
 	.pseudo-parent
@@ -35,21 +49,7 @@
 		border-radius: inherit;
 		box-shadow: inset 0 -16px 16px rgba(0, 0, 0, 0.15);
 
-		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
-
-		&:disabled
-		{
-			cursor: default;
-			$overlay-color: rgba(80, 80, 80, 0.85);
-			background:  linear-gradient(to right bottom, $overlay-color, $overlay-color), var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
-			//box-shadow: none;
-		}
-
-		// https://stackoverflow.com/questions/11600687/hover-and-active-only-when-not-disabled
-		&:hover:enabled, &:hover:after:enabled
-		{
-			box-shadow: inset 0 -16px 32px rgba(255, 255, 255, 0.05);
-		}
+		background: inherit;
 	}
 
 	.glowing:before

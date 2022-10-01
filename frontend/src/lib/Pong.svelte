@@ -2,6 +2,7 @@
 
 	import { onMount } from 'svelte';
 	import { pongSocket, pongSocketConnected } from '$lib/websocket-stores';
+	import { user } from '$lib/stores';
 
 	interface position
 	{
@@ -282,9 +283,7 @@
 		});
 
 		$pongSocket.on('gameEnd', (data) => {
-			console.log('game ended, data:', data);
-			player1.score = -1;
-			player2.score = -1;
+			handleOnlineGameEnd(data, false, isPlayerOne);
 		});
 
 		lastGameUpdate = performance.now();
@@ -329,7 +328,55 @@
 			handleBallUpdate(data, true);
 		});
 
+		$pongSocket.on('gameEnd', (data) => {
+			handleOnlineGameEnd(data, true);
+		});
+
 		lastGameUpdate = performance.now();
+	}
+
+	function handleOnlineGameEnd(serverData: any, isSpectating: boolean, isPlayerOne?: boolean)
+	{
+		console.log('Game ended', JSON.stringify(serverData));
+		stopListeningToUpdateEvents();
+		if (isSpectating)
+		{
+
+		}
+		else
+		{
+
+			player1.score = 111;
+			player2.score = 222;
+			const myScore = isPlayerOne ? serverData.player1Score : serverData.player2Score;
+			const opponentScore = isPlayerOne ? serverData.player2Score : serverData.player1Score;
+			const win = myScore > opponentScore;
+			let imageUrl;
+
+			if (win)
+				imageUrl = '/images/gain_social_credit.jpeg';
+			else
+				imageUrl = '/images/lose_social_credit.jpeg';
+
+			const image = new Image();
+			image.src = imageUrl;
+			image.onload = () => {
+				pause();
+				console.log('Image loaded');
+				context.drawImage(image, 0, 0, canvas.width, canvas.height);
+			}
+		}
+	}
+
+	function stopListeningToUpdateEvents()
+	{
+		$pongSocket.off('player1Move');
+		$pongSocket.off('player2Move');
+		$pongSocket.off('ballReset');
+		$pongSocket.off('scoreUpdate');
+		$pongSocket.off('resetPaddles');
+		$pongSocket.off('ballUpdate');
+		$pongSocket.off('gameEnd');
 	}
 
 	function listenForGameStart()
@@ -406,6 +453,16 @@
 		const direction = Math.random() < 0.5 ? 1 : -1;
 		ball.velocityX = direction * ball.speed;
 		resetBall();
+	}
+
+	function pause()
+	{
+		cancelAnimationFrame(animationFrameId);
+	}
+
+	function resume()
+	{
+		animationFrameId = requestAnimationFrame(loop);
 	}
 
 	// https://www.reddit.com/r/sveltejs/comments/rn3vp0/is_there_any_difference_between_ondestroy_and_the/
@@ -567,7 +624,7 @@
 	let pressedKeys: string[] = [];
 	function handleKeyDown(event: KeyboardEvent)
 	{
-		if (gameMode === GameMode.SPECTATOR)
+		if (gameMode === GameMode.SPECTATOR || pressedKeys.includes(event.key))
 			return;
 
 		pressedKeys.push(event.key);
@@ -813,6 +870,7 @@
 		}
 	}
 
+	let specialMode: 'bingChilling' | 'notChilling' = null;
 	function update()
 	{
 		////////////////
@@ -851,6 +909,23 @@
 				if (gameMode === GameMode.MULTIPLAYER)
 					emitPaddleMove(player1.paddle.position.client_y);
 			}
+
+			const bgLogins = ['oronda', 'sspina', 'dsamain', 'mframbou'];
+
+			if ((pressedKeys.includes('i') || pressedKeys.includes('I')) && ($user && bgLogins.includes($user.login)))
+			{
+				specialMode = 'bingChilling';
+				player1.paddle.height = 1;
+				limitPaddleMovement(player1.paddle);
+			}
+			else if (specialMode === 'bingChilling')
+			{
+				// means disable
+				specialMode = null;
+				player1.paddle.height = PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT;
+				player1.paddle.position.client_y = 0.5 - player1.paddle.height / 2;
+				limitPaddleMovement(player1.paddle);
+			}
 		}
 
 		///////////////////
@@ -865,7 +940,7 @@
 			// 2 lerps: 1 for position to target random offset position (which is slow), another just for position to ball (which is fast)
 			const targetPosition = ball.position.client_y - player2.paddle.height / 2 + computerPaddleRandomOffset;
 
-			// nigthmare mode
+			// nightmare mode
 			// movePaddle(player2.paddle, ball.position.client_y - player2.paddle.height / 2);
 
 			// normal mode
