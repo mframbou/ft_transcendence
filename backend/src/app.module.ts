@@ -30,6 +30,8 @@ import { ChatController } from './chat/chat.controller';
 import { GameController } from './game/game.controller';
 import { BlacklistController } from './blacklist/blacklist.controller';
 import { BlacklistService } from './blacklist/blacklist.service';
+import { NotificationService } from './notification/notification.service';
+import { NotificationGateway } from './notification/notification.gateway';
 
 @Module({
 	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController, ChatController, GameController, BlacklistController],
@@ -39,7 +41,7 @@ import { BlacklistService } from './blacklist/blacklist.service';
 			secret: process.env.JWT_SECRET,
 		}),
 	],
-	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, ChatGateway, WebsocketsService, GameGateway, GameService, StatusService, FriendsService, ChatService, BlacklistService],
+	providers: [AppService, AuthService, UsersService, TwoFactorService, StatusGateway, JwtStrategy, JwtTwoFactorStrategy, JwtAdminStrategy, PermissionsService, ChatGateway, WebsocketsService, GameGateway, GameService, StatusService, FriendsService, ChatService, BlacklistService, NotificationService, NotificationService, NotificationGateway],
 })
 export class AppModule
 {}

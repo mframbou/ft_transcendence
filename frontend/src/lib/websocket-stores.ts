@@ -108,3 +108,4 @@ function createWebsocketStore(namespace: string, timeout: number = 3000): { sock
 export const { socket: statusSocket, connected: statusSocketConnected } = createWebsocketStore('/status');
 export const { socket: chatSocket, connected: chatSocketConnected } = createWebsocketStore('/chat');
 export const { socket: pongSocket, connected: pongSocketConnected } = createWebsocketStore('/pong');
+export const { socket: notificationSocket, connected: notificationSocketConnected } = createWebsocketStore('/notification');

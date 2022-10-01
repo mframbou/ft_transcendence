@@ -1,9 +1,11 @@
 <script lang-="ts">
     import '$lib/assets/global.scss';
     import NavbarV2 from '$lib/NavbarV2.svelte';
-    import { statusSocket, statusSocketConnected} from "$lib/websocket-stores";
+    import { statusSocket, statusSocketConnected } from "$lib/websocket-stores";
+    import { notificationSocket, notificationSocketConnected } from "$lib/websocket-stores";
 
     statusSocket.subscribe(() => {});
+    notificationSocket.subscribe(() => {});
 </script>
 
 
