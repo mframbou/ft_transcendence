@@ -62,14 +62,14 @@ export class ChatService {
     }
 
     // utils function to send stuff to client in a room (if client provided send only to him)
-    async sendTo(server: any, chatId: any, trigger: string, content: any, client?: any) {
+    async sendTo(server: any, chatId: any, event: string, content: any, client: any, auto: boolean = false) {
         console.log("sendTo roomsclients : ", this.roomsClients);
-        if (client) {
-            server.to(client.id).emit(trigger, content);
+        if (auto) { // send to himself
+            server.to(client.id).emit(event, content);
         } else {
             for (let cur of this.roomsClients) {
                 if (chatId == cur.chatId) {
-                    server.to(cur.clientId).emit(trigger, content);
+                    server.to(cur.clientId).emit(event, content);
                 }
             }
         }
@@ -86,7 +86,7 @@ export class ChatService {
 
             // need to add check for blocked user
             for (let participant of room.participants) {
-                this.notificationGateway.notify(participant.user.login, 'chat', `${await this.getRoomName(chatId)}: New Message`, content.content);
+                this.notificationGateway.notify(participant.user.login, 'chat', `${await this.getRoomName(chatId)}: New Message`, content.content, client.transcendenceUser.login);
             }
 
         }
@@ -112,7 +112,7 @@ export class ChatService {
                 },
             });
 
-            this.sendTo(server, chatId, 'receiveMessage', {isStatus: true, content: content});
+            this.sendTo(server, chatId, 'receiveMessage', {isStatus: true, content: content}, client);
         }
         catch (e) {
             // should send error only to the client who emit the command
@@ -280,7 +280,7 @@ export class ChatService {
                 include: { sender: true }
             });
             console.log("message created: " + JSON.stringify(message));
-            this.sendTo(server, chatId, 'receiveMessage', message);
+            this.sendTo(server, chatId, 'receiveMessage', message, client);
         }
         catch (e) {
             this.sendError(server, client, "Unknown error");

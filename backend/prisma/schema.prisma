@@ -90,8 +90,8 @@ model ChatRoom {
 model Notification {
 	id			Int		@default(autoincrement()) @id
 
-	user		User?	@relation(fields: [userId], references: [id])
-	userId		Int?
+	sender		User?	@relation(fields: [senderId], references: [id])
+	senderId	Int?
 
 	service		String	// chat, match, friend, etc 
 	link		String?	// link to the service (goto(link))

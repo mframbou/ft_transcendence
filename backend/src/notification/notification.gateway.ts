@@ -62,23 +62,29 @@ export class NotificationGateway implements OnGatewayDisconnect, OnGatewayConnec
 	}
 
     // send notification to login
-    async notify(login: string, service: string, title: string, content: string, link?: string) {
+    async notify(login: string, service: string, title: string, content: string, senderLogin?: string, link?: string) {
         try {
-            const user = await this.usersService.getUser(login);
+            if (senderLogin) {
+                var sender = await this.usersService.getUser(login);
 
-            if (!user) {
-                throw new InternalServerErrorException('User not found');
+                if (!sender) {
+                    throw new InternalServerErrorException('User not found');
+                }
             }
 
-            const cur_notif = await this.prisma.notification.create({
-                data: {
-                    userId: user.id,
-                    service: service,
-                    link: link,
-                    title: title,
-                    content: content,
-                }
-            });
+                const cur_notif = await this.prisma.notification.create({
+                    data: {
+                        senderId: (senderLogin ? sender.id : null),
+                        service: service,
+                        link: link,
+                        title: title,
+                        content: content,
+                    },
+                    include: {
+                        sender: true,
+                    }
+
+                });
             console.log("Notification created: ", cur_notif);
 
             const client = this.websocketsService.getClientbyLogin(login, 'notification');
