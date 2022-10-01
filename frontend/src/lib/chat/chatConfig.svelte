@@ -51,7 +51,7 @@
     <h2 class='🌈'>Create room</h2>
     <div class='vflex'>
         name <input type="text" bind:value={name}>
-        password <input type="text" bind:value={password} disabled={!is_protected}>
+        password <input type="password" bind:value={password} disabled={!is_protected}>
 
         <div class="checkBox"> 
             <input type=checkbox bind:checked={is_protected} disabled={is_private}> <p>protected</p> 

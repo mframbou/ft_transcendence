@@ -24,7 +24,7 @@
             return ;
         } 
 
-        if (!room.is_private) {
+        if (!room.is_protected) {
             await joinRoom();
             return ;
         } else {  
@@ -75,7 +75,7 @@
             <h3 style = 'background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;'>Enter password</h3>
-        <input class="test" type="text" bind:value={password} style="color:black" />
+        <input class="test" type="password" bind:value={password} style="color:black" />
         <Button on:click={joinRoom} on:click={() => {passwordPanel = false}}>OK</Button>
         </div>
     </Modal>

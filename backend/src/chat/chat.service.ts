@@ -16,6 +16,8 @@ import { AddRoomDto } from 'src/interfaces/dtos';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 
+import * as bcrypt from 'bcrypt';
+
 @Injectable()
 export class ChatService {
   constructor(
@@ -145,13 +147,18 @@ export class ChatService {
             throw new HttpException('Passord is too short', 403);
         }
 
+        if (room.is_protected) {
+            let salt = await bcrypt.genSalt();
+            var hash = await bcrypt.hash(room.password, salt);
+        }
+
         try {
             let cur_room = await this.prisma.chatRoom.create({
                 data: {
                     name: room.name,
                     is_protected: room.is_protected,
                     is_private: room.is_private,
-                    hash: room.password,
+                    hash: hash,
                     participants: {
                         create: [{
                             is_owner: true,
@@ -181,7 +188,7 @@ export class ChatService {
     }
 
     async join(login: string, chatId: number, password?: string) {
-
+        
         let current_room = await this.prisma.chatRoom.findUnique({
             where: { id: chatId },
         });
@@ -206,19 +213,14 @@ export class ChatService {
             }
         });
 
-        //console.log("participant in join: ", participant);
-
-        console.log("participant in join: ", participant);
         // check if user is already in the room
         if (participant.length > 0)
             return;
 
-        console.log("password: ", password, "hash: ", current_room.hash);
-        // need to encrypt password :)
-        if (current_room.is_protected && current_room.hash != password) {
+        // bcrypt.compare take the salt from the stored hash add it to the password, hash it and compare it to the stored hash
+        if (current_room.is_protected && !(await bcrypt.compare(password, current_room.hash))) {
             throw new HttpException('Incorrect password', 403);
         }
-        console.log("mdp");
 
         let cur_room = await this.prisma.chatRoom.findUnique({
             where: { id: chatId },
@@ -228,7 +230,7 @@ export class ChatService {
                 }
             }
         });
-        console.log("cur room in join", cur_room);
+
         // create participant for user in room
         try {
             await this.prisma.participant.create({
