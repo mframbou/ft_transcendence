@@ -146,6 +146,7 @@ export class ChatService {
                 data: {
                     name: room.name,
                     is_protected: room.is_protected,
+                    is_private: room.is_private,
                     hash: room.password,
                     participants: {
                         create: [{
@@ -322,6 +323,9 @@ export class ChatService {
             case '/promote':
                 await this.promote(server, client, participant, chatId, args);
                 break;
+            case '/invite':
+                await this.invite(server, client, participant, chatId, args);
+                break;
             //case '/demote':
                 //await this.demote(server, chatId, userId, args);
                 //break;
@@ -331,6 +335,54 @@ export class ChatService {
         }
     }
 
+    async invite(server: any, client: any, participant: any, chatId: any, args: any) {
+        if (args.length != 1) {
+            this.sendError(server, client, "Usage: /invite <login>");
+        }
+
+        try {
+            let user = await this.usersService.getUser(args[0]);
+
+            if (!user) {
+                this.sendError(server, client, "invite: User " + args[0] + " not found");
+                return ;
+            }
+
+            let cur_participant = await this.prisma.participant.findMany({
+                where: {
+                    chatId: chatId,
+                    userId: user.id
+                }
+            });
+
+            if (cur_participant.length > 0) {
+                this.sendError(server, client, "invite: User " + args[0] + " is already in the room");
+                return ;
+            }
+
+            await this.prisma.participant.create({
+                data: {
+                    chatId: chatId,
+                    userId: user.id,
+                    is_admin: false,
+                    is_moderator: false,
+                }
+            });
+
+            this.sendStatus(server, client, participant, chatId, participant.user.login + " invited " + args[0] + " in the room");
+
+            const room_name = await this.getRoomName(chatId);
+
+            if (room_name) // this line is very long ! maybe I should make a function for it 
+                this.notificationGateway.notify(participant.user.login, 'chat', 'Invitation', 'you have been invited to join ' + room_name , client.transcendenceUser.login, 'chat/room/' + room_name);
+        }
+        catch (e) {
+            console.log("invite error: " + e);
+            return;
+        }
+
+
+    }
     
     async kick(server: any, client: any, participant: any, chatId: any, args: any) {
         if (!participant.is_admin && !participant.is_moderator) {
@@ -645,14 +697,11 @@ export class ChatService {
             catch (e) {
                 console.log("get rooms error: " + e);
             }
-
-
-
         }
 
         // all rooms
         try {
-            return await this.prisma.chatRoom.findMany({
+            let rooms = await this.prisma.chatRoom.findMany({
                 include: {
                     participants: { 
                         include: { user: true }
@@ -660,6 +709,12 @@ export class ChatService {
                     messages: false,
                 }
             });
+            if (!rooms) {
+                throw ("Rooms not found");
+            }
+
+            // return room only if it is public or user is in it
+            return rooms.filter((cur) => !cur.is_private || cur.participants.find((cur) => cur.user.login == login));
         }
         catch (e) {
             console.log("get rooms error: " + e);

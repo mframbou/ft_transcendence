@@ -99,9 +99,9 @@
         {room.participants.length} user
     </p>
     <p>
-        <!-- public: &nbsp {room.is_protected ? '❌' : ' ✓'} -->
         {room.is_protected ? '🔒' : ' 🔓'}
     </p>
+    <p style="color:{room.is_private ? 'green' : 'white'};">{room.is_private ? 'private' : 'public'} </p>
     <button on:click={pass}>join</button>
 </div>
 
