@@ -7,6 +7,7 @@
     let name: string = '';
     let password: string = '';
     let is_private: boolean = false;
+    let is_protected: boolean = false;
 
     let error: string = '';
     //let errorMessage: any[] = {1: "Failed to create the room", 2: "Another room have the same name", 3: "Password is too short"};
@@ -21,7 +22,7 @@
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({name: name, is_private: is_private, password: password})
+            body: JSON.stringify({name: name, is_protected: is_protected, is_private: is_private, password: password})
         });
 
         console.log("response : ", response);
@@ -53,9 +54,10 @@
     <h2 class='🌈'>Create room</h2>
     <div class='vflex'>
         name <input type="text" bind:value={name}>
-        password <input type="text" bind:value={password} disabled={!is_private}>
+        password <input type="text" bind:value={password} disabled={!is_protected}>
 
         <div class="checkBox"> 
+            <input type=checkbox bind:checked={is_protected}> <p>protected</p> 
             <input type=checkbox bind:checked={is_private}> <p>private</p> 
         </div> 
 

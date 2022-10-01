@@ -33,7 +33,8 @@ import { get } from 'http';
     @Post('addRoom')
     async addRoom(@Body() room: AddRoomDto , @Req() req: IUserRequest) {
         const payload = req.jwtPayload;
-        return await this.chatService.addRoom(payload.login, room.name, room.is_private, room.password);
+        //return await this.chatService.addRoom(payload.login, room.name, room.is_private, room.password);
+        return await this.chatService.addRoom(payload.login, room);
     }
 
     @Post('joinRoom')

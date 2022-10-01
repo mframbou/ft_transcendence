@@ -11,6 +11,7 @@ import { connect, sensitiveHeaders } from 'http2';
 import errorDispatcher from 'src/utils/error-dispatcher';
 import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 import { disconnect } from 'process';
+import { AddRoomDto } from 'src/interfaces/dtos';
 
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
@@ -46,7 +47,6 @@ export class ChatService {
     }
 
     async leave(server: any, client: any, payload: any) {
-        console.log("leave");
         this.roomsClients = this.roomsClients.filter((cur) => cur.clientId !== client.id);
     }
 
@@ -86,6 +86,8 @@ export class ChatService {
 
             // need to add check for blocked user
             for (let participant of room.participants) {
+                if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
+                    continue;
                 this.notificationGateway.notify(participant.user.login, 'chat', `${await this.getRoomName(chatId)}: New Message`, content.content, client.transcendenceUser.login);
             }
 
@@ -122,24 +124,29 @@ export class ChatService {
     }
 
 
-    async addRoom(login: string, name: string, is_private: boolean, password?: string) {
+    //async addRoom(login: string, name: string, is_protected: boolean, password?: string) {
+    async addRoom(login: string, room: AddRoomDto) {
 
         const user = await this.usersService.getUser(login);
 
-        if (await this.prisma.chatRoom.findUnique({where: {name: name}})) {
+        if (room.name == "") {
+            throw new HttpException('Enter a room name', 403);
+        }
+
+        if (await this.prisma.chatRoom.findUnique({where: {name: room.name}})) {
             throw new HttpException('Room already exist with this name', 403);
         }
 
-        if (is_private && password.length < 4) {
+        if (room.is_protected && room.password.length < 4) {
             throw new HttpException('Passord is too short', 403);
         }
 
         try {
             let cur_room = await this.prisma.chatRoom.create({
                 data: {
-                    name: name,
-                    is_private: is_private,
-                    hash: password,
+                    name: room.name,
+                    is_protected: room.is_protected,
+                    hash: room.password,
                     participants: {
                         create: [{
                             is_owner: true,
@@ -203,7 +210,7 @@ export class ChatService {
 
         console.log("password: ", password, "hash: ", current_room.hash);
         // need to encrypt password :)
-        if (current_room.is_private && current_room.hash != password) {
+        if (current_room.is_protected && current_room.hash != password) {
             throw new HttpException('Incorrect password', 403);
         }
         console.log("mdp");
@@ -312,9 +319,9 @@ export class ChatService {
             //case '/unmute':
                 //await this.unmute(server, chatId, userId, args);
                 //break;
-            //case '/promote':
-                //await this.promote(server, chatId, userId, args);
-                //break;
+            case '/promote':
+                await this.promote(server, client, participant, chatId, args);
+                break;
             //case '/demote':
                 //await this.demote(server, chatId, userId, args);
                 //break;
@@ -515,12 +522,90 @@ export class ChatService {
 
     }
 
+    async promote(server: any, client: any, participant: any, chatId: any, args: any) {
+        if (!participant.is_admin) {
+            this.sendError(server, client, "promote: You don't have the permission to promote");
+            return;
+        }
+
+        if (args.length != 2 || (args[1] != "admin" && args[1] != "moderator")) {
+            this.sendError(server, client, "Usage: /promote <login> <admin/moderator/user>");
+            return;
+        }
+
+        try {
+            var target = await this.prisma.user.findUnique({
+                where: { login: args[0] }
+            });
+
+            if (!target) {
+                this.sendError(server, client, "promote: User " + args[0] + " not found");
+                return;
+            }
+            console.log("target " + JSON.stringify(target));
+
+            const participant_target = await this.prisma.participant.findMany({
+                where: {
+                    chatId: chatId,
+                    userId: target.id
+                }
+            });
+
+            if (!participant_target[0]) {
+                this.sendError(server, client, "promote: User " + args[0] + " is not in this room");
+                return ;
+            }
+
+            if (participant_target[0].is_owner) {
+                this.sendError(server, client, "promote: You can't promote the owner of the room");
+                return;
+            }
+
+            if (args[1] == "admin") {
+                await this.prisma.participant.update({
+                    where: {
+                        id: participant_target[0].id
+                    },
+                    data: {
+                        is_admin: true,
+                        is_moderator: false,
+                    }
+                });
+            } else if (args[1] == "moderator") {
+                await this.prisma.participant.update({
+                    where: {
+                        id: participant_target[0].id
+                    },
+                    data: {
+                        is_admin: false,
+                        is_moderator: true,
+                    }
+                });
+            } else {
+                await this.prisma.participant.update({
+                    where: {
+                        id: participant_target[0].id
+                    },
+                    data: {
+                        is_admin: false,
+                        is_moderator: false,
+                    }
+                });
+            }
+
+            this.sendStatus(server, client, participant, chatId, participant.user.login + " is now " + args[1]);
+        }
+        catch (e) {
+            this.sendError(server, client, "Unknown error");
+            return ;
+        }
+    }
+
     // need to stop sending rooms hash and partitipant.entered_hash
     async rooms(login: string, name?: string) {
 
         // room by name
         if (name) {
-
             try {
                 var room = await this.prisma.chatRoom.findUnique({
                     where: {
@@ -532,6 +617,10 @@ export class ChatService {
                         },
                     }
                 });
+
+                if (!room) {
+                    throw ("Room not found");
+                }
 
                 // if user is in room send him the messages with it
                 if (room.participants.find((cur) => cur.user.login == login)) {

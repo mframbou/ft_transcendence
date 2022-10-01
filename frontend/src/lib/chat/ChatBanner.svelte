@@ -96,10 +96,11 @@
         name: &nbsp {room.name}
     </p>
     <p>
-        public: &nbsp {room.is_private ? '❌' : ' ✓'}
+        {room.participants.length} user
     </p>
     <p>
-        {room.participants.length} user
+        <!-- public: &nbsp {room.is_protected ? '❌' : ' ✓'} -->
+        {room.is_protected ? '🔒' : ' 🔓'}
     </p>
     <button on:click={pass}>join</button>
 </div>

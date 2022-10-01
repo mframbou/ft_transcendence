@@ -10,6 +10,7 @@
 
 		$notificationSocket.on('notification', (data) => {
 			console.log("notification received : ", data);
+			alert(data.service + ": " + data.title + "\n" + data.content);
 		});
 
 		onDestroy(() => {
