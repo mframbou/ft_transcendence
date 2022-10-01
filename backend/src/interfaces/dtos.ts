@@ -38,6 +38,9 @@ export class AddRoomDto
 	@IsBoolean()
 	is_private: boolean;
 
+	@IsBoolean()
+	is_protected: boolean;
+
 	@IsOptional()
 	@IsString()
 	password: string;
