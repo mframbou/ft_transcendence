@@ -37,6 +37,7 @@ export class StatusService {
 					throw new InternalServerErrorException(`Unknown status '${status}'`);
 			}
 
+			// cause probelem if the db is reset and the user is still logged in
 			await this.prismaService.user.update({
 				where: {
 					login: login

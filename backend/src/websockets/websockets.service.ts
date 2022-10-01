@@ -61,6 +61,10 @@ export class WebsocketsService {
 		return this.clients.find(client => client.id === clientId);
 	}
 
+	getClientbyLogin(login: string, namespace: string) {
+		return this.clients.find(client => client.login === login && client.namespace === namespace);
+	}
+
 	async validateFirstConnect(payload: WsFirstConnectDto, namespace: string): Promise<IJwtPayload | null>
 	{
 		let jwtPayload: IJwtPayload = null;
@@ -76,5 +80,4 @@ export class WebsocketsService {
 
 		return jwtPayload;
 	}
-
 }

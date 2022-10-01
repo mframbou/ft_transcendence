@@ -8,6 +8,9 @@ import { WebsocketsService } from '../websockets/websockets.service';
 import { NotificationService } from './notification.service';
 import { Server } from 'socket.io';
 import { WsFirstConnectDto } from '../interfaces/dtos';
+import { UsersService } from 'src/users/users.service';
+import { InternalServerErrorException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 const NAMESPACE = 'notification';
 
@@ -25,7 +28,9 @@ export class NotificationGateway implements OnGatewayDisconnect, OnGatewayConnec
 			private authService: AuthService,
 			private websocketsService: WebsocketsService,
 			private statusService: NotificationService,
-	) {}
+            private usersService: UsersService,
+            private prisma: PrismaService,
+    ) {}
 
 	@WebSocketServer()
 	server: Server;
@@ -55,4 +60,38 @@ export class NotificationGateway implements OnGatewayDisconnect, OnGatewayConnec
 		//await this.statusService.setStatus(clientToRemove.login, EUserStatus.OFFLINE);
 		this.websocketsService.removeClient(clientToRemove.id);
 	}
+
+    // send notification to login
+    async notify(login: string, service: string, title: string, content: string, link?: string) {
+        try {
+            const user = await this.usersService.getUser(login);
+
+            if (!user) {
+                throw new InternalServerErrorException('User not found');
+            }
+
+            const cur_notif = await this.prisma.notification.create({
+                data: {
+                    userId: user.id,
+                    service: service,
+                    link: link,
+                    title: title,
+                    content: content,
+                }
+            });
+            console.log("Notification created: ", cur_notif);
+
+            const client = this.websocketsService.getClientbyLogin(login, 'notification');
+            if (!client) {
+                throw new InternalServerErrorException('client not found');
+            }
+            console.log("client : ", client);
+
+            this.server.to(client.id).emit('notification', cur_notif);
+            
+        }
+        catch (e) {
+            console.log("Error in notify: ", e);
+        } 
+    }
 }

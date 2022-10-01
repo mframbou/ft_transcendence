@@ -12,36 +12,38 @@ generator client {
 }
 
 model User {
-	id               Int             @default(autoincrement()) @id
-	email            String
-	phone            String
-	profilePicture   String
-	firstName        String
-	lastName         String
-	username         String
-	login            String          @unique
-	campus           String
-	wins             Int             @default(0)
-	losses           Int             @default(0)
-	elo              Int             @default(1000)
-	twoFactorEnabled Boolean         @default(false)
-	otpSecret        String          @default("")
-	otpUri           String          @default("")
-	isOwner          Boolean         @default(false)
-	isAdmin          Boolean         @default(false)
-	status           Status          @default(OFFLINE)
+	id               	Int             @default(autoincrement()) @id
+	email            	String
+	phone            	String
+	profilePicture   	String
+	firstName        	String
+	lastName         	String
+	username         	String
+	login            	String          @unique
+	campus           	String
+	wins             	Int             @default(0)
+	losses           	Int             @default(0)
+	elo              	Int             @default(1000)
+	twoFactorEnabled 	Boolean         @default(false)
+	otpSecret        	String          @default("")
+	otpUri           	String          @default("")
+	isOwner          	Boolean         @default(false)
+	isAdmin          	Boolean         @default(false)
+	status           	Status          @default(OFFLINE)
 
-    userFriends      Friend[]       @relation(name: "userFriends")
-    friendUsers      Friend[]       @relation(name: "friendsUser")
+    userFriends      	Friend[]       @relation(name: "userFriends")
+    friendUsers      	Friend[]       @relation(name: "friendsUser")
 
-    blockingUsers    BlockedUser[]  @relation(name: "blockingUser")
-    blockedUsers     BlockedUser[]  @relation(name: "blockedUser")
+    blockingUsers    	BlockedUser[]  @relation(name: "blockingUser")
+    blockedUsers     	BlockedUser[]  @relation(name: "blockedUser")
 
-	participants	 Participant[]
-	messages		 Message[]
+	participants	 	Participant[]
+	messages		 	Message[]
 
-	matchesAsPlayer1 Match[]        @relation(name: "player1Match")
-	matchesAsPlayer2 Match[]        @relation(name: "player2Match")
+	matchesAsPlayer1 	Match[]        @relation(name: "player1Match")
+	matchesAsPlayer2	Match[]        @relation(name: "player2Match")
+
+	notifications		Notification[]
 }
 
 model Message {
@@ -83,6 +85,18 @@ model ChatRoom {
 
 	participants Participant[]
 	messages	Message[]
+}
+
+model Notification {
+	id			Int		@default(autoincrement()) @id
+
+	user		User?	@relation(fields: [userId], references: [id])
+	userId		Int?
+
+	service		String	// chat, match, friend, etc 
+	link		String?	// link to the service (goto(link))
+	title		String	// title of the notification
+	content		String	// content of the notification
 }
 
 enum Status {

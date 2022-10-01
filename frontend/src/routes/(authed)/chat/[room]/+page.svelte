@@ -99,7 +99,8 @@
                             <p style="color:red;">{msg.content}</p> 
                     {:else if msg.isStatus}
                             <p style="color:gray;">*{msg.content}*</p> 
-                    {:else if !$user.blockedUsers.find((cur) => cur == msg.sender.login)}
+                    <!-- {:else if !$user.blockedUsers.find((cur) => cur == msg.sender.login)} -->
+                    {:else}
                         <img class="profilePicture" src={msg.sender.profilePicture}/> 
                         <!-- <p>  {msg.sender.user.login}: {msg.content} </p> -->
                         <p> {msg.sender.login} {msg.content} </p>

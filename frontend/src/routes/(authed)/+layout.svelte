@@ -6,6 +6,10 @@
 
     statusSocket.subscribe(() => {});
     notificationSocket.subscribe(() => {});
+
+	$notificationSocket.on('notification', (data) => {
+		console.log("notification received : ", data);
+	});
 </script>
 
 

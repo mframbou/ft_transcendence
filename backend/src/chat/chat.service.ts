@@ -12,11 +12,16 @@ import errorDispatcher from 'src/utils/error-dispatcher';
 import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 import { disconnect } from 'process';
 
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationGateway } from 'src/notification/notification.gateway';
+
 @Injectable()
 export class ChatService {
   constructor(
         private readonly prisma: PrismaService, 
         private readonly usersService: UsersService,
+        private notificationService: NotificationService,
+        private notificationGateway: NotificationGateway
     ) {}
 
     // roomsclients store the client id of each user in each room
@@ -37,6 +42,7 @@ export class ChatService {
         }
         //this.roomsClients.push({user: payload.user, chatId: payload.chatId, clientId: client.id});
         this.roomsClients.push({clientId: client.id, chatId: payload.chatId, login: client.transcendenceUser.login});
+
     }
 
     async leave(server: any, client: any, payload: any) {
@@ -44,8 +50,20 @@ export class ChatService {
         this.roomsClients = this.roomsClients.filter((cur) => cur.clientId !== client.id);
     }
 
+    async getRoomName(roomId: any) {
+        try {
+            return await this.prisma.chatRoom.findUnique({
+                where: { id: roomId },
+            }).then((room) => room.name);
+        } catch (e) {
+            throw new HttpException(e, 403);
+        }
+
+    }
+
     // utils function to send stuff to client in a room (if client provided send only to him)
     async sendTo(server: any, chatId: any, trigger: string, content: any, client?: any) {
+        console.log("sendTo roomsclients : ", this.roomsClients);
         if (client) {
             server.to(client.id).emit(trigger, content);
         } else {
@@ -55,6 +73,27 @@ export class ChatService {
                 }
             }
         }
+
+        try {
+            const room = await this.prisma.chatRoom.findUnique({
+                where: { id: chatId },
+                include: { 
+                    participants: {
+                        include: { user: true }
+                    }
+                },
+            });
+
+            // need to add check for blocked user
+            for (let participant of room.participants) {
+                this.notificationGateway.notify(participant.user.login, 'chat', `${await this.getRoomName(chatId)}: New Message`, content.content);
+            }
+
+        }
+        catch (e) {
+            console.log("sendTo error: " + e);
+        }
+
     }
 
     async sendError(server: any, client: any, content: string) {
