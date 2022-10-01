@@ -10,9 +10,6 @@
     let is_protected: boolean = false;
 
     let error: string = '';
-    //let errorMessage: any[] = {1: "Failed to create the room", 2: "Another room have the same name", 3: "Password is too short"};
-
-    let test = "bonjour";
 
     async function addRoom() {
         // addRoom request return a true/false
@@ -57,8 +54,8 @@
         password <input type="text" bind:value={password} disabled={!is_protected}>
 
         <div class="checkBox"> 
-            <input type=checkbox bind:checked={is_protected}> <p>protected</p> 
-            <input type=checkbox bind:checked={is_private}> <p>private</p> 
+            <input type=checkbox bind:checked={is_protected} disabled={is_private}> <p>protected</p> 
+            <input type=checkbox bind:checked={is_private} disabled={is_protected}> <p>private</p> 
         </div> 
 
         <button on:click={addRoom}>create</button>

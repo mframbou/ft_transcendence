@@ -133,6 +133,10 @@ export class ChatService {
             throw new HttpException('Enter a room name', 403);
         }
 
+        if (room.is_private && room.is_protected) {
+            throw new HttpException('private can\'t be protected', 403);
+        }
+
         if (await this.prisma.chatRoom.findUnique({where: {name: room.name}})) {
             throw new HttpException('Room already exist with this name', 403);
         }
