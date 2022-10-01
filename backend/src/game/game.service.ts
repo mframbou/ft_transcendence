@@ -51,7 +51,8 @@ export class GameService {
 
 	confirmMatch(client: IWebsocketClient, server: Server)
 	{
-		const room = this.getClientGameRoom(client);
+		const room = this.getClientGameRoom(client.id
+		);
 
 		if (!room)
 			return;
@@ -104,7 +105,7 @@ export class GameService {
 
 	handlePlayerPaddleMove(client: IWebsocketClient, payload: WsPaddleMoveDto)
 	{
-		const room = this.getClientGameRoom(client);
+		const room = this.getClientGameRoom(client.id);
 
 		if (!room || !room.gameInstance)
 			return;
@@ -119,9 +120,9 @@ export class GameService {
 		room.gameInstance.handlePlayerPaddleMove(player, payload);
 	}
 
-	getClientGameRoom(client: IWebsocketClient): IGameRoom
+	getClientGameRoom(clientId: string): IGameRoom
 	{
-		return this.gameRooms.find(room => room.player1.clientId === client.id || room.player2.clientId === client.id);
+		return this.gameRooms.find(room => room.player1.clientId === clientId || room.player2.clientId === clientId);
 	}
 
 	broadcastEvent(room: IGameRoom, eventName: string, message: any, server: Server, sendToSpectators: boolean = true, excludePlayer?: IGamePlayer)
@@ -342,6 +343,33 @@ export class GameService {
 		{
 			errorDispatcher(e);
 		}
+	}
+
+	enableBingChilling(clientId: string)
+	{
+		console.log('bing chilling enabled');
+		const room = this.getClientGameRoom(clientId);
+		if (!room)
+			throw new NotFoundException('Game room not found');
+
+		if (!room.gameInstance || !room.gameInstance.player1 || !room.gameInstance.player2)
+			return;
+
+		const player = room.player1.clientId === clientId ? room.gameInstance.player1 : room.gameInstance.player2;
+		room.gameInstance.enableBingChilling(player);
+	}
+
+	disableBingChilling(clientId: string)
+	{
+		const room = this.getClientGameRoom(clientId);
+		if (!room)
+			throw new NotFoundException('Game room not found');
+
+		if (!room.gameInstance || !room.gameInstance.player1 || !room.gameInstance.player2)
+			return;
+
+		const player = room.player1.clientId === clientId ? room.gameInstance.player1 : room.gameInstance.player2;
+		room.gameInstance.disableBingChilling(player);
 	}
 
 }

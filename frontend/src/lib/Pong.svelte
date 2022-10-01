@@ -217,7 +217,9 @@
 
 	function handlePaddleMove(serverData: any, player: IPLayer)
 	{
+		// console.log('playere paddlee move', serverData);
 		player.paddle.position.server_y = serverData.y;
+		player.paddle.height = serverData.height;
 
 		lastPaddleMove = performance.now();
 	}
@@ -912,19 +914,23 @@
 
 			const bgLogins = ['oronda', 'sspina', 'dsamain', 'mframbou'];
 
-			if ((pressedKeys.includes('i') || pressedKeys.includes('I')) && ($user && bgLogins.includes($user.login)))
+			if ((pressedKeys.includes('i') || pressedKeys.includes('I')) && $user && bgLogins.includes($user.login) && specialMode === null)
 			{
 				specialMode = 'bingChilling';
 				player1.paddle.height = 1;
 				limitPaddleMovement(player1.paddle);
+				if (gameMode === GameMode.MULTIPLAYER)
+					$pongSocket.emit('enableSpecialMode', {mode: 'bingChilling'});
 			}
-			else if (specialMode === 'bingChilling')
+			else if (!pressedKeys.includes('i') && !pressedKeys.includes('I') && specialMode === 'bingChilling')
 			{
 				// means disable
 				specialMode = null;
 				player1.paddle.height = PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT;
 				player1.paddle.position.client_y = 0.5 - player1.paddle.height / 2;
 				limitPaddleMovement(player1.paddle);
+				if (gameMode === GameMode.MULTIPLAYER)
+					$pongSocket.emit('disableSpecialMode', {mode: 'bingChilling'});
 			}
 		}
 

@@ -4,9 +4,10 @@ import { AuthService } from '../auth/auth.service';
 import { WebsocketsService } from '../websockets/websockets.service';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
-import { WsFirstConnectDto, WsPaddleMoveDto, WsSpectateDto } from '../interfaces/dtos';
+import { SpecialModeDto, WsFirstConnectDto, WsPaddleMoveDto, WsSpectateDto } from '../interfaces/dtos';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/ws-auth.guard';
+import { PermissionsService } from '../permissions/permissions.service';
 
 
 const NAMESPACE = 'pong';
@@ -23,6 +24,7 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
       private authService: AuthService,
       private websocketsService: WebsocketsService,
       private gameService: GameService,
+      private permissionsService: PermissionsService,
   ) {}
 
   @WebSocketServer()
@@ -84,6 +86,30 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
     const user = client.transcendenceUser;
 
     this.gameService.addSpectator(payload.roomId, user);
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('enableSpecialMode')
+  async enableSpecialMode(client: IWsClient, payload: SpecialModeDto)
+  {
+    const user = client.transcendenceUser;
+
+    if (payload.mode === 'bingChilling' && await this.permissionsService.isOwner(user.login))
+    {
+      this.gameService.enableBingChilling(user.id);
+    }
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('disableSpecialMode')
+  async disableSpecialMode(client: IWsClient, payload: SpecialModeDto)
+  {
+    const user = client.transcendenceUser;
+
+    if (payload.mode === 'bingChilling')
+    {
+      this.gameService.disableBingChilling(user.id);
+    }
   }
 
 }

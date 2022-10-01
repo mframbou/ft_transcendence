@@ -5,7 +5,7 @@ import {
 	IsOptional,
 	IsString,
 	MaxLength, Min, Max,
-	MinLength,
+	MinLength, IsIn,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
@@ -82,4 +82,17 @@ export class BlockUserDto
 	@IsString()
 	@IsNotEmpty()
 	login: string;
+}
+
+
+// https://stackoverflow.com/a/68800520
+const specialModes = ['bingChilling', 'notChilling'];
+type SpecialMode = typeof specialModes[number];
+
+export class SpecialModeDto
+{
+	@IsString()
+	@IsNotEmpty()
+	@IsIn(specialModes)
+	mode: SpecialMode;
 }

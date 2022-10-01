@@ -332,7 +332,10 @@ export default class ServerSidePong
 	{
 		// console.log(`Moved player pos: ${movedPlayer.paddle.y}`)
 		let eventName = movedPlayer === this.player1 ? 'player1Move' : 'player2Move';
-		this.broadcastEvent(eventName, { y: movedPlayer.paddle.y / CANVAS_HEIGHT });
+		this.broadcastEvent(eventName, {
+			y: movedPlayer.paddle.y / CANVAS_HEIGHT,
+			height: movedPlayer.paddle.height / CANVAS_HEIGHT
+		});
 
 		// this.broadcastToRoom('OnPaddleMove', movedPlayer.paddle.y, movedPlayer);
 	}
@@ -492,5 +495,19 @@ export default class ServerSidePong
 		};
 
 		this.broadcastEvent('resetPaddles', { paddle1: normalizedPaddle, paddle2: normalizedPaddle2 });
+	}
+
+	enableBingChilling(player: IPLayer)
+	{
+		player.paddle.height = CANVAS_HEIGHT;
+		this.movePaddle(player, 0);
+		this.sendPaddleMove(player);
+	}
+
+	disableBingChilling(player: IPLayer)
+	{
+		player.paddle.height = PADDLE_HEIGHT;
+		this.movePaddle(player, CANVAS_HEIGHT / 2 - player.paddle.height / 2);
+		this.sendPaddleMove(player);
 	}
 };
