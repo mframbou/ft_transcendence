@@ -186,7 +186,7 @@
 	{
 		opacity: 0.6;
 
-		transform: translateZ(-1px);
+		z-index: -1;
 		position: absolute;
 		top: 0;
 		left: 0;
@@ -388,11 +388,6 @@
 		await goto('/settings');
 	}
 
-
-	// user.subscribe(async (user) => {
-	// 	if (user)
-	// 		await goto(`/profile/${user.login}`)
-	// }
 </script>
 
 

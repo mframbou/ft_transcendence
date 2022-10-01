@@ -96,9 +96,13 @@ function createWebsocketStore(namespace: string, timeout: number = 3000): { sock
 	});
 
 	const connectedStore = readable(false, (set) => {
-		connectedStoreWritable.subscribe((value) => {
+		const unsubscribe = connectedStoreWritable.subscribe((value) => {
 			set(value);
 		});
+
+		return () => {
+			unsubscribe();
+		}
 	});
 
 	return { socket: socketStore, connected: connectedStore };

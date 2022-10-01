@@ -109,9 +109,8 @@
 	.background
 	{
 		opacity: 0.6;
-
-        color: #0097e3;
-		transform: translateZ(-1px);
+    color: #0097e3;
+		z-index: -1;
 		position: absolute;
 		top: 0;
 		left: 0;

@@ -3,13 +3,20 @@
     import NavbarV2 from '$lib/NavbarV2.svelte';
     import { statusSocket, statusSocketConnected } from "$lib/websocket-stores";
     import { notificationSocket, notificationSocketConnected } from "$lib/websocket-stores";
+    import {onDestroy} from "svelte";
 
-    statusSocket.subscribe(() => {});
-    notificationSocket.subscribe(() => {});
+    const unsubscribeStatus = statusSocket.subscribe(() => {});
+    const unsubscribeNotification = notificationSocket.subscribe(() => {});
 
-	$notificationSocket.on('notification', (data) => {
-		console.log("notification received : ", data);
-	});
+		$notificationSocket.on('notification', (data) => {
+			console.log("notification received : ", data);
+		});
+
+		onDestroy(() => {
+			unsubscribeStatus();
+			unsubscribeNotification();
+		});
+
 </script>
 
 

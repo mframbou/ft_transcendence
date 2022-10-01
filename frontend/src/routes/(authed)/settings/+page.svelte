@@ -326,7 +326,7 @@
 		width: 100%;
 		height: 100%;
 
-		transform: translateZ(-1px);
+		z-index: -1;
 	}
 
 	.two-factor-settings

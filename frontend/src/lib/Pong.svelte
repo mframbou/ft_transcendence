@@ -529,7 +529,7 @@
 	function generateRandomPaddleOffset()
 	{
 		// since offset is more than half of paddle height, sometimes computer will not be able to reach the ball (because computer wants to center its target pos to paddle)
-		return (Math.random() - 0.5) * (player2.paddle.height / 0.95);
+		return (Math.random() - 0.5) * (player2.paddle.height / 1);
 	}
 
 	/////////////////////
@@ -865,6 +865,10 @@
 			// 2 lerps: 1 for position to target random offset position (which is slow), another just for position to ball (which is fast)
 			const targetPosition = ball.position.client_y - player2.paddle.height / 2 + computerPaddleRandomOffset;
 
+			// nigthmare mode
+			// movePaddle(player2.paddle, ball.position.client_y - player2.paddle.height / 2);
+
+			// normal mode
 			let computerPosition = targetPosition;
 			if (Math.abs(targetPosition - player2.paddle.position.client_y) > player2.paddle.height * 0.1)
 			{

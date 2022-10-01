@@ -187,7 +187,6 @@
 
 	function canvasClickListener(e: MouseEvent)
 	{
-		console.log("mouseEvent ", e);
 		const rect = canvas.getBoundingClientRect();
 		mousePos.x = e.clientX - rect.left;
 		mousePos.y = e.clientY - rect.top;

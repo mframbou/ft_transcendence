@@ -182,7 +182,7 @@
 	{
 		opacity: 0.6;
 
-		transform: translateZ(-1px);
+		z-index: -1;
 		position: absolute;
 		top: 0;
 		left: 0;

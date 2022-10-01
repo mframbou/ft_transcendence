@@ -13,20 +13,26 @@
 	.button
 	{
 		position: relative;
+		z-index: 1;
+		border-radius: var(--border-radius, 100vw);
+		outline: none;
+		border: none;
+		cursor: pointer;
+		background: transparent; // to avoid ugly thing
+	}
 
-		//width: fit-content;
+	.pseudo-parent
+	{
+		position: absolute;
 		padding: $vertical-padding $horizontal-padding;
+		//width: fit-content;
 		font-family: Lato;
 		font-size: 1em;
 		font-weight: bolder;
 		color: white;
 		vertical-align: middle;
 		text-align: center;
-		border-radius: var(--border-radius, 100vw);
-		cursor: pointer;
-		transform-style: preserve-3d; // https://stackoverflow.com/a/51432213
-		outline: none;
-		border: none;
+		border-radius: inherit;
 		box-shadow: inset 0 -16px 16px rgba(0, 0, 0, 0.15);
 
 		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
@@ -56,7 +62,8 @@
 		left: 0;
 		background: inherit;
 		border-radius: inherit;
-		transform: scale(0.8) translateY(5px) translateZ(-2px);
+		transform: scale(0.8) translateY(5px);
+		z-index: -2;
 		filter: blur(48px);
 		opacity: 0.6;
 	}
@@ -80,13 +87,14 @@
 		background: inherit;
 		filter: brightness(1.1);
 		border-radius: inherit;
-		transform: translateZ(-1px);
+		z-index: -1;
 	}
-
 
 </style>
 
 <!--	forward click event to parent -->
-<button on:click class="button" class:glowing={!disabled && glowing} class:border={border} disabled={disabled}>
-	<slot/>
+<button on:click class="button" disabled={disabled}>
+	<div class="pseudo-parent" class:glowing={!disabled && glowing} class:border={border}>
+		<slot/>
+	</div>
 </button>

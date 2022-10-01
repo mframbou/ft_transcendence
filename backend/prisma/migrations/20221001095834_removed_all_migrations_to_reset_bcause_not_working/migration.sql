@@ -40,8 +40,10 @@ CREATE TABLE "Message" (
 -- CreateTable
 CREATE TABLE "Participant" (
     "id" SERIAL NOT NULL,
+    "is_owner" BOOLEAN NOT NULL DEFAULT false,
     "is_admin" BOOLEAN NOT NULL,
     "is_moderator" BOOLEAN NOT NULL,
+    "entered_hash" TEXT NOT NULL DEFAULT '',
     "chatId" INTEGER,
     "userId" INTEGER,
 
@@ -57,6 +59,18 @@ CREATE TABLE "ChatRoom" (
     "banned" TEXT[] DEFAULT ARRAY[]::TEXT[],
 
     CONSTRAINT "ChatRoom_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" SERIAL NOT NULL,
+    "senderId" INTEGER,
+    "service" TEXT NOT NULL,
+    "link" TEXT,
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -105,6 +119,9 @@ ALTER TABLE "Participant" ADD CONSTRAINT "Participant_chatId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "Participant" ADD CONSTRAINT "Participant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Friend" ADD CONSTRAINT "Friend_login_fkey" FOREIGN KEY ("login") REFERENCES "User"("login") ON DELETE RESTRICT ON UPDATE CASCADE;
