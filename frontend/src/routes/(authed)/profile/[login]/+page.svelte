@@ -315,11 +315,6 @@
 
 	let matchHistory: any[] = [];
 
-	$: if($user && targetUser && $user.login === targetUser.login)
-	{
-		goto('/profile');
-	}
-
 	$: if(targetUser)
 	{
 		let winPercentage = Math.round((targetUser.wins / (targetUser.wins + targetUser.losses)) * 100);

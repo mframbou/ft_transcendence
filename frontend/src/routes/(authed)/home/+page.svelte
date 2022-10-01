@@ -1,15 +1,19 @@
 <script lang="ts">
 	import ParticlesBackground from "$lib/ParticlesBackground.svelte";
 	import Pong from "$lib/Pong.svelte";
-	import { friends } from "$lib/stores";
+	import { fetchUser, friends, user } from '$lib/stores';
 	import Button from "$lib/Button.svelte";
 	import { pongSocket, pongSocketConnected } from "$lib/websocket-stores.js";
+	import { resJson } from '../../../lib/utils';
+	import { error } from '@sveltejs/kit';
+	import { slide } from 'svelte/transition';
 
 	let onlineFriends = [];
 	let currentMode : 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER';
 	let matchmaking: boolean = false;
 	let matchmakingTime: number = 0;
 	let matchmakingTimeInterval: number = null;
+	let opponentPlayer = null;
 
 	function secondsToMinutesSeconds(seconds: number) {
 		const minutes = Math.floor(seconds / 60);
@@ -35,15 +39,45 @@
 		onlineFriends = $friends.friends.filter(friend => friend.status === 'OFFLINE');
 	}
 
-	function setReady()
+	async function setReady()
 	{
 		console.log("CLIENT READY");
 		$pongSocket.emit('startMatchmaking', '');
 		matchmaking = true;
 
-		$pongSocket.once('matchFound', (data) => {
+		$pongSocket.once('matchFound', async (data) => {
 			matchmaking = false;
 			console.log("MATCH FOUND, SENDING CONFIRMATION:", data);
+
+			if (!$user)
+				await fetchUser();
+
+			const opponent = (data.player1.login === $user.login) ? data.player2 : data.player1; // still works when playing against yourself
+
+			opponentPlayer = $user;
+			if (opponent.login !== $user.login)
+			{
+				const res = await fetch(`/api/users/${opponent.login}`);
+				if (!res.ok)
+				{
+					const json = await resJson(res);
+
+					let message = res.statusText;
+					if (json)
+						message = json.message;
+
+					throw error(res.status, message);
+				}
+
+				try
+				{
+					opponentPlayer = await res.json();
+				}
+				catch(e)
+				{
+					throw error(404, 'An error occured while fetching opponent user ' + e);
+				}
+			}
 			$pongSocket.emit('confirmMatch', '');
 		});
 	}
@@ -58,6 +92,23 @@
 
 <div class="content-wrapper">
 	<section class="game">
+		{#if opponentPlayer}
+		<div class="player-infos" in:slide>
+				<a class="match-user" href={'/profile'}>
+					<img src={$user.profilePicture} alt="avatar"/>
+					<span class="username">
+						{$user.username}
+					</span>
+				</a>
+				<a class="match-user" href = {opponentPlayer.login === $user.login ? '/profile' : `/profile/${opponentPlayer.login}`}>
+					<span class="username">
+						{opponentPlayer.username}
+					</span>
+					<img src={opponentPlayer.profilePicture} alt="avatar"/>
+				</a>
+		</div>
+		{/if}
+
 		<Pong bind:currentMode/>
 		<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected || matchmaking} on:click={setReady}>
 			{#if matchmaking}
@@ -125,7 +176,50 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		gap: 2rem;
+
+		.player-infos
+		{
+			width: 100%;
+			display: flex;
+			background-color: rgb(18, 13, 26);
+			// spread items (first one being on the far left and last one being on the far right)
+			justify-content: space-between;
+			align-items: center;
+			height: clamp(2.5rem, 6%, 7rem);
+
+			border-radius: 0.5rem 0.5rem 0 0;
+			overflow: hidden;
+
+			.match-user
+			{
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				height: 100%;
+				padding: 0.8rem;
+
+				// remove a style
+				text-decoration: none;
+
+				img
+				{
+					height: 100%;
+					aspect-ratio: 1 / 1;
+					object-fit: cover;
+					border-radius: 20%;
+				}
+
+				border-radius: inherit;
+				transition: background-color 0.2s ease-in-out;
+
+
+				&:hover
+				{
+					background-color: rgba(149, 142, 190, 0.2);
+				}
+			}
+
+		}
 	}
 
 	.invite

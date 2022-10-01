@@ -1,6 +1,9 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { resJson } from '$lib/utils';
-import { fetchFriends } from '../../../../lib/stores';
+import { user, fetchUser } from '../../../../lib/stores';
+import { get } from 'svelte/store';
+import { goto } from '$app/navigation';
+import { browser } from '$app/environment';
 
 async function loadUser(login: string, fetch: any)
 {
@@ -30,8 +33,17 @@ async function loadUser(login: string, fetch: any)
 // @ts-ignore
 export async function load({params, fetch})
 {
+	const login = params.login;
+
+	if (!get(user))
+		await fetchUser(fetch);
+
+	// @ts-ignore
+	if (get(user).login === login && browser)
+		document.location.replace('/profile'); // to avoid adding to history
+
 	return {
-		login: params.login,
+		login: login,
 		user: await loadUser(params.login, fetch),
 	}
 }

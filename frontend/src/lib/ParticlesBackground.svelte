@@ -164,6 +164,7 @@
 	{
 		if (!properties.keyEvent)
 			return ;
+
 		if (e.key == 'Control')
 		{
 			sprinkle = !sprinkle;

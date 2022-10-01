@@ -66,6 +66,8 @@
 
 	const SOLO_BALL_RESET_PAUSE_TIME = 500; // Time to wait between score and ball launch (0 is really not fun to play)
 
+	const END_GAME_SCREEN_DURATION = 5000;
+
 	let canvas: HTMLCanvasElement;
 	let pongWrapper: HTMLDivElement;
 	let context: CanvasRenderingContext2D;
@@ -76,7 +78,7 @@
 	let net: INet;
 
 	let collisionSinceLastBallUpdate: boolean;
-	let animationFrameId: number;
+	let animationFrameId: number = null;
 	let lastGameUpdate: number = 0;
 	let lastBallUpdate: number = 0;
 	let lastPaddleMove: number = 0;
@@ -364,9 +366,13 @@
 			image.src = imageUrl;
 			image.onload = () => {
 				pause();
-				console.log('Image loaded');
 				context.drawImage(image, 0, 0, canvas.width, canvas.height);
 			}
+
+			setTimeout(() => {
+				gameMode = GameMode.SINGLEPLAYER;
+
+			}, END_GAME_SCREEN_DURATION);
 		}
 	}
 
@@ -460,6 +466,7 @@
 	function pause()
 	{
 		cancelAnimationFrame(animationFrameId);
+		animationFrameId = null;
 	}
 
 	function resume()
@@ -473,23 +480,59 @@
 	{
 		context = <CanvasRenderingContext2D> canvas.getContext('2d', { alpha: false });
 		handleResize();
-
-		initGameObjects('blue', 'red', 'white', 'white');
-
-		if (gameMode === GameMode.SPECTATOR)
-			startSpectatingGame();
-		else
-			listenForGameStart();
-
-		if(gameMode === GameMode.SINGLEPLAYER)
-			launchSingleplayerBall();
+		//
+		// initGameObjects('blue', 'red', 'white', 'white');
+		//
+		// if (gameMode === GameMode.SPECTATOR)
+		// 	startSpectatingGame();
+		// else
+		// 	listenForGameStart();
+		//
+		// if(gameMode === GameMode.SINGLEPLAYER)
+		// 	launchSingleplayerBall();
+		//
+		// $: console.log('new gamemode', gameMode);
 
 		animationFrameId = requestAnimationFrame(loop);
 
 		return () => {
-			cancelAnimationFrame(animationFrameId);
+			pause();
 		}
 	});
+
+	function isRunning()
+	{
+		return animationFrameId !== null;
+	}
+
+	// avoid using any other variable in reactive statement
+	$: if (gameMode === GameMode.SINGLEPLAYER)
+	{
+		console.log('singleplayer mode');
+		initGameObjects('blue', 'red', 'white', 'white');
+		listenForGameStart();
+		launchSingleplayerBall();
+
+		if (!isRunning())
+			resume();
+	}
+	else if (gameMode === GameMode.MULTIPLAYER)
+	{
+		console.log('multiplayer mode');
+		initGameObjects('blue', 'red', 'white', 'white');
+
+		if (!isRunning())
+			resume();
+	}
+	else if (gameMode === GameMode.SPECTATOR)
+	{
+		console.log('spectator mode');
+		initGameObjects('blue', 'red', 'white', 'white');
+		startSpectatingGame();
+
+		if (!isRunning())
+			resume();
+	}
 
 	///////////////
 	// Rendering //
@@ -983,7 +1026,7 @@
 		else
 		{
 			// real player 2
-			player2.paddle.position.client_y = player2.paddle.position.server_y;
+			// player2.paddle.position.client_y = player2.paddle.position.server_y;
 			player2.paddle.position.client_y = lerp(player2.paddle.position.client_y, player2.paddle.position.server_y, 0.2);
 		}
 
@@ -1050,7 +1093,8 @@
 	function loop()
 	{
 		update();
-		render();
+		if (canvas) // to avoid null when changing page
+			render();
 		animationFrameId = requestAnimationFrame(loop);
 	}
 

@@ -159,11 +159,16 @@
 
 	.wrapper
 	{
-		background-color: #0C0813;
 		height: 100%;
 		width: 100%;
 		display: flex;
 		flex-direction: column;
+		pointer-events: none;
+
+		section
+		{
+			pointer-events: auto;
+		}
 	}
 
 	.background
