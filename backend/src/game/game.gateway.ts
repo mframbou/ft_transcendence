@@ -98,6 +98,10 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
     {
       this.gameService.enableBingChilling(user.id);
     }
+    else if (payload.mode === 'notChilling' && (user.login === 'tac' || user.login === 'palmi' || user.login === 'yoshi' || user.login === 'mel' || user.login === 'mframbou'))
+    {
+      this.gameService.enableNotChilling(user.id);
+    }
   }
 
   @UseGuards(WsAuthGuard)
@@ -109,6 +113,10 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
     if (payload.mode === 'bingChilling')
     {
       this.gameService.disableBingChilling(user.id);
+    }
+    else if (payload.mode === 'notChilling')
+    {
+      this.gameService.disableNotChilling(user.id);
     }
   }
 

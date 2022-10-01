@@ -913,24 +913,41 @@
 			}
 
 			const bgLogins = ['oronda', 'sspina', 'dsamain', 'mframbou'];
+			const yesSirLogins = ['tac', 'palmi', 'yoshi', 'mel'];
 
-			if ((pressedKeys.includes('i') || pressedKeys.includes('I')) && $user && bgLogins.includes($user.login) && specialMode === null)
+			if ((pressedKeys.includes('i') || pressedKeys.includes('I')) && $user && specialMode === null)
 			{
-				specialMode = 'bingChilling';
-				player1.paddle.height = 1;
-				limitPaddleMovement(player1.paddle);
-				if (gameMode === GameMode.MULTIPLAYER)
-					$pongSocket.emit('enableSpecialMode', {mode: 'bingChilling'});
+				// enable special mode
+				if (bgLogins.includes($user.login))
+				{
+					specialMode = 'bingChilling';
+					player1.paddle.height = 1;
+					limitPaddleMovement(player1.paddle);
+					if (gameMode === GameMode.MULTIPLAYER)
+						$pongSocket.emit('enableSpecialMode', { mode: 'bingChilling' });
+				}
+				else if (yesSirLogins.includes($user.login))
+				{
+					specialMode = 'notChilling';
+					const centeredPos = player1.paddle.position.client_y + player1.paddle.height / 2;
+					player1.paddle.height = (PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT) / 3;
+					movePaddle(player1.paddle, centeredPos - player1.paddle.height / 2);
+					limitPaddleMovement(player1.paddle);
+					if (gameMode === GameMode.MULTIPLAYER)
+						$pongSocket.emit('enableSpecialMode', { mode: 'notChilling' });
+				}
 			}
-			else if (!pressedKeys.includes('i') && !pressedKeys.includes('I') && specialMode === 'bingChilling')
+			else if (!pressedKeys.includes('i') && !pressedKeys.includes('I') && specialMode !== null)
 			{
-				// means disable
+				console.log('test');
+				// disable special mode
 				specialMode = null;
+				const centeredPos = player1.paddle.position.client_y + player1.paddle.height / 2;
 				player1.paddle.height = PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT;
-				player1.paddle.position.client_y = 0.5 - player1.paddle.height / 2;
+				movePaddle(player1.paddle, centeredPos - player1.paddle.height / 2);
 				limitPaddleMovement(player1.paddle);
 				if (gameMode === GameMode.MULTIPLAYER)
-					$pongSocket.emit('disableSpecialMode', {mode: 'bingChilling'});
+					$pongSocket.emit('disableSpecialMode', { mode: specialMode });
 			}
 		}
 

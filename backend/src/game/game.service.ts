@@ -347,7 +347,6 @@ export class GameService {
 
 	enableBingChilling(clientId: string)
 	{
-		console.log('bing chilling enabled');
 		const room = this.getClientGameRoom(clientId);
 		if (!room)
 			throw new NotFoundException('Game room not found');
@@ -372,4 +371,29 @@ export class GameService {
 		room.gameInstance.disableBingChilling(player);
 	}
 
+	enableNotChilling(clientId: string)
+	{
+		const room = this.getClientGameRoom(clientId);
+		if (!room)
+			throw new NotFoundException('Game room not found');
+
+		if (!room.gameInstance || !room.gameInstance.player1 || !room.gameInstance.player2)
+			return;
+
+		const player = room.player1.clientId === clientId ? room.gameInstance.player1 : room.gameInstance.player2;
+		room.gameInstance.enableNotChilling(player);
+	}
+
+	disableNotChilling(clientId: string)
+	{
+		const room = this.getClientGameRoom(clientId);
+		if (!room)
+			throw new NotFoundException('Game room not found');
+
+		if (!room.gameInstance || !room.gameInstance.player1 || !room.gameInstance.player2)
+			return;
+
+		const player = room.player1.clientId === clientId ? room.gameInstance.player1 : room.gameInstance.player2;
+		room.gameInstance.disableNotChilling(player);
+	}
 }

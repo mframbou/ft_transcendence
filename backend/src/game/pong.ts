@@ -510,4 +510,21 @@ export default class ServerSidePong
 		this.movePaddle(player, CANVAS_HEIGHT / 2 - player.paddle.height / 2);
 		this.sendPaddleMove(player);
 	}
+
+	enableNotChilling(player: IPLayer)
+	{
+		const centeredPos = player.paddle.y + player.paddle.height / 2;
+		player.paddle.height = PADDLE_HEIGHT / 3;
+		this.movePaddle(player, centeredPos - player.paddle.height / 2);
+		this.sendPaddleMove(player);
+	}
+
+	disableNotChilling(player: IPLayer)
+	{
+		const centerPos = player.paddle.y + player.paddle.height / 2;
+		player.paddle.height = PADDLE_HEIGHT;
+		// recenter paddle based on current pos
+		this.movePaddle(player, centerPos - player.paddle.height / 2);
+		this.sendPaddleMove(player);
+	}
 };
