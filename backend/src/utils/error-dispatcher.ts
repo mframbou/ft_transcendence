@@ -180,8 +180,10 @@ const error_codes: Map<string, (e: PrismaClientKnownRequestError) => void> =
 
 function dispatch_prisma_error(error: PrismaClientKnownRequestError)
 {
-	if (error_codes[error.code]) error_codes[error.code](error);
-	else throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+	if (error_codes[error.code])
+		error_codes[error.code](error);
+	else
+		throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
 }
 
 function dispatch_error(error: any)

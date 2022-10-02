@@ -20,6 +20,7 @@ export class StatusService {
 		{
 			console.log(`Setting status of ${login} to ${status}`);
 
+
 			let userStatus: Status;
 			// console.log(status+  ' pouet pouet');
 			switch (status)

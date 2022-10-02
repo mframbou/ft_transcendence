@@ -91,6 +91,13 @@
 		opponentPlayer = null;
 	}
 
+	let pongWidth: number;
+	let playerInfosDiv: HTMLDivElement;
+
+	$: if (playerInfosDiv)
+	{
+		playerInfosDiv.style.width = `${pongWidth}px`;
+	}
 
 </script>
 
@@ -102,7 +109,7 @@
 <div class="content-wrapper">
 	<section class="game">
 		{#if opponentPlayer}
-		<div class="player-infos" in:slide>
+		<div class="player-infos" in:slide bind:this={playerInfosDiv}>
 				<a class="match-user" href={'/profile'}>
 					<img src={$user.profilePicture} alt="avatar"/>
 					<span class="username">
@@ -117,8 +124,8 @@
 				</a>
 		</div>
 		{/if}
+		<Pong bind:width={pongWidth} bind:currentMode on:game-end={handleGameFinished}/>
 
-		<Pong bind:currentMode on:game-end={handleGameFinished}/>
 		<div class="matchmaking-button">
 			<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected || matchmaking} on:click={setReady}>
 				{#if matchmaking}
@@ -137,7 +144,6 @@
 				<h3>{friend.username}</h3>
 				<div style="margin-left:auto" class="invite-icon" on:click={() => alert(`Inviting ${friend.username}`)}/>
 				<div class="chat-icon" on:click={() => alert(`Chatting with ${friend.username}`)}/>
-<!--					<button on:click={() => invite(friend.id)}>Invite</button>-->
 			</div>
 		{/each}
 	</section>
@@ -190,7 +196,7 @@
 
 		.player-infos
 		{
-			width: 100%;
+			//width: 100%; // keep it auto so it's the same width as pong
 			display: flex;
 			background-color: rgb(18, 13, 26);
 			// spread items (first one being on the far left and last one being on the far right)

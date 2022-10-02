@@ -90,6 +90,8 @@
 	export let spectateId: string = null;
 	export let ballAspect: 'square' | 'circle' = 'circle';
 	export let currentMode: 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER'; // to pass data to parent, prevents parent from modifying it and breaking everything by copying gameMode (+ string instead of enum)
+	export let width: number = 600;
+	export let height: number = 400;
 
 	const dispatch = createEventDispatcher();
 
@@ -113,7 +115,16 @@
 		gameMode = GameMode.SPECTATOR;
 	}
 
+	$: if (canvas)
+	{
+		setWidthAndHeight(canvas);
+	}
 
+	function setWidthAndHeight(canvas: HTMLCanvasElement)
+	{
+		width = canvas.width;
+		height = canvas.height;
+	}
 	//////////////////////////
 	// Data denormalization //
 	//////////////////////////
@@ -945,22 +956,22 @@
 		{
 			let speedMultiplier = 1;
 			if (pressedKeys.includes('Shift'))
-				speedMultiplier = 2;
+				speedMultiplier *= 2;
 
-			if (pressedKeys.includes('Control'))
-				speedMultiplier = 0.5;
+			if (pressedKeys.includes('Control') || pressedKeys.includes('Alt')) // since we cant use control on macos with arrow
+				speedMultiplier /= 2;
 
 			// means 5 times the paddle height every second (at normal speeed)
 			const moveDistance = player1.paddle.height * 5 * speedMultiplier * updateMultiplier;
 
-			if (pressedKeys.includes('ArrowUp'))
+			if (pressedKeys.includes('ArrowUp') || pressedKeys.includes('w') || pressedKeys.includes('W'))
 			{
 				movePaddle(player1.paddle, player1.paddle.position.client_y - moveDistance);
 				if (gameMode === GameMode.MULTIPLAYER)
 					emitPaddleMove(player1.paddle.position.client_y);
 			}
 
-			if (pressedKeys.includes('ArrowDown'))
+			if (pressedKeys.includes('ArrowDown') || pressedKeys.includes('s') || pressedKeys.includes('S'))
 			{
 				movePaddle(player1.paddle, player1.paddle.position.client_y + moveDistance);
 				if (gameMode === GameMode.MULTIPLAYER)
