@@ -5,10 +5,9 @@ import { WebsocketsService } from '../websockets/websockets.service';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { SpecialModeDto, WsFirstConnectDto, WsPaddleMoveDto, WsSpectateDto } from '../interfaces/dtos';
-import { UseGuards } from '@nestjs/common';
+import { UseFilters, UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/ws-auth.guard';
 import { PermissionsService } from '../permissions/permissions.service';
-
 
 const NAMESPACE = 'pong';
 

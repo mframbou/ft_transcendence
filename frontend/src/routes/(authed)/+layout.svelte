@@ -8,6 +8,10 @@
     const unsubscribeStatus = statusSocket.subscribe(() => {});
     const unsubscribeNotification = notificationSocket.subscribe(() => {});
 
+    $statusSocket.on('wrongToken', () => {
+        document.location.replace('/api/auth/logout'); // redirect to logout to remove cookie
+		});
+
 		$notificationSocket.on('notification', (data) => {
 			console.log("notification received : ", data);
 			alert(data.service + ": " + data.title + "\n" + data.content + "\n" + "link: " + data.link);

@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Status } from '@prisma/client';
 import { Server } from 'socket.io';
 import errorDispatcher from '../utils/error-dispatcher';
+import { WsException } from '@nestjs/websockets'
 
 @Injectable()
 export class StatusService {
@@ -20,7 +21,6 @@ export class StatusService {
 		{
 			console.log(`Setting status of ${login} to ${status}`);
 
-
 			let userStatus: Status;
 			// console.log(status+  ' pouet pouet');
 			switch (status)
@@ -35,8 +35,13 @@ export class StatusService {
 					userStatus = Status.IN_GAME;
 					break;
 				default:
-					throw new InternalServerErrorException(`Unknown status '${status}'`);
+					throw new WsException(`Unknown status '${status}'`);
 			}
+
+			const userExists = await this.prismaService.user.findUnique({where: {login}});
+
+			if (!userExists)
+				throw new WsException(`User '${login}' doesn't exist`);
 
 			// cause probelem if the db is reset and the user is still logged in
 			await this.prismaService.user.update({
@@ -59,7 +64,7 @@ export class StatusService {
 		}
 		catch (e)
 		{
-			errorDispatcher(e);
+			errorDispatcher(e, true);
 		}
 	}
 }

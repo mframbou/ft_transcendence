@@ -1,6 +1,7 @@
 // Nest
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
 
 // https://www.prisma.io/docs/reference/api-reference/error-reference
 
@@ -186,13 +187,32 @@ function dispatch_prisma_error(error: PrismaClientKnownRequestError)
 		throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
 }
 
-function dispatch_error(error: any)
+function dispatch_error(error: any, convertToWsException: boolean)
 {
 	if (error instanceof PrismaClientKnownRequestError)
 	{
+		if (convertToWsException)
+		{
+			try
+			{
+				dispatch_prisma_error(error);
+			}
+			catch (e)
+			{
+				throw new WsException({status: e.getStatus(), message: e.message});
+			}
+		}
+
 		dispatch_prisma_error(error);
 	}
 	else if (error instanceof HttpException)
+	{
+		if (convertToWsException)
+			throw new WsException({status: error.getStatus(), message: error.message});
+
+		throw error;
+	}
+	else if (error instanceof WsException)
 	{
 		throw error;
 	}
@@ -202,7 +222,7 @@ function dispatch_error(error: any)
 	}
 }
 
-export default function errorDispatcher(error: any)
+export default function errorDispatcher(error: any, convertToWsException: boolean = false)
 {
-	dispatch_error(error);
+	dispatch_error(error, convertToWsException);
 }
