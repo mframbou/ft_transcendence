@@ -31,7 +31,7 @@
 		aspect-ratio: 1;
 		border-radius: 20%;
 		object-fit: cover;
-		height: 80%;
+		height: 90%;
 
 		cursor: pointer;
 	}

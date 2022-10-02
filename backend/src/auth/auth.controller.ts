@@ -93,7 +93,7 @@ export class AuthController
 
 		console.log('Created cookie for user ' + user.login);
 
-		return res.redirect('/home');
+		return res.redirect('/profile');
 	}
 
 	@Get('/logout')

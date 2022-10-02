@@ -31,7 +31,7 @@
 		aspect-ratio: 1;
 		border-radius: 20%;
 		object-fit: cover;
-		height: 80%;
+		height: 90%;
 	}
 
 	.username
@@ -55,6 +55,16 @@
 			font-weight: 400;
 			color: #958ebe;
 		}
+
+		.user-status
+		{
+			text-transform: lowercase;
+
+			&:first-line
+			{
+				text-transform: capitalize;
+			}
+		}
 	}
 
 	.buttons
@@ -68,7 +78,7 @@
 	{
 		display: flex;
 		flex-direction: column;
-		gap: 20px;
+		gap: 0.7rem;
 	}
 
 	.banner-button
@@ -459,7 +469,7 @@
 					<div class="username">
 						<h1>{targetUser.username}</h1>
 						<h2>@{targetUser.login}</h2>
-						<h2>{targetUser.status} {#if targetUser.status === 'IN_GAME'}<a class="spectate-user" href={getUserMatchLink}>Spectate</a>{/if}</h2>
+						<h2 class="user-status">{targetUser.status} {#if targetUser.status === 'IN_GAME'}<a class="spectate-user" href={getUserMatchLink}>Spectate</a>{/if}</h2>
 					</div>
 
 					<div class="buttons">

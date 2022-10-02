@@ -3,7 +3,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import ParticlesBackground from '$lib/ParticlesBackground.svelte';
 	import { statusSocket } from '$lib/websocket-stores';
-	import { friends, users, user, blockedUsers } from '$lib/stores';
+	import { friends, users, user, blockedUsers, fetchFriends } from '$lib/stores';
 
 	let availableUsers = [];
 
@@ -21,6 +21,8 @@
 					return false;
 				if ($friends.pendingSent.find((f) => f.login === usr.login) !== undefined)
 					return false;
+				if ($friends.pendingReceived.find((f) => f.login === usr.login) !== undefined)
+					return false;
 			}
 
 			if ($blockedUsers && $blockedUsers.find((b) => b.login === usr.login) !== undefined)
@@ -30,7 +32,10 @@
 		});
 	}
 
-	onMount(async () => {
+	onMount(() => {
+
+		fetchFriends();
+
 		$statusSocket.on('userStatusChanged', (data) =>
 		{
 			console.log('user status changed', data);

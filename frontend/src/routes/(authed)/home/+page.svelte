@@ -7,6 +7,7 @@
 	import { resJson } from '../../../lib/utils';
 	import { error } from '@sveltejs/kit';
 	import { slide, fade } from 'svelte/transition';
+	import { onMount } from 'svelte';
 
 	let onlineFriends = [];
 	let currentMode : 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER';
@@ -36,7 +37,7 @@
 
 	$: if($friends)
 	{
-		onlineFriends = $friends.friends.filter(friend => friend.status === 'OFFLINE');
+		onlineFriends = $friends.friends.filter(friend => friend.status === 'ONLINE');
 	}
 
 	async function setReady()
@@ -99,7 +100,33 @@
 		playerInfosDiv.style.width = `${pongWidth}px`;
 	}
 
+
+	let pongBallAspect: 'square' | 'circle' = 'square';
+	let pongKeepAspectRatio: boolean = true;
+
+	function handleWindowResize()
+	{
+		const mobileModeQuery = window.matchMedia('(min-width: 860px)');
+
+		if (mobileModeQuery.matches)
+		{
+			pongBallAspect = 'circle';
+			pongKeepAspectRatio = true;
+		}
+		else
+		{
+			pongBallAspect = 'square';
+			pongKeepAspectRatio = false;
+		}
+	}
+
+	onMount(() => {
+		handleWindowResize();
+	})
+
 </script>
+
+<svelte:window on:resize={handleWindowResize}/>
 
 <!--<Navbar></Navbar>-->
 <div class="background">
@@ -127,7 +154,7 @@
 				<span in:fade>Singleplayer</span>
 			{/if}
 		</div>
-		<Pong bind:width={pongWidth} bind:currentMode on:game-end={handleGameFinished}/>
+		<Pong ballAspect={pongBallAspect} preserveRatio={pongKeepAspectRatio} bind:width={pongWidth} bind:currentMode on:game-end={handleGameFinished}/>
 
 		<div class="matchmaking-button">
 			<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected || matchmaking} on:click={setReady}>
@@ -139,6 +166,7 @@
 			</Button>
 		</div>
 	</section>
+
 
 	<section class="invite">
 		{#each onlineFriends as friend}
@@ -191,6 +219,7 @@
 
 	.game
 	{
+		overflow: hidden; // to allow shrinking on resize
 		flex: 3 1 0;
 		display: flex;
 		flex-direction: column;

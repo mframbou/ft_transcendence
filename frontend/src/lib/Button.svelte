@@ -12,44 +12,47 @@
 
 	.button
 	{
+		display: block;
 		position: relative;
 		z-index: 1;
 		border-radius: var(--border-radius, 100vw);
 		outline: none;
 		border: none;
 		cursor: pointer;
-		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
-
-		&:disabled
-		{
-			cursor: default;
-			$overlay-color: rgba(80, 80, 80, 0.85);
-			background:  linear-gradient(to right bottom, $overlay-color, $overlay-color), var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
-			//box-shadow: none;
-		}
-
-		// https://stackoverflow.com/questions/11600687/hover-and-active-only-when-not-disabled
-		&:hover:enabled, &:hover:after:enabled
-		{
-			box-shadow: inset 0 -16px 32px rgba(255, 255, 255, 0.05);
-		}
-	}
-
-	.pseudo-parent
-	{
-		position: absolute;
-		padding: $vertical-padding $horizontal-padding;
-		//width: fit-content;
+		background: transparent; // to avoid ugly white background with non-opaque colors
 		font-family: Lato;
 		font-size: 1em;
 		font-weight: bolder;
 		color: white;
 		vertical-align: middle;
 		text-align: center;
-		border-radius: inherit;
-		box-shadow: inset 0 -16px 16px rgba(0, 0, 0, 0.15);
+
+
+		&:disabled > .pseudo-parent
+		{
+			cursor: default;
+			$overlay-color: rgba(80, 80, 80, 0.85);
+			background:  linear-gradient(to right bottom, $overlay-color, $overlay-color), var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
+			box-shadow: none;
+		}
+
+		// https://stackoverflow.com/questions/11600687/hover-and-active-only-when-not-disabled
+		&:hover > .pseudo-parent, &:hover:after:enabled > .pseudo-parent
+		{
+			//box-shadow: inset 0 -16px 32px rgba(255, 255, 255, 1);
+			background: red;
+		}
+	}
+
+	.pseudo-parent
+	{
+		position: relative;
 
 		background: inherit;
+		border-radius: inherit;
+		padding: $vertical-padding $horizontal-padding;
+		background: var(--background, linear-gradient(to right bottom, #6139FF, #4255FE));
+		box-shadow: inset 0 -16px 16px rgba(0, 0, 0, 0.1);
 	}
 
 	.glowing:before
@@ -85,7 +88,7 @@
 		left:   calc($border-width * -1);
 		right:  calc($border-width * -1);
 		background: inherit;
-		filter: brightness(1.1);
+		filter: brightness(1.15);
 		border-radius: inherit;
 		z-index: -1;
 	}

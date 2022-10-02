@@ -92,6 +92,7 @@
 	export let currentMode: 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER'; // to pass data to parent, prevents parent from modifying it and breaking everything by copying gameMode (+ string instead of enum)
 	export let width: number = 600;
 	export let height: number = 400;
+	export let preserveRatio: boolean = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -1151,10 +1152,23 @@
 		height = canvas.height;
 	}
 
+	$: if ((preserveRatio !== null)  && canvas && pongWrapper) // use preserveRatio just to trigger the $: block
+	{
+		handleResize();
+	}
+
 	function handleResize()
 	{
 		// order matters
-		resizeWrapperToKeepAspect();
+		if (preserveRatio)
+		{
+			resizeWrapperToKeepAspect();
+		}
+		else
+		{
+			pongWrapper.style.width = '100%';
+			pongWrapper.style.height = '100%';
+		}
 		resizeCanvasToFitParent();
 		setWidthAndHeight();
 	}
