@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { IUser, IPublicUser, ISelfUser } from '../interfaces/interfaces';
@@ -158,6 +158,15 @@ export class UsersService
 	{
 		try
 		{
+			const userWithSameUsername = await this.prismaService.user.findUnique({
+				where: {
+					username: data.username,
+				},
+			});
+
+			if (userWithSameUsername && userWithSameUsername.login !== login)
+				throw new UnprocessableEntityException('Username already taken');
+
 			return await this.prismaService.user.update({
 				where: {
 					login: login,

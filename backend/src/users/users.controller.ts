@@ -68,16 +68,6 @@ export class UsersController
 	{
 		const payload: IJwtPayload = req.jwtPayload;
 
-		console.log("UPDATE VALUES", updateValues);
-
-		// if (updateValues.username)
-		// {
-		// 	updateValues.username = updateValues.username.trim();
-		// 	if (updateValues.username.length < 3)
-		// 		throw new UnprocessableEntityException(`Usename must be at least 3 characters long`);
-		// 	else if (updateValues.username.length > 20)
-		// 		throw new UnprocessableEntityException(`Username cannot be longer than 20 characters`);
-		// }
 
 		if (updateValues.profilePicture)
 		{
