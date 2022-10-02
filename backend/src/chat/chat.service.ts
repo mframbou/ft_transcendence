@@ -65,15 +65,11 @@ export class ChatService {
     }
 
     // utils function to send stuff to client in a room (if client provided send only to him)
-    async sendTo(server: any, room: any, event: string, content: any, client: any, notify: boolean = false, auto: boolean = false) {
+    async sendTo(server: any, room: any, event: string, content: any, client: any, notify: boolean = false, target?: any) {
         console.log("sendTo roomsclients : ", this.roomsClients);
-        if (auto) { // send to himself
-            server.to(client.id).emit(event, content);
-        } else {
-            for (let cur of this.roomsClients) {
-                if (room.id == cur.chatId) {
-                    server.to(cur.clientId).emit(event, content);
-                }
+        for (let cur of this.roomsClients) {
+            if (room.id == cur.chatId && (target == undefined || target == cur.login)) {
+                server.to(cur.clientId).emit(event, content);
             }
         }
 
@@ -359,18 +355,15 @@ export class ChatService {
             this.sendError(server, client, "remove: You don't have the permission to remove");
             return ;
         }
-
         if (args.length != 1) {
             this.sendError(server, client, "Usage: /remove <login>");
             return ;
         }
-
         let target = room.participants.find((cur) => cur.user.login == args[0]);
         if (!target) {
             this.sendError(server, client, "remove: User is not in the room");
             return ;
         }
-
         if (target.is_owner) {
             this.sendError(server, client, "remove: You can't remove the owner");
             return ;
@@ -378,17 +371,10 @@ export class ChatService {
 
         try {
             await this.prisma.participant.delete({
-                where: {
-                    id: target.id
-                }
+                where: { id: target.id }
             });
 
-            for (let cur of this.roomsClients) {
-                if (room.id == cur.chatId && 'dsamain' == cur.login) {
-                    server.to(cur.clientId).emit('kick');
-                }
-            }
-
+            this.sendTo(server, room, 'kick', target, client, true, target.login);
             this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.user.login);
         }
         catch (e) {
@@ -510,7 +496,6 @@ export class ChatService {
             return ;
         }
 
-
         if (!target) {
             this.sendError(server, client, "kick: User " + args[0] + " not found");
             return ;
@@ -576,6 +561,11 @@ export class ChatService {
                 where: { login: args[0] }
             });
 
+            if (!target) {
+                this.sendError(server, client, "ban: User " + args[0] + " not found");
+                return ;
+            }
+
             const participant_target = await this.prisma.participant.findMany({
                 where: {
                     chatId: room.id,
@@ -593,24 +583,13 @@ export class ChatService {
             return ;
         }
 
-        // check if user exist
-        if (!target) {
-            this.sendError(server, client, "ban: User " + args[0] + " not found");
-            return ;
-        }
-
-
         // check if user is already banned
         if (room.banned.find((cur) => args[0] == cur)) {
             this.sendError(server, client, "ban: User " + args[0] + " is already banned");
             return ;
         }
 
-        for (let cur of this.roomsClients) {
-            if (cur.login == target.login && cur.chatId == room.id) {
-                server.to(cur.clientId).emit('kick');
-            } 
-        }
+        this.sendTo(server, room, 'kick', target, client, true, target.login);
         
         try {
             // delete participant
@@ -641,7 +620,6 @@ export class ChatService {
         this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
 
         this.sendStatus(server, client, participant, room, participant.user.login + " banned " + args[0]);
-
     }
 
     async promote(server: any, client: any, participant: any, room: any, args: any) {

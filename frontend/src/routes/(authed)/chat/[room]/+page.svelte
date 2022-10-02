@@ -11,6 +11,7 @@
     import { select_option } from 'svelte/internal';
     import { goto } from '$app/navigation';
     import ChatBanner from '$lib/chat/ChatBanner.svelte';
+    import { afterUpdate } from 'svelte';
 
     // store loaded content
     export let data;
@@ -25,6 +26,10 @@
         $chatSocket.emit('enter', {chatId: data.room.id});
     });
 
+    afterUpdate(() => {
+        let elem = document.getElementsByClassName("chat");
+        elem[0].scrollTop = elem[0].scrollHeight + 500;
+    });
     // todo instead of leave in chatSocket disconnect
     //onDestroy(() => {
         //$chatSocket.emit('leave', {roomId: data.room.id});
@@ -46,9 +51,6 @@
         //console.log("sender : ", data.sender);
         msgs.push(data);
         msgs = msgs;
-
-        let elem = document.getElementsByClassName("chat");
-        elem[0].scrollTop = elem[0].scrollHeight;
     });
 
     $chatSocket.on("commandError", (data) => {

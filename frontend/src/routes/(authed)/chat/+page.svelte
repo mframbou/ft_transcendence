@@ -68,7 +68,7 @@
 
 {#key unique}
 <div class='background'>
-    <ParticlesBackground properties={{minVelocity: 0.4, maxVelocity: .7, lineColor: '#0097e3', initialCount: 50, maxPoints: 10027, maxPointSize: headSize, keyEvent: true}} />
+    <ParticlesBackground properties={{minVelocity: 0.4, maxVelocity: .7, lineColor: '#0097e3', initialCount: 50, maxPoints: 127, maxPointSize: headSize, keyEvent: true}} />
 </div>
 {/key}
 
