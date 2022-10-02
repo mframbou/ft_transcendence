@@ -2,6 +2,7 @@
 
 	import { pongSocket, chatSocketConnected } from '$lib/websocket-stores';
 	import { onDestroy } from 'svelte';
+	import NotificationPopup from "$lib/NotificationPopup.svelte";
 
 	onDestroy(() => {
 		console.log('destroy');
@@ -14,3 +15,7 @@
 	})
 
 </script>
+
+<NotificationPopup>
+	test
+</NotificationPopup>
