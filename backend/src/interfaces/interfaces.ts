@@ -130,7 +130,7 @@ export interface IChatRoom
 
 export interface ICommand
 {
-	command: string;
+	name: string;
 	argsCount: [number, number] // [min, max]
 	usage: string;
 	description: string;

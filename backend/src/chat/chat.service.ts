@@ -11,13 +11,16 @@ import { connect, sensitiveHeaders } from 'http2';
 import errorDispatcher from 'src/utils/error-dispatcher';
 import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 import { disconnect } from 'process';
+import { ICommand } from 'src/interfaces/interfaces';
 import { AddRoomDto } from 'src/interfaces/dtos';
+
 
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 
 import * as bcrypt from 'bcrypt';
 import { objectEnumValues } from '@prisma/client/runtime';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ChatService {
@@ -27,6 +30,29 @@ export class ChatService {
         private notificationService: NotificationService,
         private notificationGateway: NotificationGateway
     ) {}
+
+//     export interface ICommand
+// {
+// 	command: string;
+// 	argsCount: [number, number] // [min, max]
+// 	usage: string;
+// 	description: string;
+// 	handler: any;
+// 	owner: boolean;	
+// 	admin: boolean;	
+// 	moderator: boolean;	
+// 	user: boolean;	
+// }
+
+    commands: ICommand[] = [
+        {name: 'kick', handler: this.kick.bind(this), argsCount: [1, 1], usage: '/kick <login>', description: 'Kick user from room', owner: true, admin: true, moderator: true, user: false},
+        {name: 'ban', handler: this.ban.bind(this), argsCount: [1, 1], usage: '/ban <login>', description: 'ban user from room', owner: true, admin: true, moderator: false, user: false},
+        {name: 'unban', handler: this.unban.bind(this), argsCount: [1, 1], usage: '/unban <login>', description: 'unban user from room', owner: true, admin: true, moderator: false, user: false},
+        {name: 'remove', handler: this.remove.bind(this), argsCount: [1, 1], usage: '/remove <login>', description: 'remove a user from the participant list', owner: true, admin: true, moderator: false, user: false},
+        {name: 'password', handler: this.password.bind(this), argsCount: [1, 1], usage: '/password <new_password>', description: 'set new_password for the room', owner: true, admin: false, moderator: false, user: false},
+        {name: 'promote', handler: this.promote.bind(this), argsCount: [2, 2], usage: '/promote <login> <user/admin/moderator>', description: 'Assign new role to a user', owner: true, admin: true, moderator: false, user: false},
+        {name: 'invite', handler: this.invite.bind(this), argsCount: [1, 1], usage: '/invite <login>', description: 'Add a participant in the room', owner: true, admin: true, moderator: true, user: false},
+    ]
 
     // roomsclients store the client id of each user in each room
     // cringe -> better if we have map of array where key is chatId and value is array of clients
@@ -46,7 +72,7 @@ export class ChatService {
         }
         //this.roomsClients.push({user: payload.user, chatId: payload.chatId, clientId: client.id});
         this.roomsClients.push({clientId: client.id, chatId: payload.chatId, login: client.transcendenceUser.login});
-
+        console.log("enter roomsclients : ", this.roomsClients);
     }
 
     async leave(server: any, client: any, payload: any) {
@@ -65,15 +91,15 @@ export class ChatService {
     }
 
     // utils function to send stuff to client in a room (if client provided send only to him)
-    async sendTo(server: any, room: any, event: string, content: any, client: any, notify: boolean = false, target?: any) {
+    async sendTo(server: any, room: any, event: string, content: any, client: any, notify: boolean = false, targetLogin?: any) {
         console.log("sendTo roomsclients : ", this.roomsClients);
         for (let cur of this.roomsClients) {
-            if (room.id == cur.chatId && (target == undefined || target == cur.login)) {
+            if (room.id == cur.chatId && (targetLogin == undefined || targetLogin == cur.login)) {
                 server.to(cur.clientId).emit(event, content);
             }
         }
 
-        // need to add check for blocked user
+        // need to add check for blocked user + notify targetLogin
         if (notify) {
             for (let participant of room.participants) {
                 if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
@@ -100,6 +126,8 @@ export class ChatService {
                     isStatus: true
                 },
             });
+
+            console.log("sendStatus message : ", message);
 
             this.sendTo(server, room, 'receiveMessage', {isStatus: true, content: content}, client);
         }
@@ -306,14 +334,62 @@ export class ChatService {
         }
     }
 
+    async getUser(login: string) {
+        let ret =  await this.usersService.getUser(login);
+        if (!ret) throw "User " + login + " not found";
+        return ret;
+    }
+
+    async getParticipant(user: any, chatId: number) {
+        let ret = await this.prisma.participant.findMany({
+            where: {
+                chatId: chatId,
+                userId: user.id
+            }
+        }).then(res => res[0]);
+        if (!ret) throw user.login + " is not in room";
+        return ret;
+    }
+
+    check_command(command: ICommand, args: string[], server: any, client: any, participant: any) {
+        if (args.length < command.argsCount[0] || args.length > command.argsCount[1]) {
+            this.sendError(server, client, "Usage: " + command.usage);
+            return false;
+        }
+
+        if (!((participant.is_admin && command.admin)
+                || (participant.is_moderator && command.moderator)
+                || (participant.is_owner && command.owner)
+                || (command.user))) {
+            this.sendError(server, client, "You don't have the right to use this command");
+            return false;
+        }
+        return true;
+    }
+
     // need to make command message stay in db
     async command(server: any, client: any, participant: any, room: any, content: string) {
 
-        let command = content.split(' ')[0];
+        let command = content.split(' ')[0].slice(1);
         let args = content.split(' ').slice(1);
         console.log("command : " + command);
         console.log("args : " + args);
 
+        let cur_command = this.commands.find((cur) => cur.name == command);
+
+        if (!cur_command) {
+            this.sendError(server, client, command + ": Unknown command");
+            return;
+        }
+
+        if (!this.check_command(cur_command, args, server, client, participant)) {
+            console.log("command error");
+            return ;
+        }
+
+        cur_command.handler(server, client, participant, room, args);
+
+        return ;
         switch (command) {
             case '/kick':
                 await this.kick(server, client, participant, room, args);
@@ -351,20 +427,12 @@ export class ChatService {
         }
     }
     async remove(server: any, client: any, participant: any, room: any, args: any) {
-        if (!participant.is_admin) {
-            this.sendError(server, client, "remove: You don't have the permission to remove");
-            return ;
-        }
-        if (args.length != 1) {
-            this.sendError(server, client, "Usage: /remove <login>");
-            return ;
-        }
         let target = room.participants.find((cur) => cur.user.login == args[0]);
         if (!target) {
             this.sendError(server, client, "remove: User is not in the room");
             return ;
         }
-        if (target.is_owner) {
+        if (target.is_owner && !participant.is_owner) {
             this.sendError(server, client, "remove: You can't remove the owner");
             return ;
         }
@@ -373,27 +441,20 @@ export class ChatService {
             await this.prisma.participant.delete({
                 where: { id: target.id }
             });
-
-            this.sendTo(server, room, 'kick', target, client, true, target.login);
-            this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.user.login);
         }
         catch (e) {
+            this.sendError(server, client, "Unknown error");
             console.log("remove error: " + e);
             return;
         }
+        
+        this.sendTo(server, room, 'kick', target, client, true, target.login);
+        
+        this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.user.login);
     }
 
     async password(server: any, client: any, participant: any, room: any, args: any) {
-        if (!participant.is_owner) {
-            this.sendError(server, client, "password: You don't have the permission to change the password");
-            return ;
-        }
-
-        if (args.length != 1) {
-            this.sendError(server, client, "Usage: /password <new_password>");
-            return ;
-        }
-
+        // need to add check
         let password = args[0];
 
         try {
@@ -404,40 +465,32 @@ export class ChatService {
                     hash: await bcrypt.hash(password, await bcrypt.genSalt()),
                 }
             });
-            this.sendStatus(server, client, participant, room, "New password set");
-            this.sendError(server, client, "/!\\ Users already in room can still access it without the password\nto force them to enter the password, remove them");
         }
         catch (e) {
             this.sendError(server, client, "Unknown error");
+            console.log("password error: " + e);
             return ;
         }
+        
+        this.sendStatus(server, client, participant, room, "New password set");
+        
+        this.sendError(server, client, "/!\\ Users already in room can still access it without the password\nto force them to enter the password, remove them");
     }
 
     async invite(server: any, client: any, participant: any, room: any, args: any) {
-        if (args.length != 1) {
-            this.sendError(server, client, "Usage: /invite <login>");
+        try {
+            var user = await this.getUser(args[0]);
+        }
+        catch (e) {
+            this.sendError(server, client, "invite: " + e);
+            return;
         }
 
+        if (room.participants.find((cur) => cur.user.login == user.login)) {
+            this.sendError(server, client, "invite: User " + args[0] + " is already in the room");
+            return ;
+        }
         try {
-            let user = await this.usersService.getUser(args[0]);
-
-            if (!user) {
-                this.sendError(server, client, "invite: User " + args[0] + " not found");
-                return ;
-            }
-
-            let cur_participant = await this.prisma.participant.findMany({
-                where: {
-                    chatId: room.id,
-                    userId: user.id
-                }
-            });
-
-            if (cur_participant.length > 0) {
-                this.sendError(server, client, "invite: User " + args[0] + " is already in the room");
-                return ;
-            }
-
             await this.prisma.participant.create({
                 data: {
                     chatId: room.id,
@@ -446,82 +499,51 @@ export class ChatService {
                     is_moderator: false,
                 }
             });
-
-            this.sendStatus(server, client, participant, room, participant.user.login + " invited " + args[0] + " in the room");
-
-
-            this.notificationGateway.notify(participant.user.login, 'chat', 'Invitation', 'you have been invited to join ' + room.name , client.transcendenceUser.login, 'chat/room/' + room.name);
         }
         catch (e) {
+            this.sendError(server, client, "Unknown error");
             console.log("invite error: " + e);
             return;
         }
 
+        this.sendStatus(server, client, participant, room, participant.user.login + " invited " + args[0] + " in the room");
 
+        this.notificationGateway.notify(participant.user.login, 'chat', 'Invitation', 'you have been invited to join ' + room.name , client.transcendenceUser.login, 'chat/room/' + room.name);
     }
     
     async kick(server: any, client: any, participant: any, room: any, args: any) {
-        if (!participant.is_admin && !participant.is_moderator) {
-            this.sendError(server, client, "kick: You don't have the permission to kick");
-            return;
-        }
-
-        if (args.length != 1) {
-            this.sendError(server, client, "Usage: /kick <login>");
-            return;
-        }
-
         try {
-            var target = await this.prisma.user.findUnique({
-                where: { login: args[0] }
-            });
-
-
-            const participant_target = await this.prisma.participant.findMany({
-                where: {
-                    chatId: room.id,
-                    userId: target.id
-
-                }
-            });
-
-            console.log("participant_target: ", participant_target);
-            if (participant_target[0].is_owner) {
-                this.sendError(server, client, "kick: You can't kick the owner of the room");
-                return;
-            }
+            var target = await this.getUser(args[0]);
+            var target_participant = await this.getParticipant(target, room.id);
         }
         catch (e) {
-            this.sendError(server, client, "Unknown error");
-            return ;
+            this.sendError(server, client, "kick: " + e);
+            return;
         }
 
-        if (!target) {
-            this.sendError(server, client, "kick: User " + args[0] + " not found");
-            return ;
+        if (target_participant.is_owner && !participant.is_owner) {
+            this.sendError(server, client, "kick: You can't kick the owner");
+            return;
         }
-            
+
         // find clientId of target and send him kick
-        for (let cur of this.roomsClients) {
-            if (cur.login == target.login && cur.chatId == room.id) {
-                server.to(cur.clientId).emit('kick');
-            } 
-        }
-        this.sendStatus(server, client, participant, room.id, participant.user.login + " kicked " + args[0]);
-        
-        // remove target from roomsclients
+        this.sendTo(server, room, 'kick', '', client, false, target.login)
+
+        // remove target client id from room
         this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
+
+        // send command log to all participants
+        this.sendStatus(server, client, participant, room, participant.user.login + " kicked " + args[0]);
+
     }
 
     async unban(server: any, client: any, participant: any, room: any, args: any) {
-        if (args.length != 1) {
-            this.sendError(server, client, "Usage: /unban <login>");
-            return;
-        }
 
-        let cur_user = await this.prisma.user.findMany({where: { login: args[0] } })
-        if (!cur_user) {
-            this.sendError(server, client, "unban: User " + args[0] + " not found");
+        try {
+            var target = await this.getUser(args[0]);
+        }
+        catch (e) {
+            this.sendError(server, client, "unban: " + e);
             return;
         }
 
@@ -531,56 +553,39 @@ export class ChatService {
         }
 
         // recreate banned list without target and re-assign it -> very slow but prisma cringe so it's better like this
-        const new_banned = room.filter((cur) => cur != args[0]);
+        const updated_banned = room.filter((cur) => cur != args[0]);
 
-        await this.prisma.chatRoom.update({
-            where: { id: room.id },
-            data: {
-                banned: {
-                    set: new_banned,
+        try {
+            await this.prisma.chatRoom.update({
+                where: { id: room.id },
+                data: {
+                    banned: { set: updated_banned, }
                 }
-            }
-        });
+            });
+        }
+        catch (e) {
+            this.sendError(server, client, "Unknown error");
+            console.log("unban error: " + e);
+            return ;
+        }
 
         this.sendStatus(server, client, participant, room, participant.user.login + " unbanned " + args[0]);
     }
 
     async ban(server: any, client: any, participant: any, room: any, args: any) {
-        if (!participant.is_admin) {
-            this.sendError(server, client, "ban: You don't have the permission to ban");
-            return;
-        }
-
-        if (args.length != 1) {
-            this.sendError(server, client, "Usage: /ban <login>");
-            return;
-        }
-
         try {
-            var target = await this.prisma.user.findUnique({
-                where: { login: args[0] }
-            });
-
-            if (!target) {
-                this.sendError(server, client, "ban: User " + args[0] + " not found");
-                return ;
-            }
-
-            const participant_target = await this.prisma.participant.findMany({
-                where: {
-                    chatId: room.id,
-                    userId: target.id
-                }
-            });
-
-            if (participant_target[0].is_owner) {
-                this.sendError(server, client, "ban: You can't ban the owner of the room");
-                return;
-            }
+            var target = await this.getUser(args[0]);
+            var target_participant = await this.getParticipant(target, room.id);
         }
         catch (e) {
-            this.sendError(server, client, "Unknown error");
-            return ;
+            this.sendError(server, client, "ban: " + e);
+            return;
+        }
+
+        // ! need to remove auto ban ok for owner !
+        if (target_participant.is_owner && !participant.is_owner) {
+            this.sendError(server, client, "ban: You can't ban the owner");
+            return;
         }
 
         // check if user is already banned
@@ -589,11 +594,9 @@ export class ChatService {
             return ;
         }
 
-        this.sendTo(server, room, 'kick', target, client, true, target.login);
-        
         try {
             // delete participant
-            const update_participant = await this.prisma.participant.deleteMany({
+            await this.prisma.participant.deleteMany({
                 where: {
                     chatId: room.id,
                     userId: target.id
@@ -602,103 +605,60 @@ export class ChatService {
 
             // add user to banned list
             await this.prisma.chatRoom.update({
-                where: {
-                    id: room.id
-                },
+                where: { id: room.id },
                 data: {
-                    banned: {
-                        push: target.login,
-                    }
+                    banned: { push: target.login, }
                 },
             });
         }
         catch (e) {
             this.sendError(server, client, "Unknown error");
+            console.log("ban error: ", e);
         }
 
-        // remove target from roomsclients
+        this.sendTo(server, room, 'kick', target, client, true, target.login);
+
         this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
 
         this.sendStatus(server, client, participant, room, participant.user.login + " banned " + args[0]);
     }
 
     async promote(server: any, client: any, participant: any, room: any, args: any) {
-        if (!participant.is_admin) {
-            this.sendError(server, client, "promote: You don't have the permission to promote");
-            return;
-        }
-
-        if (args.length != 2 || (args[1] != "admin" && args[1] != "moderator")) {
-            this.sendError(server, client, "Usage: /promote <login> <admin/moderator/user>");
+        if ((args[1] != "admin" && args[1] != "moderator" && args[1] != "user")) {
+            this.sendError(server, client, "Promote: invalid arg (available role: admin moderator user)");
             return;
         }
 
         try {
-            var target = await this.prisma.user.findUnique({
-                where: { login: args[0] }
-            });
-
-            if (!target) {
-                this.sendError(server, client, "promote: User " + args[0] + " not found");
-                return;
-            }
-            console.log("target " + JSON.stringify(target));
-
-            const participant_target = await this.prisma.participant.findMany({
+            var target = await this.getUser(args[0]);
+            var participant_target = await this.getParticipant(target, room.id);
+        }
+        catch (e) {
+            this.sendError(server, client, "promote: " + e);
+            return ;
+        }
+        if (participant_target.is_owner && !participant.is_owner) {
+            this.sendError(server, client, "promote: You can't promote the owner of the room");
+            return;
+        }
+        try {
+            await this.prisma.participant.update({
                 where: {
-                    chatId: room.id,
-                    userId: target.id
+                    id: participant_target.id
+                },
+                data: {
+                    is_admin: (args[1] == "admin") ? true : false,
+                    is_moderator: (args[1] == "moderator") ? true : false,
                 }
             });
-
-            if (!participant_target[0]) {
-                this.sendError(server, client, "promote: User " + args[0] + " is not in this room");
-                return ;
-            }
-
-            if (participant_target[0].is_owner) {
-                this.sendError(server, client, "promote: You can't promote the owner of the room");
-                return;
-            }
-
-            if (args[1] == "admin") {
-                await this.prisma.participant.update({
-                    where: {
-                        id: participant_target[0].id
-                    },
-                    data: {
-                        is_admin: true,
-                        is_moderator: false,
-                    }
-                });
-            } else if (args[1] == "moderator") {
-                await this.prisma.participant.update({
-                    where: {
-                        id: participant_target[0].id
-                    },
-                    data: {
-                        is_admin: false,
-                        is_moderator: true,
-                    }
-                });
-            } else {
-                await this.prisma.participant.update({
-                    where: {
-                        id: participant_target[0].id
-                    },
-                    data: {
-                        is_admin: false,
-                        is_moderator: false,
-                    }
-                });
-            }
-
-            this.sendStatus(server, client, participant, room, participant.user.login + " is now " + args[1]);
         }
         catch (e) {
             this.sendError(server, client, "Unknown error");
+            console.log("promote error: " + e);
             return ;
         }
+
+        this.sendStatus(server, client, participant, room, participant.user.login + " is now " + args[1]);
     }
 
     // need to stop sending rooms hash and partitipant.entered_hash

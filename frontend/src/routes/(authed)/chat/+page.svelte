@@ -68,7 +68,7 @@
 
 {#key unique}
 <div class='background'>
-    <ParticlesBackground properties={{minVelocity: 0.4, maxVelocity: .7, lineColor: '#0097e3', initialCount: 50, maxPoints: 127, maxPointSize: headSize, keyEvent: true}} />
+    <ParticlesBackground properties={{minVelocity: 0.4, maxVelocity: .7, lineColor: '#0097e3', initialCount: 50, maxPoints: 100, maxPointSize: headSize, keyEvent: true}} />
 </div>
 {/key}
 
@@ -76,7 +76,6 @@
     <!-- config panel -->
     <div class="config">
         <Button on:click= {() => {config = true;}}>new chatroom</Button>
-        <Button on:click={getRooms}>list room</Button>
         <Button on:click={clearAll}>clear</Button>
         <Button on:click={feature}>useful feature</Button>
     </div>
