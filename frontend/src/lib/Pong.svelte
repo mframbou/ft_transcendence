@@ -951,18 +951,23 @@
 			// means 5 times the paddle height every second (at normal speeed)
 			const moveDistance = player1.paddle.height * 5 * speedMultiplier * updateMultiplier;
 
+			let newPos = player1.paddle.position.client_y;
+
 			if (pressedKeys.includes('ArrowUp') || pressedKeys.includes('w') || pressedKeys.includes('W'))
 			{
-				movePaddle(player1.paddle, player1.paddle.position.client_y - moveDistance);
-				if (gameMode === GameMode.MULTIPLAYER)
-					emitPaddleMove(player1.paddle.position.client_y);
+				newPos -= moveDistance;
 			}
 
 			if (pressedKeys.includes('ArrowDown') || pressedKeys.includes('s') || pressedKeys.includes('S'))
 			{
-				movePaddle(player1.paddle, player1.paddle.position.client_y + moveDistance);
+				newPos += moveDistance;
+			}
+
+			if (newPos !== player1.paddle.position.client_y)
+			{
+				movePaddle(player1.paddle, newPos);
 				if (gameMode === GameMode.MULTIPLAYER)
-					emitPaddleMove(player1.paddle.position.client_y);
+					emitPaddleMove(newPos);
 			}
 
 			const bgLogins = ['oronda', 'sspina', 'dsamain', 'mframbou'];
