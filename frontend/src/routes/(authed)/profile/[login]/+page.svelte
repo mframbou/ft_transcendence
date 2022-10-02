@@ -12,7 +12,7 @@
 		$dim-color: rgba(0, 0, 0, 0.1);
 		position: relative;
 		width: 100%;
-		height: 15em;
+		flex: 1 1 0;
 		background :linear-gradient($dim-color, $dim-color), url("/images/default-banner.png");
 
 		background-size: cover;
@@ -170,7 +170,7 @@
 	.profile-content
 	{
 		position: relative;
-		flex-grow: 1;
+		flex: 4 1 0;
 		transform-style: preserve-3d;
 
 		display: flex;

@@ -6,7 +6,7 @@
 	import { pongSocket, pongSocketConnected } from "$lib/websocket-stores.js";
 	import { resJson } from '../../../lib/utils';
 	import { error } from '@sveltejs/kit';
-	import { slide } from 'svelte/transition';
+	import { slide, fade } from 'svelte/transition';
 
 	let onlineFriends = [];
 	let currentMode : 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER';
@@ -108,22 +108,25 @@
 
 <div class="content-wrapper">
 	<section class="game">
-		{#if opponentPlayer}
-		<div class="player-infos" in:slide bind:this={playerInfosDiv}>
-				<a class="match-user" href={'/profile'}>
+		<div class="player-infos" bind:this={playerInfosDiv}>
+			{#if opponentPlayer}
+				<a class="match-user" href={'/profile'} in:slide>
 					<img src={$user.profilePicture} alt="avatar"/>
 					<span class="username">
 						{$user.username}
 					</span>
 				</a>
-				<a class="match-user" href = {opponentPlayer.login === $user.login ? '/profile' : `/profile/${opponentPlayer.login}`}>
+				<span in:fade>Multiplayer</span>
+				<a class="match-user" href = {opponentPlayer.login === $user.login ? '/profile' : `/profile/${opponentPlayer.login}`} in:slide>
 					<span class="username">
 						{opponentPlayer.username}
 					</span>
 					<img src={opponentPlayer.profilePicture} alt="avatar"/>
 				</a>
+			{:else}
+				<span in:fade>Singleplayer</span>
+			{/if}
 		</div>
-		{/if}
 		<Pong bind:width={pongWidth} bind:currentMode on:game-end={handleGameFinished}/>
 
 		<div class="matchmaking-button">
@@ -198,14 +201,25 @@
 		{
 			//width: 100%; // keep it auto so it's the same width as pong
 			display: flex;
-			background-color: rgb(18, 13, 26);
+			background-color: rgb(44, 36, 56);
+			//border-bottom: 2px solid rgb(35, 24, 52);
 			// spread items (first one being on the far left and last one being on the far right)
 			justify-content: space-between;
 			align-items: center;
-			height: clamp(2.5rem, 6%, 7rem);
+			height: clamp(2.5rem, 7%, 7rem);
 
 			border-radius: 0.5rem 0.5rem 0 0;
 			overflow: hidden;
+
+			// https://stackoverflow.com/questions/57859754/flexbox-space-between-but-center-if-one-element
+			// to center if only one child
+			*
+			{
+				&:only-child
+				{
+					margin: 0 auto;
+				}
+			}
 
 			.match-user
 			{

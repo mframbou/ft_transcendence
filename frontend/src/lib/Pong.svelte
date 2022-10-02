@@ -115,16 +115,6 @@
 		gameMode = GameMode.SPECTATOR;
 	}
 
-	$: if (canvas)
-	{
-		setWidthAndHeight(canvas);
-	}
-
-	function setWidthAndHeight(canvas: HTMLCanvasElement)
-	{
-		width = canvas.width;
-		height = canvas.height;
-	}
 	//////////////////////////
 	// Data denormalization //
 	//////////////////////////
@@ -499,22 +489,16 @@
 
 	// https://www.reddit.com/r/sveltejs/comments/rn3vp0/is_there_any_difference_between_ondestroy_and_the/
 	// if onMount is async, it's return value is not called
+	const PLAYER1_COLOR = '#4255FE';
+	const PLAYER2_COLOR = '#fe5842';
+	const NET_COLOR = '#eee';
+	const SCORE_COLOR = '#eee';
+	const BALL_COLOR = 'white';
+
 	onMount(() =>
 	{
 		context = <CanvasRenderingContext2D> canvas.getContext('2d', { alpha: false });
 		handleResize();
-		//
-		// initGameObjects('blue', 'red', 'white', 'white');
-		//
-		// if (gameMode === GameMode.SPECTATOR)
-		// 	startSpectatingGame();
-		// else
-		// 	listenForGameStart();
-		//
-		// if(gameMode === GameMode.SINGLEPLAYER)
-		// 	launchSingleplayerBall();
-		//
-		// $: console.log('new gamemode', gameMode);
 
 		animationFrameId = requestAnimationFrame(loop);
 
@@ -532,7 +516,7 @@
 	$: if (gameMode === GameMode.SINGLEPLAYER)
 	{
 		console.log('singleplayer mode');
-		initGameObjects('blue', 'red', 'white', 'white');
+		initGameObjects(PLAYER1_COLOR, PLAYER2_COLOR, NET_COLOR, BALL_COLOR);
 		listenForGameStart();
 		launchSingleplayerBall();
 
@@ -542,7 +526,7 @@
 	else if (gameMode === GameMode.MULTIPLAYER)
 	{
 		console.log('multiplayer mode');
-		initGameObjects('blue', 'red', 'white', 'white');
+		initGameObjects(PLAYER1_COLOR, PLAYER2_COLOR, NET_COLOR, BALL_COLOR);
 
 		if (!isRunning())
 			resume();
@@ -550,7 +534,7 @@
 	else if (gameMode === GameMode.SPECTATOR)
 	{
 		console.log('spectator mode');
-		initGameObjects('blue', 'red', 'white', 'white');
+		initGameObjects(PLAYER1_COLOR, PLAYER2_COLOR, NET_COLOR, BALL_COLOR);
 		startSpectatingGame();
 
 		if (!isRunning())
@@ -578,8 +562,10 @@
 	function drawText(text: string, x: number, y: number, color: string)
 	{
 		context.fillStyle = color;
-		context.font = `${(50/400) * canvas.width}px fantasy`;
-		context.fillText(text, x, y);
+		context.textAlign = 'center';
+		context.font = `${(50/400) * canvas.width}px NexaBlack`;
+		context.fillText(text, x, y, canvas.width / 3);
+		context.textAlign = 'start';
 	}
 
 	function drawPaddle(paddle: IPaddle)
@@ -637,7 +623,7 @@
 		context.lineWidth = 1;
 	}
 
-	function drawScore(color: string = 'white')
+	function drawScore(color: string = SCORE_COLOR)
 	{
 		drawText(player1.score.toString(), canvas.width / 4, canvas.height / 5, color);
 		drawText(player2.score.toString(), 3 * canvas.width / 4, canvas.height / 5, color);
@@ -1005,7 +991,6 @@
 			}
 			else if (!pressedKeys.includes('i') && !pressedKeys.includes('I') && specialMode !== null)
 			{
-				console.log('test');
 				// disable special mode
 				const centeredPos = player1.paddle.position.client_y + player1.paddle.height / 2;
 				player1.paddle.height = PADDLE_BASE_HEIGHT / CANVAS_BASE_HEIGHT;
@@ -1117,7 +1102,10 @@
 	{
 		update();
 		if (canvas) // to avoid null when changing page
+		{
+			// handleResize(); // do it every time for cases when element is being resized without window resize (eg. home page player infos showing up)
 			render();
+		}
 		animationFrameId = requestAnimationFrame(loop);
 	}
 
@@ -1157,11 +1145,18 @@
 		}
 	}
 
+	function setWidthAndHeight()
+	{
+		width = canvas.width;
+		height = canvas.height;
+	}
+
 	function handleResize()
 	{
 		// order matters
 		resizeWrapperToKeepAspect();
 		resizeCanvasToFitParent();
+		setWidthAndHeight();
 	}
 
 </script>

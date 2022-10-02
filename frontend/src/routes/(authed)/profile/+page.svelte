@@ -12,7 +12,7 @@
 		$dim-color: rgba(0, 0, 0, 0.1);
 		position: relative;
 		width: 100%;
-		height: 15em;
+		flex: 1 1 0;
 		background :linear-gradient($dim-color, $dim-color), url("/images/default-banner.png");
 
 		background-size: cover;
@@ -174,7 +174,7 @@
 	.profile-content
 	{
 		position: relative;
-		flex-grow: 1;
+		flex: 4 1 0;
 		transform-style: preserve-3d;
 
 		display: flex;
@@ -403,21 +403,6 @@
 					<div class="username">
 						<h1 on:click={redirectSettings}>{$user.username}</h1>
 						<h2>@{$user.login}</h2>
-<!--						<h2>{$user.status}</h2>-->
-					</div>
-
-					<div class="buttons">
-	<!--					<Button on:click={() => alert('test')}>-->
-	<!--						<span class="banner-button">Add friend</span>-->
-	<!--					</Button>-->
-
-	<!--					<Button border={false} &#45;&#45;background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('test')}>-->
-	<!--						<span class="banner-button">Message</span>-->
-	<!--					</Button>-->
-
-	<!--					<Button border={false} &#45;&#45;background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('test')}>-->
-	<!--						<span>...</span>-->
-	<!--					</Button>-->
 					</div>
 
 				</div>

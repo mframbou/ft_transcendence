@@ -151,10 +151,12 @@
 	{
 		fileUploadLabelElement.style.borderImageSource = 'linear-gradient(to right, #6139FF , #4255FE)';
 		fileUploadLabelElement.style.borderImageSlice = '1';
+		fileUploadLabelElement.innerText = formInputElement.files[0].name;
 	}
 	else if (fileUploadLabelElement)
 	{
 		fileUploadLabelElement.style.borderImageSource = 'none';
+		fileUploadLabelElement.innerText = 'Profile picture';
 	}
 
 
@@ -623,6 +625,11 @@
 			cursor: pointer;
 			position: relative;
 			transition: border-image-source 0.2s;
+
+			overflow: hidden;
+			text-overflow: ellipsis;
+			overflow-wrap: normal;
+			white-space: nowrap;
 		}
 	}
 
