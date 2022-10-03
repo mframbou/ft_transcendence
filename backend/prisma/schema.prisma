@@ -76,13 +76,14 @@ model Participant {
 }
 
 model ChatRoom {
-	id				Int		@default(autoincrement()) @id
-	name 			String	@unique
-	is_private		Boolean @default(false)
-	is_protected	Boolean @default(false)
-	hash			String?
+	id					Int		@default(autoincrement()) @id
+	name 				String	@unique
+	is_private			Boolean @default(false)
+	is_protected		Boolean @default(false)
+	hash				String?
 
-	banned		String[] @default([])
+	banned				String[] @default([])
+	banned_timestamp	Int[] @default([])
 
 	participants Participant[]
 	messages	Message[]

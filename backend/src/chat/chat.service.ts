@@ -2,7 +2,7 @@ import { ConsoleLogger, HttpException, HttpStatus, Injectable, NotFoundException
 import { UsersController } from 'src/users/users.controller';
 import { IChatUser, IChatRoom, IWebsocketClient, INotification } from '../interfaces/interfaces';
 import { Server } from 'socket.io';
-import { subscribeOn } from 'rxjs';
+import { subscribeOn, switchMap } from 'rxjs';
 import { RouterModule } from '@nestjs/core';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -46,7 +46,7 @@ export class ChatService {
 
     commands: ICommand[] = [
         {name: 'kick', handler: this.kick.bind(this), argsCount: [1, 1], usage: '/kick <login>', description: 'Kick user from room', owner: true, admin: true, moderator: true, user: false},
-        {name: 'ban', handler: this.ban.bind(this), argsCount: [1, 1], usage: '/ban <login>', description: 'ban user from room', owner: true, admin: true, moderator: false, user: false},
+        {name: 'ban', handler: this.ban.bind(this), argsCount: [1, 2], usage: '/ban <login> [ban_duration(s)]', description: 'ban user from room', owner: true, admin: true, moderator: false, user: false},
         {name: 'unban', handler: this.unban.bind(this), argsCount: [1, 1], usage: '/unban <login>', description: 'unban user from room', owner: true, admin: true, moderator: false, user: false},
         {name: 'remove', handler: this.remove.bind(this), argsCount: [1, 1], usage: '/remove <login>', description: 'remove a user from the participant list', owner: true, admin: true, moderator: false, user: false},
         {name: 'password', handler: this.password.bind(this), argsCount: [1, 1], usage: '/password <new_password>', description: 'set new_password for the room', owner: true, admin: false, moderator: false, user: false},
@@ -213,6 +213,13 @@ export class ChatService {
     }
 
     async join(login: string, chatId: number, password?: string) {
+        try {
+            await this.updateRooms(chatId);
+        }
+        catch (e) {
+            console.log("join updateRooms error : ", e);
+            throw new HttpException('Unknown error', 403);
+        }
         
         let current_room = await this.prisma.chatRoom.findUnique({
             where: { id: chatId },
@@ -222,8 +229,10 @@ export class ChatService {
             throw new HttpException('Room does not exist', 403);
         };
 
-        if (current_room.banned.find((cur) => cur == login)) {
-            throw new HttpException('You are banned from this room', 403);
+        let banIdx = current_room.banned.indexOf(login);
+        if (banIdx != -1) {
+            let time = (current_room.banned_timestamp[banIdx] == -1 ? -1 : (current_room.banned_timestamp[banIdx] - Date.now()) / 1000);
+            throw new HttpException('You are banned from this room' + (time == -1 ? '' : ' for ' + Math.floor(time) + ' seconds'), 403);
         };
 
         const user = await this.usersService.getUser(login);
@@ -581,6 +590,19 @@ export class ChatService {
             this.sendError(server, client, "ban: " + e);
             return;
         }
+        //console.log(args[1] + " is safe ? " + Number.isSafeInteger(args[1]));
+        if (args.length > 1) {
+            if (!Number(args[1])) {
+                this.sendError(server, client, "ban: 2nd argument must be a number");
+                return ;
+            }
+            else if (!Number.isSafeInteger(Number(args[1]))) {
+                this.sendError(server, client, "ban: " + args[1] + " is too big");
+                return ;
+            }
+        }
+
+
 
         // ! need to remove auto ban ok for owner !
         if (target_participant.is_owner && !participant.is_owner) {
@@ -607,7 +629,8 @@ export class ChatService {
             await this.prisma.chatRoom.update({
                 where: { id: room.id },
                 data: {
-                    banned: { push: target.login, }
+                    banned: { push: target.login },
+                    banned_timestamp: { push: (args.length >= 2 ? Date.now() + Number(args[1]) * 1000 : -1)}
                 },
             });
         }
@@ -671,6 +694,49 @@ export class ChatService {
                       content: participant.user.login + " set you're new role in " + room.name + " to " + args[1],
                       link: '/chat/' + room.name,
                       senderLogin: client.transcendenceUser.login}, target.login);
+    }
+
+    async updateRooms(chatId?: number) {
+        try {
+            var rooms = await this.prisma.chatRoom.findMany({
+                where: { id: chatId },
+            });
+        }
+        catch (e) {
+            throw new NotFoundException("Rooms not found");
+        }
+
+        for (let room of rooms) {
+            let banned = room.banned;
+            let banned_time = room.banned_timestamp;
+
+            for (let i = 0; i < banned.length; i++) {
+                if (banned_time[i] == -1)
+                    continue;
+                if (Date.now() > banned_time[i]) {
+                    [banned[i], banned[banned.length - 1]] = [banned[banned.length - 1], banned[i]];
+                    [banned_time[i], banned_time[banned_time.length - 1]] = [banned_time[banned_time.length - 1], banned_time[i]];
+                    banned.pop();
+                    banned_time.pop();
+                    i--;
+                }
+            }
+
+            try {
+                await this.prisma.chatRoom.update({
+                    where: { id: room.id },
+                    data: {
+                        banned: { set: banned },
+                        banned_timestamp: { set: banned_time }
+                    }
+                });
+            }
+            catch (e) {
+                console.log("updateRooms error: " + e);
+                throw new HttpException("Unkonwn error", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
     }
 
     // need to stop sending rooms hash and partitipant.entered_hash
