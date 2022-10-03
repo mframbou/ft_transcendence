@@ -1,11 +1,14 @@
 <script lang="ts">
 
 	import { createEventDispatcher, onMount } from 'svelte';
+	import { slide } from 'svelte/transition';
 
 	export let duration: number = 5000;
 	export let shown: boolean = true;
 	export let allowClose: boolean = true;
-	export let fixedPosition: boolean = false;
+	export let fixedPosition: boolean = true;
+	export let animateIn: boolean = true;
+	export let animateOut: boolean = true;
 
 	let progressBar: HTMLDivElement;
 	let lastUpdate: number = 0;
@@ -25,6 +28,8 @@
 
 	function updateProgressBar()
 	{
+		// return;
+
 		if (!shown)
 			return;
 
@@ -50,6 +55,8 @@
 
 	onMount(() => {
 
+		console.log('creating notification');
+
 		lastUpdate = performance.now();
 		// setIntervavl so that progressbar goes from 100% to 0% in duration
 		requestAnimationFrame(updateProgressBar);
@@ -62,7 +69,7 @@
 </script>
 
 {#if shown}
-	<div class="notification" style="animation-duration: {duration}ms" class:fixed-notification={fixedPosition}>
+	<div class="notification" style="animation-duration: {duration}ms" class:fixed-notification={fixedPosition} class:relative-notification={!fixedPosition}>
 		<div class="loading-bar" bind:this={progressBar}/>
 		<slot />
 		{#if allowClose}
@@ -78,6 +85,12 @@
 		position: fixed;
 		bottom: 1rem;
 		right: 1rem;
+		max-width: 30%;
+	}
+
+	.relative-notification
+	{
+		position: relative;
 	}
 
 	.notification {
@@ -88,8 +101,7 @@
 		background-color: var(--background-color, #20192c);
 		text-align: center;
 		border-radius: 0.25rem;
-
-		max-width: 30%;
+		overflow: hidden;
 	}
 
 	.loading-bar
