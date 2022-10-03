@@ -21,6 +21,7 @@ import { NotificationGateway } from 'src/notification/notification.gateway';
 import * as bcrypt from 'bcrypt';
 import { objectEnumValues } from '@prisma/client/runtime';
 import { RpcException } from '@nestjs/microservices';
+import { NOTFOUND } from 'dns';
 
 @Injectable()
 export class ChatService {
@@ -62,9 +63,18 @@ export class ChatService {
     // enter/leave update roomsClients
 	async enter(server: any, client: any, payload: any) {
         console.log("enter");
-        let cur_room = await this.prisma.chatRoom.findUnique({
-            where: { id: payload.chatId },
-        });
+        try {
+            var cur_room = await this.prisma.chatRoom.findUnique({
+                where: { id: payload.chatId },
+            });
+
+            if (!cur_room) {
+                throw new NotFoundException("Room not found");
+            }
+        } catch (e) {
+            console.log("chat enter error : ", e);
+            return ;
+        }
 
         if (cur_room.banned.find((cur) => cur == client.login)) {
             this.sendError(server, client, "You are banned from this room");
@@ -72,10 +82,41 @@ export class ChatService {
         }
         //this.roomsClients.push({user: payload.user, chatId: payload.chatId, clientId: client.id});
         this.roomsClients.push({clientId: client.id, chatId: payload.chatId, login: client.transcendenceUser.login});
+
+        // send enter status to the room
+        try {
+            var room = await this.prisma.chatRoom.findUnique({
+                where: { id: payload.chatId },
+                include: { 
+                    participants: { include: { user: true} }
+                },
+            });
+            var participant = room.participants.find((cur) => cur.user.login == client.transcendenceUser.login);
+            this.sendStatus(server, client, participant, room, participant.user.login + " has entered the room");
+        }
+        catch (e) {
+            console.log("chat enter error : ", e);
+            return ;
+        }
         console.log("enter roomsclients : ", this.roomsClients);
     }
 
     async leave(server: any, client: any, payload: any) {
+        // send enter status to the room
+        try {
+            var chatId = this.roomsClients.find((cur) => cur.clientId == client.id).chatId;
+            var room = await this.prisma.chatRoom.findUnique({
+                where: { id: chatId },
+                include: { 
+                    participants: { include: { user: true} }
+                },
+            });
+            var participant = room.participants.find((cur) => cur.user.login == client.transcendenceUser.login);
+            this.sendStatus(server, client, participant, room, participant.user.login + " has left the room");
+        }
+        catch (e) {
+            console.log("chat leave error : ", e);
+        }
         this.roomsClients = this.roomsClients.filter((cur) => cur.clientId !== client.id);
     }
 
