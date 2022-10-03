@@ -8,7 +8,7 @@
 
 <div class="wrapper">
 	<div class="background">
-		<ParticlesBackground properties={{lineColor: '#888888', minVelocity: 0.5, maxVelocity: 0.8}}/>
+		<ParticlesBackground properties={{lineColor: '#888888', minVelocity: 0.5, maxVelocity: 0.8, keyEvent: true, maxPoints: 100}}/>
 	</div>
 	<div class="content">
 		<h1>{$page.status}</h1>

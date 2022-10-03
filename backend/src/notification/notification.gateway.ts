@@ -11,6 +11,7 @@ import { WsFirstConnectDto } from '../interfaces/dtos';
 import { UsersService } from 'src/users/users.service';
 import { InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { INotification } from '../interfaces/interfaces';
 
 const NAMESPACE = 'notification';
 
@@ -76,10 +77,11 @@ export class NotificationGateway implements OnGatewayDisconnect, OnGatewayConnec
 	}
 
     // send notification to login
-    async notify(login: string, service: string, title: string, content: string, senderLogin?: string, link?: string) {
+    //async notify(login: string, service: string, title: string, content: string, senderLogin?: string, link?: string) {
+    async notify(notif: INotification, login: string) {
         try {
-            if (senderLogin) {
-                var sender = await this.usersService.getUser(login);
+            if (notif.senderLogin != undefined) {
+                var sender = await this.usersService.getUser(notif.senderLogin);
 
                 if (!sender) {
                     throw new InternalServerErrorException('User not found');
@@ -88,22 +90,22 @@ export class NotificationGateway implements OnGatewayDisconnect, OnGatewayConnec
 
                 const cur_notif = await this.prisma.notification.create({
                     data: {
-                        senderId: (senderLogin ? sender.id : null),
-                        service: service,
-                        link: link,
-                        title: title,
-                        content: content,
+                        senderId: (notif.senderLogin ? sender.id : null),
+                        service: notif.service,
+                        link: notif.link,
+                        title: notif.title,
+                        content: notif.content,
                     },
-                    include: {
-                        sender: true,
-                    }
+                    include: { sender: true, }
 
                 });
             console.log("Notification created: ", cur_notif);
 
             const client = this.websocketsService.getClientbyLogin(login, 'notification');
             if (!client || !client.length) {
-                throw new InternalServerErrorException('client not found');
+                console.log("Notification Gateway: ", "Client not found");
+                return;
+                //throw new InternalServerErrorException('client not found');
             }
             console.log("client : ", client);
 

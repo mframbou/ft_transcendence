@@ -1,28 +1,40 @@
-<script lang-="ts">
+<script lang="ts">
     import '$lib/assets/global.scss';
     import NavbarV2 from '$lib/NavbarV2.svelte';
     import { statusSocket, statusSocketConnected } from "$lib/websocket-stores";
     import { notificationSocket, notificationSocketConnected } from "$lib/websocket-stores";
+	import NotificationPopup from '$lib/NotificationPopup.svelte';
     import {onDestroy} from "svelte";
+    import { goto } from '$app/navigation';
 
     const unsubscribeStatus = statusSocket.subscribe(() => {});
     const unsubscribeNotification = notificationSocket.subscribe(() => {});
 
+	const MAX_NOTIF_LENGHT = 250;
+	let unique: any = {};
+	let notif: any;
+
     $statusSocket.on('wrongToken', () => {
         document.location.replace('/api/auth/logout'); // redirect to logout to remove cookie
-		});
+	});
 
-		$notificationSocket.on('notification', (data) => {
-			console.log("notification received : ", data);
-			alert(data.service + ": " + data.title + "\n" + data.content + "\n" + "link: " + data.link);
-		});
+	$notificationSocket.on('notification', (data) => {
+		console.log("notification received : ", data);
+		notif = data;
+		notif.content = notif.content.substring(0, Math.max(notif.content.length, MAX_NOTIF_LENGHT)) + "...".substring(3 * (notif.content.length < MAX_NOTIF_LENGHT));
+		notif.title = notif.title.substring(0, Math.max(notif.title.length, MAX_NOTIF_LENGHT)) + "...".substring(3 * (notif.title.length < MAX_NOTIF_LENGHT));
+		console.log("notif : ", notif);
+		//alert(data.service + ": " + data.title + "\n" + data.content + "\n" + "link: " + data.link);
+		unique = {};
+	});
 
-		onDestroy(() => {
-			unsubscribeStatus();
-			unsubscribeNotification();
-		});
+	onDestroy(() => {
+		unsubscribeStatus();
+		unsubscribeNotification();
+	});
 
 </script>
+
 
 
 <div class="wrapper">
@@ -34,6 +46,16 @@
 		<slot/>
 	</main>
 </div>
+
+{#key unique}
+	<NotificationPopup >
+		{#if notif}
+			<p>{notif.service}</p>
+			<p>{notif.title}</p>
+			<p>{notif.content}</p>
+		{/if}
+	</NotificationPopup>
+{/key}
 
 
 <style lang="scss">
@@ -80,4 +102,9 @@
 		//transform-style: preserve-3d;
 	}
 
+	h3 {
+		background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+	}
 </style>

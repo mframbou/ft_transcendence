@@ -17,6 +17,11 @@
 		shown = false;
 	}
 
+	function handleClick()
+	{
+		dispatch('click');
+	}
+
 	function updateProgressBar()
 	{
 		if (!shown)
@@ -49,6 +54,10 @@
 		requestAnimationFrame(updateProgressBar);
 	})
 
+	function test() {
+		console.log("testos");
+	}
+
 </script>
 
 {#if shown}
@@ -73,6 +82,9 @@
 		background-color: var(--background-color, #20192c);
 		text-align: center;
 		border-radius: 0.25rem;
+
+		max-width: 30%;
+		overflow-x: wrap;
 	}
 
 	.loading-bar

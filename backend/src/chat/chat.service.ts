@@ -1,6 +1,6 @@
 import { ConsoleLogger, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersController } from 'src/users/users.controller';
-import { IChatUser, IChatRoom, IWebsocketClient } from '../interfaces/interfaces';
+import { IChatUser, IChatRoom, IWebsocketClient, INotification } from '../interfaces/interfaces';
 import { Server } from 'socket.io';
 import { subscribeOn } from 'rxjs';
 import { RouterModule } from '@nestjs/core';
@@ -90,6 +90,14 @@ export class ChatService {
 
     }
 
+    async notify(notif: INotification, target: string) {
+
+        // blocked check here
+
+        this.notificationGateway.notify(notif, target);
+
+    }
+
     // utils function to send stuff to client in a room (if client provided send only to him)
     async sendTo(server: any, room: any, event: string, content: any, client: any, notify: boolean = false, targetLogin?: any) {
         console.log("sendTo roomsclients : ", this.roomsClients);
@@ -102,9 +110,13 @@ export class ChatService {
         // need to add check for blocked user + notify targetLogin
         if (notify) {
             for (let participant of room.participants) {
-                if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
-                    continue;
-                this.notificationGateway.notify(participant.user.login, 'chat', `${room.name}: New Message`, content.content, client.transcendenceUser.login);
+                //if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
+                    //continue;
+                this.notify({ service: 'chat', 
+                              title: `${room.name}`, 
+                              content: client.transcendenceUser.login + ": " + content.content, 
+                              link: '/chat/' + room.name,
+                              senderLogin: client.transcendenceUser.login}, participant.user.login);
             }
         }
 
@@ -388,43 +400,6 @@ export class ChatService {
         }
 
         cur_command.handler(server, client, participant, room, args);
-
-        return ;
-        switch (command) {
-            case '/kick':
-                await this.kick(server, client, participant, room, args);
-                break;
-            case '/ban':
-                await this.ban(server, client, participant, room, args);
-                break;
-            case '/unban':
-                await this.unban(server, client, participant, room, args);
-                break;
-            case '/password': // change the password
-                await this.password(server, client, participant, room, args);
-                break;
-            case '/remove':
-                await this.remove(server, client, participant, room, args);
-                break;
-            //case '/mute':
-                //await this.mute(server, chatId, userId, args);
-                //break;
-            //case '/unmute':
-                //await this.unmute(server, chatId, userId, args);
-                //break;
-            case '/promote':
-                await this.promote(server, client, participant, room, args);
-                break;
-            case '/invite':
-                await this.invite(server, client, participant, room, args);
-                break;
-            //case '/demote':
-                //await this.demote(server, chatId, userId, args);
-                //break;
-            default:
-                this.sendError(server, client, command + ": Unknown command");
-                break;
-        }
     }
     async remove(server: any, client: any, participant: any, room: any, args: any) {
         let target = room.participants.find((cur) => cur.user.login == args[0]);
@@ -451,6 +426,12 @@ export class ChatService {
         this.sendTo(server, room, 'kick', target, client, true, target.login);
         
         this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.user.login);
+
+        this.notify({ service: 'chat',
+                      title: 'Removed',
+                      content: 'you have been removed from ' + room.name + ' by ' + participant.user.login,
+                      link: '/chat/' + room.name, // maybe link should be optional 'cause it's weird to give a removed participant a link to the room ;)
+                      senderLogin: client.transcendenceUser.login}, target.login);
     }
 
     async password(server: any, client: any, participant: any, room: any, args: any) {
@@ -475,6 +456,7 @@ export class ChatService {
         this.sendStatus(server, client, participant, room, "New password set");
         
         this.sendError(server, client, "/!\\ Users already in room can still access it without the password\nto force them to enter the password, remove them");
+
     }
 
     async invite(server: any, client: any, participant: any, room: any, args: any) {
@@ -508,7 +490,13 @@ export class ChatService {
 
         this.sendStatus(server, client, participant, room, participant.user.login + " invited " + args[0] + " in the room");
 
-        this.notificationGateway.notify(participant.user.login, 'chat', 'Invitation', 'you have been invited to join ' + room.name , client.transcendenceUser.login, 'chat/room/' + room.name);
+        //this.notificationGateway.notify(participant.user.login, 'chat', 'Invitation', 'you have been invited to join ' + room.name , client.transcendenceUser.login, 'chat/room/' + room.name);
+        this.notify({ service: 'chat', 
+                      title: 'Invitation',
+                      content: 'you have been invited to join ' + room.name,
+                      link: '/chat/' + room.name,
+                      senderLogin: client.transcendenceUser.login}, participant.user.login);
+
     }
     
     async kick(server: any, client: any, participant: any, room: any, args: any) {
@@ -534,6 +522,12 @@ export class ChatService {
 
         // send command log to all participants
         this.sendStatus(server, client, participant, room, participant.user.login + " kicked " + args[0]);
+
+        this.notify({ service: 'chat',
+                      title: 'Kicked',
+                      content: 'you have been kicked from ' + room.name + ' by ' + participant.user.login,
+                      link: '/chat/' + room.name,
+                      senderLogin: client.transcendenceUser.login}, target.login);
 
     }
 
@@ -570,6 +564,12 @@ export class ChatService {
         }
 
         this.sendStatus(server, client, participant, room, participant.user.login + " unbanned " + args[0]);
+
+        this.notify({ service: 'chat',
+                      title: 'unban',
+                      content: 'you have been unbaned from ' + room.name + ' by ' + participant.user.login,
+                      link: '/chat/' + room.name,
+                      senderLogin: client.transcendenceUser.login}, target.login);
     }
 
     async ban(server: any, client: any, participant: any, room: any, args: any) {
@@ -621,6 +621,12 @@ export class ChatService {
         this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
 
         this.sendStatus(server, client, participant, room, participant.user.login + " banned " + args[0]);
+
+        this.notify({ service: 'chat',
+                      title: 'ban',
+                      content: 'you have been baned from ' + room.name + ' by ' + participant.user.login,
+                      link: '/chat/' + room.name,
+                      senderLogin: client.transcendenceUser.login}, target.login);
     }
 
     async promote(server: any, client: any, participant: any, room: any, args: any) {
@@ -659,11 +665,16 @@ export class ChatService {
         }
 
         this.sendStatus(server, client, participant, room, participant.user.login + " is now " + args[1]);
+
+        this.notify({ service: 'chat',
+                      title: 'promote',
+                      content: participant.user.login + " set you're new role in " + room.name + " to " + args[1],
+                      link: '/chat/' + room.name,
+                      senderLogin: client.transcendenceUser.login}, target.login);
     }
 
     // need to stop sending rooms hash and partitipant.entered_hash
     async rooms(login: string, name?: string) {
-
         // room by name
         if (name) {
             try {

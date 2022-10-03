@@ -140,6 +140,15 @@ export interface ICommand
 	moderator: boolean;	
 	user: boolean;	
 }
+export interface INotification
+{
+	service: string;
+	title: string;
+	content: string;
+	link: string;
+
+	senderLogin?: string;
+}
 
 export enum EUserStatus
 {
