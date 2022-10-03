@@ -53,6 +53,8 @@ export class ChatService {
         {name: 'password', handler: this.password.bind(this), argsCount: [1, 1], usage: '/password <new_password>', description: 'set new_password for the room', owner: true, admin: false, moderator: false, user: false},
         {name: 'promote', handler: this.promote.bind(this), argsCount: [2, 2], usage: '/promote <login> <user/admin/moderator>', description: 'Assign new role to a user', owner: true, admin: true, moderator: false, user: false},
         {name: 'invite', handler: this.invite.bind(this), argsCount: [1, 1], usage: '/invite <login>', description: 'Add a participant in the room', owner: true, admin: true, moderator: true, user: false},
+        {name: 'delete', handler: this.delete.bind(this), argsCount: [0, 0], usage: '/delete', description: 'Delete the chatroom', owner: true, admin: false, moderator: false, user: false},
+        {name: 'help', handler: this.help.bind(this), argsCount: [0, 0], usage: '/help', description: 'list commands', owner: true, admin: true, moderator: true, user: true},
     ]
 
     // roomsclients store the client id of each user in each room
@@ -778,6 +780,21 @@ export class ChatService {
             }
         }
 
+    }
+
+    async delete(server: any, client: any, participant: any, room: any, args: any) {
+        this.sendTo(server, room, 'kick', '', client, true);
+
+        await this.prisma.message.deleteMany({where: {chatId: room.id}});
+        await this.prisma.participant.deleteMany({where: {chatId: room.id}});
+        await this.prisma.chatRoom.delete({where: {id: room.id}});
+    }
+
+    help(server: any, client: any, participant: any, room: any, args: any) {
+        this.sendError(server, client, "-------Commands-------");
+        for (let i = 0; i < this.commands.length; i++) {
+            this.sendError(server, client, this.commands[i].name + " (" this.commands[i].usage + ") : " + this.commands[i].description);
+        }
     }
 
     // need to stop sending rooms hash and partitipant.entered_hash
