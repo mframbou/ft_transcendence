@@ -1,4 +1,4 @@
-import { ConsoleLogger, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConsoleLogger, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { UsersController } from 'src/users/users.controller';
 import { IChatUser, IChatRoom, IWebsocketClient, INotification } from '../interfaces/interfaces';
 import { Server } from 'socket.io';
@@ -678,7 +678,7 @@ export class ChatService {
         // room by name
         if (name) {
             try {
-                var room = await this.prisma.chatRoom.findUnique({
+                let room = await this.prisma.chatRoom.findUnique({
                     where: {
                         name: name
                     },
@@ -689,9 +689,8 @@ export class ChatService {
                     }
                 });
 
-                if (!room) {
-                    throw ("Room not found");
-                }
+                if (!room)
+                    throw new NotFoundException("Room not found");
 
                 // if user is in room send him the messages with it
                 if (room.participants.find((cur) => cur.user.login == login)) {
@@ -719,18 +718,16 @@ export class ChatService {
         }
 
         // all rooms
-        try {
-            let rooms = await this.prisma.chatRoom.findMany({
+        try
+        {
+            const rooms = await this.prisma.chatRoom.findMany({
                 include: {
-                    participants: { 
+                    participants: {
                         include: { user: true }
                     },
                     messages: false,
                 }
             });
-            if (!rooms) {
-                throw ("Rooms not found");
-            }
 
             // return room only if it is public or user is in it
             return rooms.filter((cur) => !cur.is_private || cur.participants.find((cur) => cur.user.login == login));

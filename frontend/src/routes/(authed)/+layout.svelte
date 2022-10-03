@@ -48,13 +48,13 @@
 </div>
 
 {#key unique}
-	<NotificationPopup >
-		{#if notif}
-			<p>{notif.service}</p>
-			<p>{notif.title}</p>
-			<p>{notif.content}</p>
-		{/if}
-	</NotificationPopup>
+	{#if notif}
+		<NotificationPopup>
+				<p>{notif.service}</p>
+				<p>{notif.title}</p>
+				<p>{notif.content}</p>
+		</NotificationPopup>
+	{/if}
 {/key}
 
 

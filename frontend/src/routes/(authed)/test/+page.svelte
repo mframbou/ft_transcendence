@@ -17,5 +17,7 @@
 </script>
 
 <NotificationPopup>
-	test
+	test<br>
+	hello everyone<br>
+	pouet
 </NotificationPopup>

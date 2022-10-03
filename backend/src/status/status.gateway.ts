@@ -70,7 +70,15 @@ export class StatusGateway implements OnGatewayDisconnect, OnGatewayConnection
 		if (!clientToRemove)
 			return;
 
-		await this.statusService.setStatus(clientToRemove.login, EUserStatus.OFFLINE);
+		try
+		{
+			await this.statusService.setStatus(clientToRemove.login, EUserStatus.OFFLINE);
+		}
+		catch (e)
+		{
+			console.log('client couldn\'t be set offline');
+			return;
+		}
 		this.websocketsService.removeClient(clientToRemove.id);
 	}
 }

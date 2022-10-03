@@ -5,6 +5,7 @@
 	export let duration: number = 5000;
 	export let shown: boolean = true;
 	export let allowClose: boolean = true;
+	export let fixedPosition: boolean = false;
 
 	let progressBar: HTMLDivElement;
 	let lastUpdate: number = 0;
@@ -61,7 +62,7 @@
 </script>
 
 {#if shown}
-	<div class="notification" style="animation-duration: {duration}ms">
+	<div class="notification" style="animation-duration: {duration}ms" class:fixed-notification={fixedPosition}>
 		<div class="loading-bar" bind:this={progressBar}/>
 		<slot />
 		{#if allowClose}
@@ -71,10 +72,15 @@
 {/if}
 
 <style lang="scss">
-	.notification {
+
+	.fixed-notification
+	{
 		position: fixed;
 		bottom: 1rem;
 		right: 1rem;
+	}
+
+	.notification {
 
 		$base-padding: 1.25rem;
 		padding: $base-padding calc($base-padding + 0.75rem) $base-padding $base-padding;
@@ -84,7 +90,6 @@
 		border-radius: 0.25rem;
 
 		max-width: 30%;
-		overflow-x: wrap;
 	}
 
 	.loading-bar
