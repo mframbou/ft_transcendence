@@ -1,6 +1,6 @@
 import { chatRooms } from '$lib/stores';
 import { error } from '@sveltejs/kit';
-import { select_option } from 'svelte/internal';
+import { outro_and_destroy_block, select_option } from 'svelte/internal';
 import { get } from 'svelte/store'
 //import { chatRooms, user }  from '$lib/stores';
 
@@ -29,6 +29,12 @@ async function loadData(fetch: any, room: string)
     if (!out.participant) {
         throw error(404, 'Looks like you are not a participant of this room');
     }
+
+    console.log("out : ", out);
+
+    out.room.messages.sort((a, b) => {
+        return (a == b ? 0 : (a < b ? -1 : 1));
+    });
 
     return out;
 }

@@ -55,6 +55,7 @@ export class ChatService {
         {name: 'invite', handler: this.invite.bind(this), argsCount: [1, 1], usage: '/invite <login>', description: 'Add a participant in the room', owner: true, admin: true, moderator: true, user: false},
         {name: 'delete', handler: this.delete.bind(this), argsCount: [0, 0], usage: '/delete', description: 'Delete the chatroom', owner: true, admin: false, moderator: false, user: false},
         {name: 'help', handler: this.help.bind(this), argsCount: [0, 0], usage: '/help', description: 'list commands', owner: true, admin: true, moderator: true, user: true},
+        {name: 'mute', handler: this.mute.bind(this), argsCount: [1, 2], usage: '/mute', description: 'mute a user', owner: true, admin: true, moderator: true, user: false},
     ]
 
     // roomsclients store the client id of each user in each room
@@ -103,22 +104,23 @@ export class ChatService {
         console.log("enter roomsclients : ", this.roomsClients);
     }
 
+    // TO FIX
     async leave(server: any, client: any, payload: any) {
         // send enter status to the room
-        try {
-            var chatId = this.roomsClients.find((cur) => cur.clientId == client.id).chatId;
-            var room = await this.prisma.chatRoom.findUnique({
-                where: { id: chatId },
-                include: { 
-                    participants: { include: { user: true} }
-                },
-            });
-            var participant = room.participants.find((cur) => cur.user.login == client.transcendenceUser.login);
-            this.sendStatus(server, client, participant, room, participant.user.login + " has left the room");
-        }
-        catch (e) {
-            console.log("chat leave error : ", e);
-        }
+        //try {
+            //var chatId = this.roomsClients.find((cur) => cur.clientId == client.id).chatId;
+            //var room = await this.prisma.chatRoom.findUnique({
+                //where: { id: chatId },
+                //include: { 
+                    //participants: { include: { user: true} }
+                //},
+            //});
+            //var participant = room.participants.find((cur) => cur.user.login == client.transcendenceUser.login);
+            //this.sendStatus(server, client, participant, room, participant.user.login + " has left the room");
+        //}
+        //catch (e) {
+            //console.log("chat leave error : ", e);
+        //}
         this.roomsClients = this.roomsClients.filter((cur) => cur.clientId !== client.id);
     }
 
@@ -274,7 +276,7 @@ export class ChatService {
 
         let banIdx = current_room.banned.indexOf(login);
         if (banIdx != -1) {
-            let time = (current_room.banned_timestamp[banIdx] == -1 ? -1 : (current_room.banned_timestamp[banIdx] - Date.now()) / 1000);
+            let time = (Number(current_room.banned_timestamp[banIdx]) == -1 ? -1 : (Number(current_room.banned_timestamp[banIdx]) - Date.now()) / 1000);
             throw new HttpException('You are banned from this room' + (time == -1 ? '' : ' for ' + Math.floor(time) + ' seconds'), 403);
         };
 
@@ -332,6 +334,14 @@ export class ChatService {
     async handleMessage(server: any, client: any, chatId: any, content: string) {
 
         try {
+            this.updateMute(chatId);
+        }
+        catch (e) {
+            console.log("handleMessage updateMute error : ", e);
+            return ; 
+        }
+
+        try {
             var user = await this.usersService.getUser(client.transcendenceUser.login);
 
             if (!user) {
@@ -373,11 +383,17 @@ export class ChatService {
             console.log("handleMessage error: " + e);
             return;
         }
-            
 
         if (content.trim()[0] === '/') {
             console.log("command");
             return await this.command(server, client, participant[0], room, content);
+        }
+
+        let idx = room.muted.indexOf(user.login);
+        if (idx != -1) {
+            let time = (+room.muted_timestamp[idx] == -1 ? -1 : Math.floor((+room.muted_timestamp[idx] - Date.now()) / 1000));
+            this.sendError(server, client, "you are muted"  + (time == -1 ? "" : " for " + time + " seconds"));
+            return ;
         }
 
         try {
@@ -624,6 +640,75 @@ export class ChatService {
                       senderLogin: client.transcendenceUser.login}, target.login);
     }
 
+    async mute(server: any, client: any, participant: any, room: any, args: any) {
+
+        try {
+            var target = await this.getUser(args[0]);
+            var target_participant = await this.getParticipant(target, room.id);
+        }
+        catch (e) {
+            this.sendError(server, client, "mute: " + e);
+            return;
+        }
+        //console.log(args[1] + " is safe ? " + Number.isSafeInteger(args[1]));
+        if (args.length > 1) {
+            if (!Number(args[1])) {
+                this.sendError(server, client, "mute: 2nd argument must be a number");
+                return ;
+            }
+            else if (!Number.isSafeInteger(Number(args[1]))) {
+                this.sendError(server, client, "mute: " + args[1] + " is too big");
+                return ;
+            }
+        }
+
+        // ! need to remove auto ban ok for owner !
+        if (target_participant.is_owner && !participant.is_owner) {
+            this.sendError(server, client, "mute: You can't mute the owner");
+            return;
+        }
+
+        // check if user is already banned
+        if (room.muted.find((cur) => args[0] == cur)) {
+            let idx = room.muted.findIndex((cur) => args[0] == cur);
+            let time = (room.muted_timestamp[idx] == -1 ? -1 : Math.floor((+room.muted_timestamp[idx] - Date.now()) / 1000));
+            this.sendError(server, client, "mute: User " + args[0] + " is already muted" + (time == -1 ? "" : " for " + time + " seconds"));
+            return ;
+        }
+
+        if (args.length > 1) {
+            this.sendError(server, client, "mute: " + args[0] + " for " + args[1] + " seconds");
+        }
+
+        try {
+            // add user to muted list
+            await this.prisma.chatRoom.update({
+                where: { id: room.id },
+                data: {
+                    muted: { push: target.login },
+                    muted_timestamp: { push: String(args.length >= 2 ? Date.now() + Number(args[1]) * 1000 : -1)}
+                },
+            });
+        }
+        catch (e) {
+            this.sendError(server, client, "Unknown error");
+            console.log("mute error: ", e);
+        }
+
+        //this.sendTo(server, room, 'kick', target, client, true, target.login);
+
+        //this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
+
+        this.sendStatus(server, client, participant, room, participant.user.login + " muted " + args[0]);
+
+        this.notify({ service: 'chat',
+                      title: 'mute',
+                      content: 'you have been muted from ' + room.name + ' by ' + participant.user.login,
+                      link: '/chat/' + room.name,
+                      senderLogin: client.transcendenceUser.login}, target.login);
+    }
+
+
     async ban(server: any, client: any, participant: any, room: any, args: any) {
         try {
             var target = await this.getUser(args[0]);
@@ -644,8 +729,6 @@ export class ChatService {
                 return ;
             }
         }
-
-
 
         // ! need to remove auto ban ok for owner !
         if (target_participant.is_owner && !participant.is_owner) {
@@ -668,12 +751,14 @@ export class ChatService {
                 }
             });
 
+            console.log("Banned timestamp should be : ", Date.now() + Number(args[1]) * 1000);
+
             // add user to banned list
             await this.prisma.chatRoom.update({
                 where: { id: room.id },
                 data: {
                     banned: { push: target.login },
-                    banned_timestamp: { push: (args.length >= 2 ? Date.now() + Number(args[1]) * 1000 : -1)}
+                    banned_timestamp: { push: String(args.length >= 2 ? Date.now() + Number(args[1]) * 1000 : -1)}
                 },
             });
         }
@@ -739,6 +824,49 @@ export class ChatService {
                       senderLogin: client.transcendenceUser.login}, target.login);
     }
 
+    async updateMute(chatId? :number) {
+        try {
+            var rooms = await this.prisma.chatRoom.findMany({
+                where: { id: chatId },
+            });
+        }
+        catch (e) {
+            throw new NotFoundException("Rooms not found");
+        }
+
+        for (let room of rooms) {
+            let muted = room.muted;
+            let muted_time = room.muted_timestamp.map(str => +str);
+
+            for (let i = 0; i < muted.length; i++) {
+                if (muted_time[i] == -1)
+                    continue;
+                if (Date.now() > muted_time[i]) {
+                    [muted[i], muted[muted.length - 1]] = [muted[muted.length - 1], muted[i]];
+                    [muted_time[i], muted_time[muted_time.length - 1]] = [muted_time[muted_time.length - 1], muted_time[i]];
+                    muted.pop();
+                    muted_time.pop();
+                    i--;
+                }
+            }
+
+            try {
+                await this.prisma.chatRoom.update({
+                    where: { id: room.id },
+                    data: {
+                        muted: { set: muted },
+                        muted_timestamp: { set: muted_time.map(num => String(num)) }
+                    }
+                });
+            }
+            catch (e) {
+                console.log("updateRooms error: " + e);
+                throw new HttpException("Unkonwn error", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+    }
+
     async updateRooms(chatId?: number) {
         try {
             var rooms = await this.prisma.chatRoom.findMany({
@@ -751,12 +879,12 @@ export class ChatService {
 
         for (let room of rooms) {
             let banned = room.banned;
-            let banned_time = room.banned_timestamp;
+            let banned_time = room.banned_timestamp.map(str => +str);
 
             for (let i = 0; i < banned.length; i++) {
                 if (banned_time[i] == -1)
                     continue;
-                if (Date.now() > banned_time[i]) {
+                if (Date.now() > Number(banned_time[i])) {
                     [banned[i], banned[banned.length - 1]] = [banned[banned.length - 1], banned[i]];
                     [banned_time[i], banned_time[banned_time.length - 1]] = [banned_time[banned_time.length - 1], banned_time[i]];
                     banned.pop();
@@ -770,7 +898,7 @@ export class ChatService {
                     where: { id: room.id },
                     data: {
                         banned: { set: banned },
-                        banned_timestamp: { set: banned_time }
+                        banned_timestamp: { set: banned_time.map(str => String(str)) }
                     }
                 });
             }
@@ -793,7 +921,7 @@ export class ChatService {
     help(server: any, client: any, participant: any, room: any, args: any) {
         this.sendError(server, client, "-------Commands-------");
         for (let i = 0; i < this.commands.length; i++) {
-            this.sendError(server, client, this.commands[i].name + " (" this.commands[i].usage + ") : " + this.commands[i].description);
+            this.sendError(server, client, this.commands[i].name + " (" + this.commands[i].usage + ") : " + this.commands[i].description);
         }
     }
 

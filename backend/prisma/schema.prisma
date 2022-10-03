@@ -83,7 +83,10 @@ model ChatRoom {
 	hash				String?
 
 	banned				String[] @default([])
-	banned_timestamp	Int[] @default([])
+	banned_timestamp	String[] @default([])
+
+	muted				String[] @default([])
+	muted_timestamp		String[] @default([])
 
 	participants Participant[]
 	messages	Message[]

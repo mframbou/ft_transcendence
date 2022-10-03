@@ -105,7 +105,7 @@
                     {:else}
                         <img class="profilePicture" src={msg.sender.profilePicture}/> 
                         <!-- <p>  {msg.sender.user.login}: {msg.content} </p> -->
-                        <p> {msg.sender.login} {msg.content} </p>
+                        <p> {msg.sender.login} <!-- ({msg.timestamp})-->: {msg.content} </p>
                    
                     {/if}
                 </div>
