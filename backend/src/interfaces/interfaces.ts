@@ -23,10 +23,10 @@ export interface IBlockedUser extends BlockedUser
 
 export interface IMatchResults
 {
-	player1: IPublicUser;
-	player2: IPublicUser;
-	player1Score: number;
-	player2Score: number;
+	winner: IPublicUser;
+	loser: IPublicUser;
+	winnerScore: number;
+	loserScore: number;
 	timestamp: Date;
 }
 

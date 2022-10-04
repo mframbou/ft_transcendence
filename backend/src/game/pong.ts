@@ -363,6 +363,15 @@ export default class ServerSidePong
 		}
 	}
 
+	forfeit(player: IPLayer)
+	{
+		let forfeitedPlayer = player === this.player1 ? this.room.player1 : this.room.player2;
+		if (!forfeitedPlayer)
+			forfeitedPlayer = undefined;
+
+		this.gameService.endGame(this.room, this.server, forfeitedPlayer);
+	}
+
 	update()
 	{
 		if (this.paused)

@@ -318,10 +318,10 @@
 
 	interface IMatch
 	{
-		player1: string;
-		player2: string;
-		player1Score: number;
-		player2Score: number;
+		winner: any;
+		loser: any;
+		winnerScore: number;
+		loserScore: number;
 		outcome: 'victory' | 'defeat';
 	}
 
@@ -331,21 +331,19 @@
 	{
 		matchHistory = $matchesHistory.map((match) =>
 		{
-			const player1 = match.player1;
-			const player2 = match.player2;
-			const player1Score = match.player1Score;
-			const player2Score = match.player2Score;
+			const winner = match.winner;
+			const loser = match.loser;
+			const winnerScore = match.winnerScore;
+			const loserScore = match.loserScore;
 
-			const winner = player1Score > player2Score ? player1 : player2;
-
-			const outcome = ($user.login === winner) ? 'victory' : 'defeat';
+			const outcome = ($user.login === winner.login) ? 'victory' : 'defeat';
 
 			const matchResult: IMatch = {
-				player1: player1,
-				player2: player2,
-				player1Score: player1Score,
-				player2Score: player2Score,
-				outcome: outcome
+				winner: winner,
+				loser: loser,
+				winnerScore: winnerScore,
+				loserScore: loserScore,
+				outcome: outcome,
 			};
 
 			return matchResult;
@@ -432,8 +430,8 @@
 						{#if matchHistory.length > 0}
 							{#each matchHistory as match}
 								<div class="match" class:match-victory={match.outcome === 'victory'} class:match-defeat={match.outcome === 'defeat'} class:match-draw={match.outcome === 'draw'}>
-									<h1 class="match-name"><strong>{match.player1.username}</strong><span class="user-separator">-</span>{match.player2.username}</h1>
-									<span class="match-score"><strong>{match.player1Score}</strong><span class="score-separator">-</span>{match.player2Score}</span>
+									<h1 class="match-name"><strong>{match.winner.username}</strong><span class="user-separator">-</span>{match.loser.username}</h1>
+									<span class="match-score"><strong>{match.winnerScore}</strong><span class="score-separator">-</span>{match.loserScore}</span>
 								</div>
 							{/each}
 						{:else}

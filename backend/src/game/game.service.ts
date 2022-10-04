@@ -84,14 +84,16 @@ export class GameService {
 		if (gameRoom)
 		{
 			gameRoom.gameInstance.pause();
+
+			const disconnectedPlayer = gameRoom.player1.clientId === clientId ? gameRoom.player1 : gameRoom.player2;
+
+			const forfeitedUser = gameRoom.player1.clientId === clientId ? gameRoom.gameInstance.player1 : gameRoom.gameInstance.player2;
+			if (forfeitedUser)
+				gameRoom.gameInstance.forfeit(forfeitedUser);
+
 			this.gameRooms = this.gameRooms.filter(room => room.id !== gameRoom.id);
 
-			const player = gameRoom.player1.clientId === clientId ? gameRoom.player1 : gameRoom.player2;
-			// player.connected = false;
-			// player.clientId = null;
-			// if (gameRoom.gameInstance)
-			// 	gameRoom.gameInstance.pause();
-			console.log(`Player ${player.login} disconnected from game room ${gameRoom.id}, rooms number: ${this.gameRooms.length}`);
+			console.log(`Player ${disconnectedPlayer.login} disconnected from game room ${gameRoom.id}, rooms number: ${this.gameRooms.length}`);
 		}
 	}
 
@@ -199,24 +201,24 @@ export class GameService {
 		};
 	}
 
-	async addMatchToHistory(p1Login: string, p1Score: number, p2Login: string, p2Score: number)
+	async addMatchToHistory(winnerLogin: string, winnerScore: number, loserLogin: string, loserScore: number)
 	{
 		try
 		{
-			const player1 = await this.usersService.getUser(p1Login);
+			const player1 = await this.usersService.getUser(winnerLogin);
 			if (!player1)
 				throw new NotFoundException('Player 1 not found');
 
-			const player2 = await this.usersService.getUser(p2Login);
+			const player2 = await this.usersService.getUser(loserLogin);
 			if (!player2)
 				throw new NotFoundException('Player 2 not found');
 
 			await this.prismaService.match.create({
 				data: {
-					player1Login: p1Login,
-					player1Score: p1Score,
-					player2Login: p2Login,
-					player2Score: p2Score,
+					winnerLogin: winnerLogin,
+					winnerScore: winnerScore,
+					loserLogin: loserLogin,
+					loserScore: loserScore,
 				}
 			});
 		}
@@ -272,7 +274,7 @@ export class GameService {
 		}
 	}
 
-	async endGame(room: IGameRoom, server: Server)
+	async endGame(room: IGameRoom, server: Server, forfeitedPlayer?: IGamePlayer)
 	{
 		const player1 = { login: room.player1.login, score: room.gameInstance.player1.score };
 		const player2 = { login: room.player2.login, score: room.gameInstance.player2.score };
@@ -283,9 +285,14 @@ export class GameService {
 		this.broadcastEvent(room, 'gameEnd', {player1Score: player1.score, player2Score: player2.score}, server, true);
 		this.gameRooms = this.gameRooms.filter(r => r.id !== room.id);
 
-		const winner = player1.score > player2.score ? player1 : player2;
-		const loser = player1.score > player2.score ? player2 : player1;
-		await this.addMatchToHistory(player1.login, player1.score, player2.login, player2.score);
+		let winner;
+		if (forfeitedPlayer)
+			winner = forfeitedPlayer.login === player1.login ? player2 : player1;
+		else
+			winner = player1.score > player2.score ? player1 : player2;
+
+		const loser = player1 === winner ? player2 : player1;
+		await this.addMatchToHistory(winner.login, winner.score, loser.login, loser.score);
 		await this.addPlayerWin(winner.login);
 		await this.addPlayerLoss(loser.login);
 	}
@@ -297,8 +304,8 @@ export class GameService {
 			const matches = await this.prismaService.match.findMany({
 				where: {
 					OR: [
-						{ player1Login: login },
-						{ player2Login: login },
+						{ winnerLogin: login },
+						{ loserLogin: login },
 					]
 				},
 				orderBy: {
@@ -310,29 +317,29 @@ export class GameService {
 
 			for await (const match of matches)
 			{
-				const player1 = await this.usersService.getPublicUser(match.player1Login);
-				const player2 = await this.usersService.getPublicUser(match.player2Login);
+				const winner = await this.usersService.getPublicUser(match.winnerLogin);
+				const loser = await this.usersService.getPublicUser(match.loserLogin);
 
-				if (!player1 || !player2)
+				if (!winner || !loser)
 					continue;
 
 				// if player played against himself, it's technically a win and a lose
-				if (player1.login === player2.login)
+				if (match.winnerLogin === match.loserLogin)
 				{
 					matchesResults.push({
-						player1: player2,
-						player1Score: match.player2Score,
-						player2: player1,
-						player2Score: match.player1Score,
+						winner: loser,
+						winnerScore: match.loserScore,
+						loser: winner,
+						loserScore: match.winnerScore,
 						timestamp: match.timestamp,
 					});
 				}
 
 				matchesResults.push({
-					player1: player1,
-					player1Score: match.player1Score,
-					player2: player2,
-					player2Score: match.player2Score,
+					winner: winner,
+					winnerScore: match.winnerScore,
+					loser: loser,
+					loserScore: match.loserScore,
 					timestamp: match.timestamp,
 				});
 			}

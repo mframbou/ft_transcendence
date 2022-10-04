@@ -40,8 +40,8 @@ model User {
 	participants	 	Participant[]
 	messages		 	Message[]
 
-	matchesAsPlayer1 	Match[]        @relation(name: "player1Match")
-	matchesAsPlayer2	Match[]        @relation(name: "player2Match")
+	matchesWon          Match[]        @relation(name: "playerMatchWon")
+	matchesLost         Match[]        @relation(name: "playerMatchLost")
 
 	notifications		Notification[]
 }
@@ -132,15 +132,15 @@ model BlockedUser {
 model Match {
     id           Int       @default(autoincrement()) @id
 
-    player1Login String
-    player2Login String
+    winnerLogin  String
+    loserLogin   String
 
     // We should use OR (https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#or) when finding players
-    player1      User      @relation(name: "player1Match", fields: [player1Login], references: [login])
-    player2      User      @relation(name: "player2Match", fields: [player2Login], references: [login])
+    winner       User      @relation(name: "playerMatchWon", fields: [winnerLogin], references: [login])
+    loser        User      @relation(name: "playerMatchLost", fields: [loserLogin], references: [login])
 
-    player1Score Int
-    player2Score Int
+    winnerScore  Int
+    loserScore   Int
 
     timestamp	 DateTime  @default(now())
 }
