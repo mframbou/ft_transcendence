@@ -64,10 +64,18 @@ export class BlacklistService {
 		}
 		catch (e)
 		{
-			if (e instanceof NotFoundException)
-				return;
+			if (!(e instanceof NotFoundException))
+				errorDispatcher(e);
+		}
 
-			errorDispatcher(e);
+		try
+		{
+			await this.friendsService.removeFriend(blockedLogin, userLogin);
+		}
+		catch (e)
+		{
+			if (!(e instanceof NotFoundException))
+				errorDispatcher(e);
 		}
 	}
 

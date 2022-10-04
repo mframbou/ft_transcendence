@@ -82,16 +82,14 @@ export class AuthController
 			message = `User ${user.login} already exists in the database`;
 		}
 
-		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#parameters
-		const users = JSON.stringify(await this.usersService.getUsers(), null, 4);
-
-		// message += `\nUsers list: ${users}`;
-
 		console.log(message);
 
 		await this.authService.addJwtCookie(res, {login: user.login, need2Fa: user.twoFactorEnabled});
 
 		console.log('Created cookie for user ' + user.login);
+
+		if (user)
+			return res.redirect('/home');
 
 		return res.redirect('/settings');
 	}

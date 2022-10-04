@@ -155,6 +155,7 @@ export class FriendsService {
 
 	async removeFriend(userLogin: string, friendLogin: string)
 	{
+		console.log('removeFriend', userLogin, friendLogin);
 		try
 		{
 			const alreadyFriend = await this.prismaService.friend.findUnique({

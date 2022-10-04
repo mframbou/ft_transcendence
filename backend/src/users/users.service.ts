@@ -158,14 +158,19 @@ export class UsersService
 	{
 		try
 		{
-			const userWithSameUsername = await this.prismaService.user.findUnique({
-				where: {
-					username: data.username,
-				},
-			});
+			console.log(data);
 
-			if (userWithSameUsername && userWithSameUsername.login !== login)
-				throw new UnprocessableEntityException('Username already taken');
+			if (typeof(data.username) !== 'undefined')
+			{
+				const userWithSameUsername = await this.prismaService.user.findUnique({
+					where: {
+						username: data.username,
+					},
+				});
+
+				if (userWithSameUsername && userWithSameUsername.login !== login)
+					throw new UnprocessableEntityException('Username already taken');
+			}
 
 			return await this.prismaService.user.update({
 				where: {
