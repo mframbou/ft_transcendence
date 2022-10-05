@@ -13,8 +13,7 @@ async function loadData(fetch: any, room: string)
             return res.json();
         throw error(404, 'Room not found');
     });
-
-
+    console.log("out.room: ", out.room);
 
     out.user = await fetch(`/api/users/me`).then(res => res.json());
     if (!out.user) {
@@ -33,7 +32,7 @@ async function loadData(fetch: any, room: string)
     console.log("out : ", out);
 
     out.room.messages.sort((a, b) => {
-        return (a == b ? 0 : (a < b ? -1 : 1));
+        return (a.timestamp == b.timestamp ? 0 : (a.timestamp < b.timestamp ? -1 : 1));
     });
 
     return out;

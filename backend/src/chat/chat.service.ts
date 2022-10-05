@@ -195,14 +195,66 @@ export class ChatService {
         }
     }
 
+    async joinProfileChat(login1: string, login2: string)
+    {
+        let chatName = (login1 < login2) ? '*' + login1 + '-' + login2 : '*' + login2 + '-' + login1;
+        try {
+            var user1 = await this.getUser(login1);
+            var user2 = await this.getUser(login1);
+        }
+        catch(e) {
+            throw new HttpException("Can't get user", 403);
+            return ;
+        }
+
+        try {
+            var room = await this.prisma.chatRoom.findUnique({
+                where: { name: chatName },
+            });
+
+            if (!room) {
+                room = await this.prisma.chatRoom.create({
+                    data: {
+                        name: chatName,
+                        is_private: true,
+                        is_protected: false,
+                        participants: {
+                            create: [
+                                { userId: user1.id },
+                                { userId: user2.id },
+                            ]
+                        }
+                    }
+                });
+            }
+        }
+        catch(e) {
+            console.log("joinProfileChat error : ", e);
+            throw new HttpException("Can't create room", 403);
+            return ;
+        }
+
+        return await this.join(login1, room.id);
+    }
+
 
     //async addRoom(login: string, name: string, is_protected: boolean, password?: string) {
     async addRoom(login: string, room: AddRoomDto) {
 
         const user = await this.usersService.getUser(login);
 
+        if (await this.prisma.chatRoom.findUnique({
+            where: { name: room.name }
+        })) {
+            throw new HttpException("Room already exists", 403);
+        }
+
         if (room.name == "") {
             throw new HttpException('Enter a room name', 403);
+        }
+
+        if (room.name.indexOf('*') != -1) {
+            throw new HttpException('no * pls', 403);
         }
 
         if (room.is_private && room.is_protected) {
@@ -310,6 +362,11 @@ export class ChatService {
             }
         });
 
+        if (cur_room.is_private) {
+            throw new HttpException('This room is private', 403);
+        }
+        
+
         // create participant for user in room
         try {
             await this.prisma.participant.create({
@@ -325,8 +382,6 @@ export class ChatService {
             throw new HttpException('Unknown error', 403);
         }
 
-
-    
         return HttpStatus.OK;
     }
 

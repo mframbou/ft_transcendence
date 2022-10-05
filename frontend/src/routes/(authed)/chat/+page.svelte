@@ -11,6 +11,8 @@
     import ChatBanner from '$lib/chat/ChatBanner.svelte';
     import ParticlesBackground from '$lib/ParticlesBackground.svelte';
     import { writable } from 'svelte/store';
+    import { user } from '$lib/stores';
+
 
 
     // store loaded content
@@ -32,8 +34,29 @@
         goto('/chat/config');
     }
 
-    async function joinRoom() {
-        
+    async function joinProfileRoom() {
+        console.log("try to join profile room");
+
+        // need to add error + security check
+        const response = await fetch('/api/chat/joinProfileChat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                login1: $user.login,
+                login2: $user.login // of course login2 is the other user
+            })
+        });
+
+        console.log("response : ", response);
+
+        if (!response.ok) {
+            let json = await response.json();
+            console.log("error : ", json.message);
+        } else {
+            goto('/chat/' + '*' + ($user.login < 'dsamain' ? $user.login + '-' + 'dsamain' : 'dsamain' + '-' + $user.login));
+        }
     }
 
     async function getRooms() {
@@ -46,6 +69,7 @@
             //console.log("rooms " + i + " " + rooms[i].participants[0].user.login);
         //}
     }
+
 
     async function clearAll() {
         await fetch('/api/chat/clearAll');
@@ -78,6 +102,7 @@
         <Button on:click= {() => {config = true;}}>new chatroom</Button>
         <Button on:click={clearAll}>clear</Button>
         <Button on:click={feature}>useful feature</Button>
+        <Button on:click={joinProfileRoom}>chat with yourself :)</Button>
     </div>
 
     <!-- chatRooms list -->

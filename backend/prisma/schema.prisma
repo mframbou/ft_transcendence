@@ -64,8 +64,8 @@ model Message {
 model Participant {
 	id				Int			@default(autoincrement()) @id
 	is_owner		Boolean		@default(false)
-	is_admin		Boolean
-	is_moderator	Boolean
+	is_admin		Boolean		@default(false)
+	is_moderator	Boolean		@default(false)
 	entered_hash	String		@default("") // hash of the password entered by the user when he join (needkto be check if case of password change)
 
 	chatRoom		ChatRoom?	@relation(fields: [chatId], references: [id]) 
