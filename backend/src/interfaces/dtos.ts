@@ -108,3 +108,17 @@ export class SpecialModeDto
 	@IsIn(specialModes)
 	mode: SpecialMode;
 }
+
+export class WsDuelDto
+{
+	@IsString()
+	@IsNotEmpty()
+	login: string;
+}
+
+export class WsAcceptDuelDto
+{
+	@IsString()
+	@IsNotEmpty()
+	clientId: string;
+}

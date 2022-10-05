@@ -61,7 +61,7 @@ export class WebsocketsService {
 		return this.clients.find(client => client.id === clientId);
 	}
 
-	getClientbyLogin(login: string, namespace: string) {
+	getClientsByLogin(login: string, namespace: string) {
 		return this.clients.filter(client => client.login === login && client.namespace === namespace);
 	}
 
@@ -80,4 +80,6 @@ export class WebsocketsService {
 
 		return jwtPayload;
 	}
+
+
 }

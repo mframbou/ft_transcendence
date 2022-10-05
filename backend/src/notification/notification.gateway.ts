@@ -101,7 +101,7 @@ export class NotificationGateway implements OnGatewayDisconnect, OnGatewayConnec
                 });
             console.log("Notification created: ", cur_notif);
 
-            const client = this.websocketsService.getClientbyLogin(login, 'notification');
+            const client = this.websocketsService.getClientsByLogin(login, 'notification');
             if (!client || !client.length) {
                 console.log("Notification Gateway: ", "Client not found");
                 return;

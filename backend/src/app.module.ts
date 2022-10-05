@@ -32,11 +32,10 @@ import { BlacklistController } from './blacklist/blacklist.controller';
 import { BlacklistService } from './blacklist/blacklist.service';
 import { NotificationService } from './notification/notification.service';
 import { NotificationGateway } from './notification/notification.gateway';
-import { DuelController } from './duel/duel.controller';
 import { DuelService } from './duel/duel.service';
 
 @Module({
-	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController, ChatController, GameController, BlacklistController, DuelController],
+	controllers: [AppController, AuthController, UsersController, TwoFactorController, AdminController, FriendsController, ChatController, GameController, BlacklistController],
 	imports: [
 		PrismaModule,
 		JwtModule.register({

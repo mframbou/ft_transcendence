@@ -970,7 +970,7 @@
 					emitPaddleMove(newPos);
 			}
 
-			const bgLogins = ['oronda', 'sspina', 'dsamain', 'mframbou'];
+			const bgLogins = ['oronda', 'sspina', 'dsamain', 'mframbou', 'mzaraa'];
 			const yesSirLogins = ['tac', 'palmi', 'yoshi', 'mel'];
 
 			if ((pressedKeys.includes('i') || pressedKeys.includes('I')) && $user && specialMode === null)

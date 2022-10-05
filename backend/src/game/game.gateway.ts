@@ -1,13 +1,29 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, OnGatewayConnection, WebSocketServer } from '@nestjs/websockets';
+import {
+  SubscribeMessage,
+  WebSocketGateway,
+  OnGatewayDisconnect,
+  OnGatewayConnection,
+  WebSocketServer,
+  WsException
+} from '@nestjs/websockets';
 import { EUserStatus, IJwtPayload, IWebsocketClient, IWsClient } from '../interfaces/interfaces';
 import { AuthService } from '../auth/auth.service';
 import { WebsocketsService } from '../websockets/websockets.service';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
-import { SpecialModeDto, WsFirstConnectDto, WsPaddleMoveDto, WsSpectateDto } from '../interfaces/dtos';
+import {
+  SpecialModeDto,
+  WsAcceptDuelDto,
+  WsDuelDto,
+  WsFirstConnectDto,
+  WsPaddleMoveDto,
+  WsSpectateDto
+} from '../interfaces/dtos';
 import { UseFilters, UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/ws-auth.guard';
 import { PermissionsService } from '../permissions/permissions.service';
+import { DuelService } from '../duel/duel.service';
+import errorDispatcher from '../utils/error-dispatcher';
 
 const NAMESPACE = 'pong';
 
@@ -24,6 +40,7 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
       private websocketsService: WebsocketsService,
       private gameService: GameService,
       private permissionsService: PermissionsService,
+      private duelService: DuelService,
   ) {}
 
   @WebSocketServer()
@@ -116,6 +133,47 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
     else if (payload.mode === 'notChilling')
     {
       this.gameService.disableNotChilling(user.id);
+    }
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('startDuel')
+  async startDuel(client: IWsClient, payload: WsDuelDto)
+  {
+    const user = client.transcendenceUser;
+
+    const opponents = this.websocketsService.getClientsByLogin(payload.login, NAMESPACE);
+
+    if (opponents.length === 0)
+    {
+      console.log(`No opponents found for ${user.login} to duel`);
+      throw new WsException('Player not found');
+    }
+
+    try
+    {
+      await this.duelService.createDuel(user, opponents, this.server);
+      console.log(`${user.login} sent a duel request to ${payload.login}`);
+    }
+    catch (e)
+    {
+      errorDispatcher(e, true);
+    }
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('acceptDuel')
+  async acceptDuel(client: IWsClient, payload: WsAcceptDuelDto)
+  {
+    const user = client.transcendenceUser;
+
+    try
+    {
+      await this.duelService.acceptDuel(user.id, payload.clientId, this.server);
+    }
+    catch (e)
+    {
+      errorDispatcher(e, true);
     }
   }
 

@@ -121,8 +121,18 @@
 	}
 
 	onMount(() => {
+		$pongSocket.on('duelInvitation', (data) => {
+			console.log('pouet pouet mahmoud est bg' + JSON.stringify(data));
+			alert('You received a duel invitation : ' + JSON.stringify(data));
+		});
+
 		handleWindowResize();
 	})
+
+	function startDuel(login: string)
+	{
+		$pongSocket.emit('startDuel', {login: login});
+	}
 
 </script>
 
@@ -173,7 +183,7 @@
 			<div class="friend">
 				<img src={friend.profilePicture} alt={friend.username}/>
 				<h3>{friend.username}</h3>
-				<div style="margin-left:auto" class="invite-icon" on:click={() => alert(`Inviting ${friend.username}`)}/>
+				<div style="margin-left:auto" class="invite-icon" on:click={() => startDuel(friend.login)}/>
 				<div class="chat-icon" on:click={() => alert(`Chatting with ${friend.username}`)}/>
 			</div>
 		{/each}
