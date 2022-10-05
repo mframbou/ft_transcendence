@@ -23,6 +23,7 @@ export class GameService {
 	) {}
 
 	matchmakingPlayers: IGamePlayer[] = [];
+	duelPlayers: IGamePlayer[] = [];
 	gameRooms: IGameRoom[] = [];
 
 	startMatchmaking(client: IWebsocketClient, server: Server)
@@ -41,12 +42,17 @@ export class GameService {
 
 			this.matchmakingPlayers = this.matchmakingPlayers.filter(player => player.clientId !== player1.clientId && player.clientId !== player2.clientId);
 
-			const room: IGameRoom = {id: `${player1.clientId}-${player2.clientId}`, player1: player1, player2: player2};
-			this.gameRooms.push(room);
-
-			server.to([player1.clientId, player2.clientId]).emit('matchFound', room);
-			console.log(`Creating game between ${player1.login} and ${player2.login} (total game rooms: ${this.gameRooms.length})`);
+			this.startMatch(player1, player2, server);
 		}
+	}
+
+	startMatch(player1: IGamePlayer, player2: IGamePlayer, server: Server)
+	{
+		const room: IGameRoom = {id: `${player1.clientId}-${player2.clientId}`, player1: player1, player2: player2};
+		this.gameRooms.push(room);
+
+		server.to([player1.clientId, player2.clientId]).emit('matchFound', room);
+		console.log(`Creating game between ${player1.login} and ${player2.login} (total game rooms: ${this.gameRooms.length})`);
 	}
 
 	confirmMatch(client: IWebsocketClient, server: Server)

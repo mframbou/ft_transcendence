@@ -161,3 +161,9 @@ export interface IWsClient extends Socket
 {
 	transcendenceUser: IWebsocketClient;
 }
+
+export interface IDuel
+{
+	sender: IGamePlayer;
+	receivers: IGamePlayer[]; // handle case where receiver is logged in on multiple devices
+}
