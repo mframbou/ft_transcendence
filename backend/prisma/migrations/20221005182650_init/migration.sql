@@ -41,8 +41,8 @@ CREATE TABLE "Message" (
 CREATE TABLE "Participant" (
     "id" SERIAL NOT NULL,
     "is_owner" BOOLEAN NOT NULL DEFAULT false,
-    "is_admin" BOOLEAN NOT NULL,
-    "is_moderator" BOOLEAN NOT NULL,
+    "is_admin" BOOLEAN NOT NULL DEFAULT false,
+    "is_moderator" BOOLEAN NOT NULL DEFAULT false,
     "entered_hash" TEXT NOT NULL DEFAULT '',
     "chatId" INTEGER,
     "userId" INTEGER,
@@ -55,8 +55,12 @@ CREATE TABLE "ChatRoom" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "is_private" BOOLEAN NOT NULL DEFAULT false,
+    "is_protected" BOOLEAN NOT NULL DEFAULT false,
     "hash" TEXT,
     "banned" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "banned_timestamp" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "muted" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "muted_timestamp" TEXT[] DEFAULT ARRAY[]::TEXT[],
 
     CONSTRAINT "ChatRoom_pkey" PRIMARY KEY ("id")
 );
@@ -93,14 +97,17 @@ CREATE TABLE "BlockedUser" (
 -- CreateTable
 CREATE TABLE "Match" (
     "id" SERIAL NOT NULL,
-    "player1Login" TEXT NOT NULL,
-    "player2Login" TEXT NOT NULL,
-    "player1Score" INTEGER NOT NULL,
-    "player2Score" INTEGER NOT NULL,
+    "winnerLogin" TEXT NOT NULL,
+    "loserLogin" TEXT NOT NULL,
+    "winnerScore" INTEGER NOT NULL,
+    "loserScore" INTEGER NOT NULL,
     "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Match_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_login_key" ON "User"("login");
@@ -136,7 +143,7 @@ ALTER TABLE "BlockedUser" ADD CONSTRAINT "BlockedUser_login_fkey" FOREIGN KEY ("
 ALTER TABLE "BlockedUser" ADD CONSTRAINT "BlockedUser_blockedLogin_fkey" FOREIGN KEY ("blockedLogin") REFERENCES "User"("login") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_player1Login_fkey" FOREIGN KEY ("player1Login") REFERENCES "User"("login") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Match" ADD CONSTRAINT "Match_winnerLogin_fkey" FOREIGN KEY ("winnerLogin") REFERENCES "User"("login") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_player2Login_fkey" FOREIGN KEY ("player2Login") REFERENCES "User"("login") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Match" ADD CONSTRAINT "Match_loserLogin_fkey" FOREIGN KEY ("loserLogin") REFERENCES "User"("login") ON DELETE RESTRICT ON UPDATE CASCADE;

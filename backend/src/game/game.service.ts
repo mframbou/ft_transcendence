@@ -23,7 +23,6 @@ export class GameService {
 	) {}
 
 	matchmakingPlayers: IGamePlayer[] = [];
-	duelPlayers: IGamePlayer[] = [];
 	gameRooms: IGameRoom[] = [];
 
 	startMatchmaking(client: IWebsocketClient, server: Server)
@@ -51,14 +50,14 @@ export class GameService {
 		const room: IGameRoom = {id: `${player1.clientId}-${player2.clientId}`, player1: player1, player2: player2};
 		this.gameRooms.push(room);
 
+		console.log('sending matchFound to', player1.clientId, player2.clientId);
 		server.to([player1.clientId, player2.clientId]).emit('matchFound', room);
 		console.log(`Creating game between ${player1.login} and ${player2.login} (total game rooms: ${this.gameRooms.length})`);
 	}
 
 	confirmMatch(client: IWebsocketClient, server: Server)
 	{
-		const room = this.getClientGameRoom(client.id
-		);
+		const room = this.getClientGameRoom(client.id);
 
 		if (!room)
 			return;
@@ -89,6 +88,13 @@ export class GameService {
 
 		if (gameRoom)
 		{
+			if (!gameRoom.gameInstance)
+			{
+				this.gameRooms = this.gameRooms.filter(room => room.id !== gameRoom.id);
+				console.log(`Game between ${gameRoom.player1.login} and ${gameRoom.player2.login} canceled`);
+				return;
+			}
+
 			gameRoom.gameInstance.pause();
 
 			const disconnectedPlayer = gameRoom.player1.clientId === clientId ? gameRoom.player1 : gameRoom.player2;

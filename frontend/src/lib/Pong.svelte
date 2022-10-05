@@ -855,7 +855,7 @@
 		// collision (y or x)
 		if (collision.time !== 1 || collisionY.time !== 1)
 		{
-			while (collision.time < 1 || collisionY.time < 1)
+			while (collision.time < 1 || collisionY.time < 1 && collision.time !== 0 && collisionY.time !== 0)
 			{
 				const minTime = Math.min(collision.time, collisionY.time);
 				const remainingTime = 1 - minTime;
@@ -887,7 +887,7 @@
 						ball.position.client_y += ball.velocityY * remainingTime * deltaTimeMultiplier;
 					}
 				}
-				else
+				else if (ball.velocityY !== 0) // to avoid infinite loop (which i think is in the case of hiddenBall)
 				{
 					ball.velocityY = -ball.velocityY;
 					ball.position.client_y += ball.velocityY * remainingTime * deltaTimeMultiplier;

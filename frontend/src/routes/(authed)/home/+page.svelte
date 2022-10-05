@@ -45,7 +45,7 @@
 		onlineFriends = $friends.friends.filter(friend => friend.status === 'ONLINE');
 	}
 
-	async function listenForMatch()
+	function listenForMatch()
 	{
 		$pongSocket.once('matchFound', async (data) => {
 			console.log('matchfound');
@@ -81,17 +81,18 @@
 					throw error(404, 'An error occured while fetching opponent user ' + e);
 				}
 			}
+			console.log('confirming match');
 			$pongSocket.emit('confirmMatch', '');
 		});
 	}
 
-	async function setReady()
+	function setReady()
 	{
 		console.log("CLIENT READY");
 		$pongSocket.emit('startMatchmaking', '');
 		matchmaking = true;
 
-		await listenForMatch();
+		listenForMatch();
 	}
 
 	function handleGameFinished(event)
@@ -145,6 +146,7 @@
 			if (confirm(`You have been invited to a duel by ${data.senderLogin}!`))
 			{
 				console.log('accepted duel invitation from', data.senderLogin, data.senderId);
+				listenForMatch();
 				$pongSocket.emit('acceptDuel', {senderId: data.senderId});
 			}
 			else
@@ -156,12 +158,12 @@
 		handleWindowResize();
 	})
 
-	async function startDuel(login: string)
+	function startDuel(login: string)
 	{
 		if ($pongSocketConnected)
 		{
+			listenForMatch();
 			$pongSocket.emit('startDuel', {login: login});
-			await listenForMatch();
 		}
 	}
 
@@ -214,7 +216,7 @@
 			<div class="friend">
 				<img src={friend.profilePicture} alt={friend.username}/>
 				<h3>{friend.username}</h3>
-				<div style="margin-left:auto" class="invite-icon" on:click={async() => await startDuel(friend.login)}/>
+				<div style="margin-left:auto" class="invite-icon" on:click={() => startDuel(friend.login)}/>
 				<div class="chat-icon" on:click={() => alert(`Chatting with ${friend.username}`)}/>
 			</div>
 		{/each}

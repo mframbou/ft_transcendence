@@ -193,7 +193,7 @@ function computeBallUpdate(ball: IBall, paddle1: IPaddle, paddle2: IPaddle, delt
 					ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;
 				}
 			}
-			else
+			else if (ball.velocityY !== 0) // to avoid infinite loop (which i think is in the case of hiddenBall)
 			{
 				ball.velocityY = -ball.velocityY;
 				ball.y += ball.velocityY * remainingTime * deltaTimeMultiplier;

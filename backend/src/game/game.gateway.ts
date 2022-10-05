@@ -66,6 +66,7 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
     this.websocketsService.removeClient(client.id);
     this.gameService.handlePlayerDisconnect(client.id);
     this.gameService.handleSpectatorDisconnect(client.id);
+    this.duelService.handlePlayerDisconnect(client.id);
   }
 
   @UseGuards(WsAuthGuard)
@@ -174,7 +175,6 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
     }
     catch (e)
     {
-      console.log('error', e.message);
       errorDispatcher(e, true);
     }
   }

@@ -31,7 +31,7 @@ export class DuelService
 			clientId: user.id,
 			login: user.login,
 			connected: true,
-			ready: true,
+			ready: false,
 		};
 
 		const receiversGamePlayers: IGamePlayer[] = opponents.map(opponent => {
@@ -71,16 +71,17 @@ export class DuelService
 			throw new NotFoundException('Duel not found');
 
 		const receiver = duel.receivers.find(receiver => receiver.clientId === userId);
-		const sender = duel.sender;
-		receiver.ready = true;
 
-		// in case sender disconnected or something
-		if (duel.sender.ready && receiver.ready)
-		{
-			this.gameService.startMatch(sender, receiver, server);
-			this.duels = this.duels.filter(duel => duel.sender.clientId !== userId);
-			console.log(`Duel between ${sender.login} and ${receiver.login} accepted, starting match`);
-		}
+		if (!receiver)
+			throw new NotFoundException('Duel receiver not found');
+
+		const sender = duel.sender;
+		// receiver.ready = true; // dont set ready because ready is set when confirmation is sent (just in case)
+
+		console.log(sender.ready, receiver.ready, 'tttt');
+		console.log(`Duel between ${sender.login} and ${receiver.login} accepted, starting match`);
+		this.gameService.startMatch(sender, receiver, server);
+		this.duels = this.duels.filter(duel => duel.sender.clientId !== userId);
 	}
 
 	getPlayerSentDuel(clientId: string): IDuel
@@ -93,5 +94,22 @@ export class DuelService
 		return this.duels.filter(duel => duel.receivers.some(receiver => receiver.clientId === clientId));
 	}
 
+	handlePlayerDisconnect(clientId: string)
+	{
+		const sentDuel = this.getPlayerSentDuel(clientId);
+		if (sentDuel)
+		{
+			console.log(`Player ${clientId} disconnected, cancelling duel`);
+			this.duels = this.duels.filter(duel => duel.sender.clientId !== clientId);
+		}
+
+		const receivedDuels = this.getPlayerReceivedDuels(clientId);
+		if (receivedDuels.length > 0)
+		{
+			console.log(`Player ${clientId} disconnected, removing him from duel receivers`);
+			for (const duel of receivedDuels)
+				duel.receivers = duel.receivers.filter(receiver => receiver.clientId !== clientId);
+		}
+	}
 }
 
