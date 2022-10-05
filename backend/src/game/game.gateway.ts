@@ -136,6 +136,7 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
     }
   }
 
+
   @UseGuards(WsAuthGuard)
   @SubscribeMessage('startDuel')
   async startDuel(client: IWsClient, payload: WsDuelDto)
@@ -169,10 +170,11 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
 
     try
     {
-      await this.duelService.acceptDuel(user.id, payload.clientId, this.server);
+      await this.duelService.acceptDuel(user.id, payload.senderId, this.server);
     }
     catch (e)
     {
+      console.log('error', e.message);
       errorDispatcher(e, true);
     }
   }

@@ -120,5 +120,5 @@ export class WsAcceptDuelDto
 {
 	@IsString()
 	@IsNotEmpty()
-	clientId: string;
+	senderId: string;
 }

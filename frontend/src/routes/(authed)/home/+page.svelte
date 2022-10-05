@@ -3,7 +3,10 @@
 	import Pong from "$lib/Pong.svelte";
 	import { fetchUser, friends, user } from '$lib/stores';
 	import Button from "$lib/Button.svelte";
-	import { pongSocket, pongSocketConnected } from "$lib/websocket-stores.js";
+	import {
+		pongSocket,
+		pongSocketConnected
+	} from '$lib/websocket-stores.js';
 	import { resJson } from '../../../lib/utils';
 	import { error } from '@sveltejs/kit';
 	import { slide, fade } from 'svelte/transition';
@@ -15,6 +18,8 @@
 	let matchmakingTime: number = 0;
 	let matchmakingTimeInterval: number = null;
 	let opponentPlayer = null;
+
+	export let data;
 
 	function secondsToMinutesSeconds(seconds: number) {
 		const minutes = Math.floor(seconds / 60);
@@ -40,13 +45,10 @@
 		onlineFriends = $friends.friends.filter(friend => friend.status === 'ONLINE');
 	}
 
-	async function setReady()
+	async function listenForMatch()
 	{
-		console.log("CLIENT READY");
-		$pongSocket.emit('startMatchmaking', '');
-		matchmaking = true;
-
 		$pongSocket.once('matchFound', async (data) => {
+			console.log('matchfound');
 			matchmaking = false;
 			console.log("MATCH FOUND, SENDING CONFIRMATION:", data);
 
@@ -81,6 +83,15 @@
 			}
 			$pongSocket.emit('confirmMatch', '');
 		});
+	}
+
+	async function setReady()
+	{
+		console.log("CLIENT READY");
+		$pongSocket.emit('startMatchmaking', '');
+		matchmaking = true;
+
+		await listenForMatch();
 	}
 
 	function handleGameFinished(event)
@@ -120,18 +131,38 @@
 		}
 	}
 
+	// function startDuel(senderId: string)
+	// {
+	// 	$pongSocket.emit('startDuel', senderId);
+	// }
+
 	onMount(() => {
+		//
+		// if (data.duelId)
+		// 	startDuel(data.duelId);
+
 		$pongSocket.on('duelInvitation', (data) => {
-			console.log('pouet pouet mahmoud est bg' + JSON.stringify(data));
-			alert('You received a duel invitation : ' + JSON.stringify(data));
+			if (confirm(`You have been invited to a duel by ${data.senderLogin}!`))
+			{
+				console.log('accepted duel invitation from', data.senderLogin, data.senderId);
+				$pongSocket.emit('acceptDuel', {senderId: data.senderId});
+			}
+			else
+			{
+				console.log('refused duel invitation');
+			}
 		});
 
 		handleWindowResize();
 	})
 
-	function startDuel(login: string)
+	async function startDuel(login: string)
 	{
-		$pongSocket.emit('startDuel', {login: login});
+		if ($pongSocketConnected)
+		{
+			$pongSocket.emit('startDuel', {login: login});
+			await listenForMatch();
+		}
 	}
 
 </script>
@@ -183,7 +214,7 @@
 			<div class="friend">
 				<img src={friend.profilePicture} alt={friend.username}/>
 				<h3>{friend.username}</h3>
-				<div style="margin-left:auto" class="invite-icon" on:click={() => startDuel(friend.login)}/>
+				<div style="margin-left:auto" class="invite-icon" on:click={async() => await startDuel(friend.login)}/>
 				<div class="chat-icon" on:click={() => alert(`Chatting with ${friend.username}`)}/>
 			</div>
 		{/each}

@@ -1,17 +1,27 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayDisconnect, OnGatewayConnection, WebSocketServer } from '@nestjs/websockets';
+import {
+	SubscribeMessage,
+	WebSocketGateway,
+	OnGatewayDisconnect,
+	OnGatewayConnection,
+	WebSocketServer,
+	WsException
+} from '@nestjs/websockets';
 import { getCookie } from '../utils/utils';
 import { UseGuards } from '@nestjs/common';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
 import { AuthService } from '../auth/auth.service';
-import { EUserStatus, IJwtPayload, IWebsocketClient } from '../interfaces/interfaces';
+import { EUserStatus, IJwtPayload, IWebsocketClient, IWsClient } from '../interfaces/interfaces';
 import { WebsocketsService } from '../websockets/websockets.service';
 import { NotificationService } from './notification.service';
 import { Server } from 'socket.io';
-import { WsFirstConnectDto } from '../interfaces/dtos';
+import { WsAcceptDuelDto, WsDuelDto, WsFirstConnectDto } from '../interfaces/dtos';
 import { UsersService } from 'src/users/users.service';
 import { InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { INotification } from '../interfaces/interfaces';
+import { WsAuthGuard } from '../auth/ws-auth.guard';
+import errorDispatcher from '../utils/error-dispatcher';
+import { DuelService } from '../duel/duel.service';
 
 const NAMESPACE = 'notification';
 
@@ -30,8 +40,9 @@ export class NotificationGateway implements OnGatewayDisconnect, OnGatewayConnec
 			private authService: AuthService,
 			private websocketsService: WebsocketsService,
 			private statusService: NotificationService,
-            private usersService: UsersService,
-            private prisma: PrismaService,
+			private usersService: UsersService,
+			private prisma: PrismaService,
+			private duelService: DuelService,
     ) {
         // export interface ICommand
         // {

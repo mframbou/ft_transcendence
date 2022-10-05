@@ -65,7 +65,7 @@ export class DuelService
 
 	async acceptDuel(userId: string, senderId: string, server: Server)
 	{
-		const duel = this.getPlayerReceivedDuels(userId).find(duel => duel.sender.clientId === sender.id);
+		const duel = this.getPlayerReceivedDuels(userId).find(duel => duel.sender.clientId === senderId);
 
 		if (!duel)
 			throw new NotFoundException('Duel not found');
@@ -77,9 +77,9 @@ export class DuelService
 		// in case sender disconnected or something
 		if (duel.sender.ready && receiver.ready)
 		{
-			this.gameService.startMatch(duel.sender, receiver, server);
+			this.gameService.startMatch(sender, receiver, server);
 			this.duels = this.duels.filter(duel => duel.sender.clientId !== userId);
-			console.log(`Duel between ${duel.sender.login} and ${receiver.login} accepted, starting match`);
+			console.log(`Duel between ${sender.login} and ${receiver.login} accepted, starting match`);
 		}
 	}
 
