@@ -84,40 +84,43 @@
     <ParticlesBackground properties={{minVelocity: 0.4, maxVelocity: .8, lineColor: '#0097e3', initialCount: 50, maxPointSize: 40}} />
 </div>
 
-<section class="chat_container">
+<div class="hflex">
+    <div class="chat_container">
 
-        <!-- <h1>Chat</h1> -->
-    <!-- {#if $user} -->
-    <div class="chat">
-        <!-- {#key msgs} -->
-            {#each msgs as msg, i}
-                <div class="message">
-                    <!-- {#if msg.user === $user.login}
-                    <div class='hflex' style="justify-content: flex-end;">
-                            <p>{msg.content} {msg.user}</p>
-                    </div> 
-                    {:else} -->
-                    {#if msg.isError}
-                            <p style="color:red;">{msg.content}</p> 
-                    {:else if msg.isStatus}
-                            <p style="color:gray;">*{msg.content}*</p> 
-                    <!-- {:else if !$user.blockedUsers.find((cur) => cur == msg.sender.login)} -->
-                    {:else}
-                        <img class="profilePicture" src={msg.sender.profilePicture}/> 
-                        <!-- <p>  {msg.sender.user.login}: {msg.content} </p> -->
-                        <p> {msg.sender.login} <!-- ({msg.timestamp})-->: {msg.content} </p>
+
+            <!-- <h1>Chat</h1> -->
+        <!-- {#if $user} -->
+        <div class="chat">
+            <!-- {#key msgs} -->
+                {#each msgs as msg, i}
+                    <div class="message">
+                        <!-- {#if msg.user === $user.login}
+                        <div class='hflex' style="justify-content: flex-end;">
+                                <p>{msg.content} {msg.user}</p>
+                        </div> 
+                        {:else} -->
+                        {#if msg.isError}
+                                <p style="color:red;">{msg.content}</p> 
+                        {:else if msg.isStatus}
+                                <p style="color:gray;">*{msg.content}*</p> 
+                        <!-- {:else if !$user.blockedUsers.find((cur) => cur == msg.sender.login)} -->
+                        {:else}
+                            <img class="profilePicture" src={msg.sender.profilePicture}/> 
+                            <!-- <p>  {msg.sender.user.login}: {msg.content} </p> -->
+                            <p> {msg.sender.login} <!-- ({msg.timestamp})-->: {msg.content} </p>
                    
-                    {/if}
-                </div>
-            {/each}
-        <!-- {/key} -->
+                        {/if}
+                    </div>
+                {/each}
+            <!-- {/key} -->
+        </div>
+        <!-- <input type="text" id="name" name="name" required autocomplete="off" minlength="4" maxlength="8" size="10" bind={message}> -->
+        <!-- {/if} -->
+        <div class='hflex'>
+            <input on:keypress="{onKeyDown}" bind:value="{message}" type="text" placeholder="message" />
+        </div>
     </div>
-    <!-- <input type="text" id="name" name="name" required autocomplete="off" minlength="4" maxlength="8" size="10" bind={message}> -->
-    <!-- {/if} -->
-    <div class='hflex'>
-        <input on:keypress="{onKeyDown}" bind:value="{message}" type="text" placeholder="message" />
-    </div>
-</section>
+</div>
 <style lang="scss">
     .vflex {
         display: flex;
@@ -130,9 +133,9 @@
         flex-direction: row;
 
         align-items:center;
-        /* chat display */
+        justify-content: center;
         input {
-            height: 30%;
+            width: 100%;
         }
     }
 
@@ -151,15 +154,41 @@
     }
 
     .chat_container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         max-height: 300px;
         padding: 10px 10px;
         align-items: center;
+        width: 80%;
         //background-color: orange;
+		$section-bg-color: rgba(28, 19, 42, 0.9);
+
+		backdrop-filter: blur(5px);
+		max-width: 1920px;
+		min-height: 9em;
+		min-width: 600px;
+		//max-height: fit-content;
+        max-height: 60vh;
+		margin: 20px;
+		padding: 15px;
+		gap: 20px;
+		background-color: $section-bg-color;
+		border-radius: 10px;
+
+		// it seems that backdrop filter moves section to the foreground
+		backdrop-filter: blur(5px);
+
+        input {
+            color: black;
+            width: 600px;
+        }
 
     }
 
     .chat {
-        width: 50%;
+        width: 80%;
         //background-color: blue;
         justify-content: center;
         text-align: center;
@@ -174,9 +203,6 @@
         color: red;
     }
 
-    input {
-        color: black;
-    }
 
         .profilePicture {
             size: inherit;
@@ -217,7 +243,7 @@
         display: flex;
         flex-direction: column;
         width: 50%;
-        height: 80%;
+        height: 100%;
         margin-right: auto;
         align-items: center;
         justify-content: center;
@@ -239,7 +265,7 @@
 		backdrop-filter: blur(5px);
 		max-width: 1920px;
 		min-height: 9em;
-		max-height: fit-content;
+		//max-height: fit-content;
 		margin: 20px;
 		padding: 15px;
 		gap: 20px;

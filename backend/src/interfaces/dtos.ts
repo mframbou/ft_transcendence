@@ -56,6 +56,15 @@ export class AddParticipantDto
 	password: string;
 }
 
+export class JoinProfileDto
+{
+	@IsString()
+	login1: string;
+
+	@IsString()
+	login2: string;
+}
+
 export class WsFirstConnectDto
 {
 	@IsString()

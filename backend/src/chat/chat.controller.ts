@@ -18,7 +18,7 @@ import {
   import { JwtAuthGuard } from '../auth/jwt-auth.guard';
   import { JwtTwoFactorAuthGuard } from 'src/auth/jwt-two-factor-auth.guard';
   import { IUserRequest } from 'src/interfaces/interfaces';
-  import { AddRoomDto, AddParticipantDto} from 'src/interfaces/dtos';
+  import { AddRoomDto, AddParticipantDto, JoinProfileDto} from 'src/interfaces/dtos';
 import { get } from 'http';
   //import { PermissionService } from '../permission/permission.service';
   
@@ -44,6 +44,15 @@ import { get } from 'http';
         console.log("data in joinRoom (controller): " + JSON.stringify(data));
         return await this.chatService.join(payload.login, data.chatId, data.password);
     }
+
+    @Post('joinProfileChat')
+    async joinProfileChat(@Body() data: JoinProfileDto, @Req() req: IUserRequest) {
+        const payload = req.jwtPayload;
+        console.log("join payload: ", payload);
+        console.log("data in joinRoom (controller): " + JSON.stringify(data));
+        return await this.chatService.joinProfileChat(data.login1, data.login2);
+    }
+
 
     @Get('rooms')
     async rooms(@Req() req: IUserRequest, @Query('name') params?): Promise<any> {
