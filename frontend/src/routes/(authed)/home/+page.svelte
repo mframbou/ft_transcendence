@@ -150,6 +150,7 @@
 			console.log('user status changed', data);
 			if ($friends && $friends.friends)
 			{
+				console.log('friends', $friends.friends);
 				for (let friend of $friends.friends)
 				{
 					if (friend.login === data.login)

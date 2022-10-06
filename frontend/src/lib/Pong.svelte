@@ -353,24 +353,23 @@
 			dispatch('game-end', {
 				player1Score: serverData.player1Score,
 				player2Score: serverData.player2Score,
+				winner: serverData.winner,
 			});
 		}
 		else
 		{
-
-			player1.score = 111;
-			player2.score = 222;
 			const myScore = isPlayerOne ? serverData.player1Score : serverData.player2Score;
 			const opponentScore = isPlayerOne ? serverData.player2Score : serverData.player1Score;
-			const win = myScore > opponentScore;
+			const wonMatch = isPlayerOne ? serverData.winner === 'player1' : serverData.winner === 'player2';
 
 			dispatch('game-end', {
 				player1Score: myScore,
 				player2Score: opponentScore,
+				winner: wonMatch ? 'player1' : 'player2',
 			});
 
 			let imageUrl;
-			if (win)
+			if (wonMatch)
 				imageUrl = '/images/gain_social_credit.jpeg';
 			else
 				imageUrl = '/images/lose_social_credit.jpeg';
@@ -1106,6 +1105,9 @@
 
 	function loop()
 	{
+		if (!animationFrameId) // because cancelAnimationFrame doesn't seem to work :(
+			return;
+
 		update();
 		if (canvas) // to avoid null when changing page
 		{

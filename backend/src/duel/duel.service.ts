@@ -21,10 +21,14 @@ export class DuelService
 		if (opponents.length === 0)
 			throw new BadRequestException('No opponents provided');
 
-		const alreadyDueling = this.getPlayerSentDuel(user.id);
+		const alreadySentDuel = this.getPlayerSentDuel(user.id);
 		// remove previous duel if exists
-		if (alreadyDueling)
+		if (alreadySentDuel)
 			this.duels = this.duels.filter(duel => duel.sender.clientId !== user.id);
+
+		const inGame = this.gameService.getClientGameRoom(user.id);
+		if (inGame)
+			throw new BadRequestException('You cannot send a duel invitation while in game');
 
 		// convert WebsocketClient to IGamePlayer (for ready property mostly)
 		const senderGamePlayer: IGamePlayer = {
@@ -76,12 +80,20 @@ export class DuelService
 			throw new NotFoundException('Duel receiver not found');
 
 		const sender = duel.sender;
+
+		console.log('receiver pouet');
+		const receiverInGame = this.gameService.getClientGameRoom(receiver.clientId);
+
+		if (receiverInGame)
+		{
+			// disconnect from current game
+			this.gameService.handlePlayerDisconnect(receiver.clientId);
+		}
 		// receiver.ready = true; // dont set ready because ready is set when confirmation is sent (just in case)
 
-		console.log(sender.ready, receiver.ready, 'tttt');
 		console.log(`Duel between ${sender.login} and ${receiver.login} accepted, starting match`);
 		this.gameService.startMatch(sender, receiver, server);
-		this.duels = this.duels.filter(duel => duel.sender.clientId !== userId);
+		this.duels = this.duels.filter(duel => duel.sender.clientId !== senderId);
 	}
 
 	getPlayerSentDuel(clientId: string): IDuel

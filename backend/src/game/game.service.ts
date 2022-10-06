@@ -294,7 +294,6 @@ export class GameService {
 		room.gameInstance?.stop();
 		room.gameInstance = null;
 
-		this.broadcastEvent(room, 'gameEnd', {player1Score: player1.score, player2Score: player2.score}, server, true);
 		this.gameRooms = this.gameRooms.filter(r => r.id !== room.id);
 
 		let winner;
@@ -304,6 +303,7 @@ export class GameService {
 			winner = player1.score > player2.score ? player1 : player2;
 
 		const loser = player1 === winner ? player2 : player1;
+		this.broadcastEvent(room, 'gameEnd', {player1Score: player1.score, player2Score: player2.score, winner: winner === player1 ? 'player1' : 'player2'}, server, true);
 		await this.addMatchToHistory(winner.login, winner.score, loser.login, loser.score);
 		await this.addPlayerWin(winner.login);
 		await this.addPlayerLoss(loser.login);
