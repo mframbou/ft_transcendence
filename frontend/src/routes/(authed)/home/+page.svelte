@@ -228,7 +228,7 @@
 		{#each onlineFriends as friend}
 			<div class="friend">
 				<img src={friend.profilePicture} alt={friend.username}/>
-				<h3>{friend.username}</h3>
+				<h3 class="friend-username">{friend.username}</h3>
 				<div style="margin-left:auto" class="invite-icon" on:click={() => startDuel(friend.login)}/>
 				<div class="chat-icon" on:click={() => alert(`Chatting with ${friend.username}`)}/>
 			</div>
@@ -417,6 +417,11 @@
 			}
 		}
 
+		.friend-username
+		{
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
 	}
 
 
