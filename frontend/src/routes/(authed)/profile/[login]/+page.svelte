@@ -33,6 +33,7 @@
 		border-radius: 20%;
 		object-fit: cover;
 		height: 90%;
+		margin-top: auto;
 	}
 
 	.username
