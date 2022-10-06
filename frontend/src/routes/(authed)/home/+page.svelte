@@ -1,11 +1,11 @@
 <script lang="ts">
 	import ParticlesBackground from "$lib/ParticlesBackground.svelte";
 	import Pong from "$lib/Pong.svelte";
-	import { fetchUser, friends, user } from '$lib/stores';
+	import { fetchUser, friends, user, addNotification } from '$lib/stores';
 	import Button from "$lib/Button.svelte";
 	import {
 		pongSocket,
-		pongSocketConnected
+		pongSocketConnected, statusSocket
 	} from '$lib/websocket-stores.js';
 	import { resJson } from '../../../lib/utils';
 	import { error } from '@sveltejs/kit';
@@ -33,6 +33,7 @@
 			matchmakingTime++;
 		}, 1000);
 	}
+
 	else if (!matchmaking && matchmakingTimeInterval !== null)
 	{
 		window.clearInterval(matchmakingTimeInterval);
@@ -132,27 +133,39 @@
 		}
 	}
 
-	// function startDuel(senderId: string)
-	// {
-	// 	$pongSocket.emit('startDuel', senderId);
-	// }
+	function acceptDuelInvitation(data: any)
+	{
+		console.log('accepted duel invitation from', data.senderLogin, data.senderId);
+		listenForMatch();
+		$pongSocket.emit('acceptDuel', {senderId: data.senderId});
+	}
 
 	onMount(() => {
 		//
 		// if (data.duelId)
 		// 	startDuel(data.duelId);
 
+		$statusSocket.on('userStatusChanged', (data) =>
+		{
+			console.log('user status changed', data);
+			if ($friends && $friends.friends)
+			{
+				for (let friend of $friends.friends)
+				{
+					if (friend.login === data.login)
+					{
+						console.log('friend user status changed', data);
+						friend.status = data.status;
+						onlineFriends = $friends.friends.filter(friend => friend.status === 'ONLINE');
+						break;
+					}
+				}
+			}
+		});
+
 		$pongSocket.on('duelInvitation', (data) => {
-			if (confirm(`You have been invited to a duel by ${data.senderLogin}!`))
-			{
-				console.log('accepted duel invitation from', data.senderLogin, data.senderId);
-				listenForMatch();
-				$pongSocket.emit('acceptDuel', {senderId: data.senderId});
-			}
-			else
-			{
-				console.log('refused duel invitation');
-			}
+			console.log('duel invitation');
+			addNotification(`You have been invited to a duel by ${data.senderLogin}!`, () => acceptDuelInvitation(data), () => console.log('declined duel invitation'));
 		});
 
 		handleWindowResize();

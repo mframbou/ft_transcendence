@@ -4,6 +4,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import NotificationPopup from "$lib/NotificationPopup.svelte";
 	import NotificationPopupList from "$lib/NotificationPopupList.svelte";
+	import { addNotification } from '$lib/stores';
 
 	onDestroy(() => {
 		console.log('destroy');
@@ -15,7 +16,6 @@
 		}
 	})
 
-	let addNotification;
 
 	onMount(() => {
 		for (let i = 0; i < 10; i++)
@@ -29,4 +29,4 @@
 
 </script>
 
-<NotificationPopupList bind:addNotification/>
+<NotificationPopupList/>

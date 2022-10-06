@@ -3,7 +3,18 @@ import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 
 export const otpVerifyAndClear = writable(undefined);
-export const chatRooms: any = writable([]);
+export const chatRooms = writable([]);
+export let notifications = writable([]);
+
+let notifId = 0;
+export function addNotification(text: string, accept?: () => void, decline?: () => void)
+{
+	notifId++;
+	const notifs = get(notifications);
+	notifs.push({id: notifId, text, accept, decline});
+	notifications.set(notifs);
+	console.log('added notif', text);
+}
 
 export const { store: user, fetchFunction: fetchUser } = createStandardFetchStore('/api/users/me', 'user');
 export const { store: friends, fetchFunction: fetchFriends } = createStandardFetchStore('/api/friends/all', 'friends');

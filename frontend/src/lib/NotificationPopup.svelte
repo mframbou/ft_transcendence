@@ -36,6 +36,9 @@
 		const now = performance.now();
 		const delta = now - lastUpdate;
 		lastUpdate = now;
+		if (!progressBar) // accept/decline button
+			return;
+
 		let progress = progressBar.style.width;
 		if (!progress)
 			progress = '100%';

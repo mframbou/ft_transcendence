@@ -72,7 +72,7 @@ export class StatusGateway implements OnGatewayDisconnect, OnGatewayConnection
 
 		try
 		{
-			await this.statusService.setStatus(clientToRemove.login, EUserStatus.OFFLINE);
+			await this.statusService.setStatus(clientToRemove.login, EUserStatus.OFFLINE, this.server);
 		}
 		catch (e)
 		{

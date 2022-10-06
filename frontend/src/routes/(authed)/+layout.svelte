@@ -3,9 +3,11 @@
     import NavbarV2 from '$lib/NavbarV2.svelte';
     import { statusSocket, statusSocketConnected } from "$lib/websocket-stores";
     import { notificationSocket, notificationSocketConnected } from "$lib/websocket-stores";
-	import NotificationPopup from '$lib/NotificationPopup.svelte';
+		import { addNotification, notifications } from '$lib/stores';
+		import NotificationPopup from '$lib/NotificationPopup.svelte';
     import {onDestroy} from "svelte";
     import { goto } from '$app/navigation';
+		import NotificationPopupList from "../../lib/NotificationPopupList.svelte";
 
     const unsubscribeStatus = statusSocket.subscribe(() => {});
     const unsubscribeNotification = notificationSocket.subscribe(() => {});
@@ -24,6 +26,7 @@
 		notif.content = notif.content.substring(0, Math.max(notif.content.length, MAX_NOTIF_LENGHT)) + "...".substring(3 * (notif.content.length < MAX_NOTIF_LENGHT));
 		notif.title = notif.title.substring(0, Math.max(notif.title.length, MAX_NOTIF_LENGHT)) + "...".substring(3 * (notif.title.length < MAX_NOTIF_LENGHT));
 		console.log("notif : ", notif);
+		addNotification(notif.title + ' ---- ' + notif.content);
 		//alert(data.service + ": " + data.title + "\n" + data.content + "\n" + "link: " + data.link);
 		unique = {};
 	});
@@ -47,15 +50,17 @@
 	</main>
 </div>
 
-{#key unique}
-	{#if notif}
-		<NotificationPopup>
-				<p>{notif.service}</p>
-				<p>{notif.title}</p>
-				<p>{notif.content}</p>
-		</NotificationPopup>
-	{/if}
-{/key}
+
+<NotificationPopupList/>
+<!--{#key unique}-->
+<!--	{#if notif}-->
+<!--		<NotificationPopup>-->
+<!--				<p>{notif.service}</p>-->
+<!--				<p>{notif.title}</p>-->
+<!--				<p>{notif.content}</p>-->
+<!--		</NotificationPopup>-->
+<!--	{/if}-->
+<!--{/key}-->
 
 
 <style lang="scss">
