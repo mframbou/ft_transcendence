@@ -155,11 +155,12 @@ export class ChatService {
         // need to add check for blocked user + notify targetLogin
         if (notify) {
             for (let participant of room.participants) {
+                // uncomment to notify only outside of the room
                 //if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
                     //continue;
                 this.notify({ service: 'chat', 
                               title: `${room.name}`, 
-                              content: `${room.name}` + ": " +  client.transcendenceUser.login + ": " + content.content, 
+                              content: client.transcendenceUser.login + ": " + content.content, 
                               link: '/chat/' + room.name,
                               senderLogin: client.transcendenceUser.login}, participant.user.login);
             }
@@ -535,6 +536,12 @@ export class ChatService {
             return ;
         }
 
+        this.notify({ service: 'chat',
+                      title: 'Removed',
+                      content: 'you have been removed from ' + room.name + ' by ' + participant.user.login,
+                      link: '/chat/' + room.name, // maybe link should be optional 'cause it's weird to give a removed participant a link to the room ;)
+                      senderLogin: client.transcendenceUser.login}, target.user.login);
+
         try {
             await this.prisma.participant.delete({
                 where: { id: target.id }
@@ -546,15 +553,10 @@ export class ChatService {
             return;
         }
         
-        this.sendTo(server, room, 'kick', target, client, true, target.login);
+        this.sendTo(server, room, 'kick', target, client, false, target.login);
         
         this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.user.login);
 
-        this.notify({ service: 'chat',
-                      title: 'Removed',
-                      content: 'you have been removed from ' + room.name + ' by ' + participant.user.login,
-                      link: '/chat/' + room.name, // maybe link should be optional 'cause it's weird to give a removed participant a link to the room ;)
-                      senderLogin: client.transcendenceUser.login}, target.login);
     }
 
     async password(server: any, client: any, participant: any, room: any, args: any) {
