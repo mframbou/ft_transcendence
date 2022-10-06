@@ -21,7 +21,8 @@
 
 		display: flex;
 		justify-items: start;
-		align-items: flex-end;
+		// https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
+		//align-items: flex-end;
 		gap: 30px;
 		padding: 20px 30px;
 	}
@@ -74,11 +75,13 @@
 		gap: 10px;
 	}
 
+	// https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
 	.username-buttons
 	{
 		display: flex;
 		flex-direction: column;
 		gap: 0.7rem;
+		margin-top: auto;
 	}
 
 	.banner-button

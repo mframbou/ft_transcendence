@@ -21,7 +21,6 @@
 
 		display: flex;
 		justify-items: start;
-		align-items: flex-end;
 		gap: 30px;
 		padding: 20px 30px;
 	}
@@ -38,6 +37,7 @@
 
 	.username
 	{
+		margin-top: auto; // https://stackoverflow.com/questions/36130760/use-justify-content-flex-end-and-to-have-vertical-scrollbar
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
