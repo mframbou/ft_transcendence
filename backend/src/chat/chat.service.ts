@@ -14,7 +14,6 @@ import { disconnect } from 'process';
 import { ICommand } from 'src/interfaces/interfaces';
 import { AddRoomDto } from 'src/interfaces/dtos';
 
-
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 
@@ -56,6 +55,8 @@ export class ChatService {
         {name: 'delete', handler: this.delete.bind(this), argsCount: [0, 0], usage: '/delete', description: 'Delete the chatroom', owner: true, admin: false, moderator: false, user: false},
         {name: 'help', handler: this.help.bind(this), argsCount: [0, 0], usage: '/help', description: 'list commands', owner: true, admin: true, moderator: true, user: true},
         {name: 'mute', handler: this.mute.bind(this), argsCount: [1, 2], usage: '/mute', description: 'mute a user', owner: true, admin: true, moderator: true, user: false},
+        {name: 'duel', handler: this.duel.bind(this), argsCount: [1, 1], usage: '/duel <login>', description: 'invite <login> to play a bello pongo game', owner: true, admin: true, moderator: true, user: true},
+        {name: 'leave', handler: this.leaveRoom.bind(this), argsCount: [0, 0], usage: '/leave', description: 'remove yourself from the participant of the room and leave the page', owner: true, admin: true, moderator: true, user: true},
     ]
 
     // roomsclients store the client id of each user in each room
@@ -507,11 +508,9 @@ export class ChatService {
     async command(server: any, client: any, participant: any, room: any, content: string) {
 
         let command = content.split(' ')[0].slice(1);
-        let args = content.split(' ').slice(1);
-        console.log("command : " + command);
-        console.log("args : " + args);
+        let args = content.split(' ').slice(1).filter(arg => arg != '');
 
-        let cur_command = this.commands.find((cur) => cur.name == command);
+        let cur_command: ICommand = this.commands.find((cur) => cur.name == command);
 
         if (!cur_command) {
             this.sendError(server, client, command + ": Unknown command");
@@ -525,6 +524,7 @@ export class ChatService {
 
         cur_command.handler(server, client, participant, room, args);
     }
+
     async remove(server: any, client: any, participant: any, room: any, args: any) {
         let target = room.participants.find((cur) => cur.user.login == args[0]);
         if (!target) {
@@ -539,7 +539,7 @@ export class ChatService {
         this.notify({ service: 'chat',
                       title: 'Removed',
                       content: 'you have been removed from ' + room.name + ' by ' + participant.user.login,
-                      link: '/chat/' + room.name, // maybe link should be optional 'cause it's weird to give a removed participant a link to the room ;)
+                      link: undefined,
                       senderLogin: client.transcendenceUser.login}, target.user.login);
 
         try {
@@ -553,10 +553,42 @@ export class ChatService {
             return;
         }
         
-        this.sendTo(server, room, 'kick', target, client, false, target.login);
+        this.sendTo(server, room, 'kick', '', client, false, target.login);
         
         this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.user.login);
 
+    }
+
+    async leaveRoom(server: any, client: any, participant: any, room: any, args: any) {
+        if (participant.is_owner) {
+            this.sendError(server, client, "owner of the room cannot leave");
+            return ;
+        }
+
+        try {
+            await this.prisma.participant.delete({
+                where: { id: participant.id }
+            });
+        }
+        catch (e) {
+            this.sendError(server, client, "Unknown error");
+            console.log("remove error: " + e);
+            return;
+        }
+
+       await this.sendTo(server, room, 'kick', '', client, false, client.transcendenceUser.login);
+       await this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " left the room");
+
+        try {
+            this.prisma.participant.delete({
+                where: { id: participant.id }
+            })
+        }
+        catch (e) {
+            console.log("error in leaveRoom: " + e);
+            return ;
+        }
+       
     }
 
     async password(server: any, client: any, participant: any, room: any, args: any) {
@@ -623,6 +655,19 @@ export class ChatService {
                       senderLogin: client.transcendenceUser.login}, participant.user.login);
 
     }
+
+    async duel(server: any, client: any, participant: any, room: any, args: any) {
+        try {
+            var target = await this.getUser(args[0]);
+            var target_participant = await this.getParticipant(target, room.id);
+        }
+        catch (e) {
+            this.sendError(server, client, "duel: " + e);
+            return;
+        }
+
+        // duel here :)
+    }
     
     async kick(server: any, client: any, participant: any, room: any, args: any) {
         try {
@@ -651,7 +696,7 @@ export class ChatService {
         this.notify({ service: 'chat',
                       title: 'Kicked',
                       content: 'you have been kicked from ' + room.name + ' by ' + participant.user.login,
-                      link: '/chat/' + room.name,
+                      link: undefined,
                       senderLogin: client.transcendenceUser.login}, target.login);
 
     }
@@ -824,7 +869,7 @@ export class ChatService {
             console.log("ban error: ", e);
         }
 
-        this.sendTo(server, room, 'kick', target, client, true, target.login);
+        this.sendTo(server, room, 'kick', '', client, false, target.login);
 
         this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
 
