@@ -5,6 +5,8 @@
 	import { flip } from 'svelte/animate';
 	import { notifications } from '$lib/stores';
 	import Button from "./Button.svelte";
+    import { loop_guard } from 'svelte/internal';
+    import { goto } from '$app/navigation';
 
 	let hiddenNotificationsIds: number[] = [];
 	let id: number = 0;
@@ -52,13 +54,25 @@
 
 	let acceptedOrDeclined = false;
 
+	function f() {
+		console.log("Bonjour a tous les amis");
+	}
 </script>
 
 
 <div class="wrapper">
 	<div class="notification-list">
 		{#each $notifications.filter(n => !hiddenNotificationsIds.includes(n.id)) as notification (notification.id)}
-			<div class="notification" transition:slide animate:flip>
+			<div class="notification" transition:slide animate:flip on:click={() => {  
+				// on click go to notif.link if it exist, 
+				if (notification.link) { 
+					goto(notification.link);
+					// hot reload don't seem to work if u go from page/[x] to page/[y] so we reload the page
+					// timeout is here because if we don't wait the page will reload before we reach the new page
+					setTimeout(() => {location.reload()}, 100);
+				} 
+			}}>
+
 					<NotificationPopup on:close={() => removeNotification(notification.id)} fixedPosition={false}>
 						<div class="notification-content">
 							<span class="notification-text">{notification.text}</span>
@@ -123,6 +137,13 @@
 	{
 		//transition: all 2s ease-in-out;
 		width: 100%;
+
+	}
+
+	.notification:hover
+	{
+		transform: scale(1.05);
+		
 	}
 
 </style>

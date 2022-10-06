@@ -166,7 +166,7 @@
 
 		$pongSocket.on('duelInvitation', (data) => {
 			console.log('duel invitation');
-			addNotification(`You have been invited to a duel by ${data.senderLogin}!`, () => acceptDuelInvitation(data), () => console.log('declined duel invitation'));
+			addNotification({content: `You have been invited to a duel by ${data.senderLogin}!`}, () => acceptDuelInvitation(data), () => console.log('declined duel invitation'));
 		});
 
 		handleWindowResize();

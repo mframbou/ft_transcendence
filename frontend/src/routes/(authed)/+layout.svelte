@@ -26,7 +26,8 @@
 		notif.content = notif.content.substring(0, Math.max(notif.content.length, MAX_NOTIF_LENGHT)) + "...".substring(3 * (notif.content.length < MAX_NOTIF_LENGHT));
 		notif.title = notif.title.substring(0, Math.max(notif.title.length, MAX_NOTIF_LENGHT)) + "...".substring(3 * (notif.title.length < MAX_NOTIF_LENGHT));
 		console.log("notif : ", notif);
-		addNotification(notif.title + ' ---- ' + notif.content);
+		//addNotification(notif.title + ' ---- ' + notif.content);
+		addNotification(notif);
 		//alert(data.service + ": " + data.title + "\n" + data.content + "\n" + "link: " + data.link);
 		unique = {};
 	});

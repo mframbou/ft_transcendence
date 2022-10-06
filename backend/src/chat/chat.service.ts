@@ -159,7 +159,7 @@ export class ChatService {
                     //continue;
                 this.notify({ service: 'chat', 
                               title: `${room.name}`, 
-                              content: client.transcendenceUser.login + ": " + content.content, 
+                              content: `${room.name}` + ": " +  client.transcendenceUser.login + ": " + content.content, 
                               link: '/chat/' + room.name,
                               senderLogin: client.transcendenceUser.login}, participant.user.login);
             }
