@@ -489,16 +489,16 @@ export class ChatService {
     }
 
     check_command(command: ICommand, args: string[], server: any, client: any, participant: any) {
-        if (args.length < command.argsCount[0] || args.length > command.argsCount[1]) {
-            this.sendError(server, client, "Usage: " + command.usage);
-            return false;
-        }
-
         if (!((participant.is_admin && command.admin)
                 || (participant.is_moderator && command.moderator)
                 || (participant.is_owner && command.owner)
                 || (command.user))) {
             this.sendError(server, client, "You don't have the right to use this command");
+            return false;
+        }
+
+        if (args.length < command.argsCount[0] || args.length > command.argsCount[1]) {
+            this.sendError(server, client, "Usage: " + command.usage);
             return false;
         }
         return true;

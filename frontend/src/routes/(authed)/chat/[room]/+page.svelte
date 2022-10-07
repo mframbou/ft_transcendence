@@ -93,24 +93,25 @@
         <div class="chat">
             <!-- {#key msgs} -->
                 {#each msgs as msg, i}
-                    <div class="message">
-                        <!-- {#if msg.user === $user.login}
-                        <div class='hflex' style="justify-content: flex-end;">
-                                <p>{msg.content} {msg.user}</p>
-                        </div> 
-                        {:else} -->
-                        {#if msg.isError}
-                                <p style="color:red;">{msg.content}</p> 
-                        {:else if msg.isStatus}
-                                <p style="color:gray;">*{msg.content}*</p> 
-                        <!-- {:else if !$user.blockedUsers.find((cur) => cur == msg.sender.login)} -->
-                        {:else}
-                            <img class="profilePicture" src={msg.sender.profilePicture}/> 
-                            <!-- <p>  {msg.sender.user.login}: {msg.content} </p> -->
-                            <p> {msg.sender.login} <!-- ({msg.timestamp})-->: {msg.content} </p>
-                   
-                        {/if}
-                    </div>
+                    <!-- <div class="messageContainer" style="justify-content: flex-end;"> -->
+                        <div class="message">
+                        <!-- {#if msg.user === data.user.login} -->
+                            <!-- <div class='hflex' style="justify-content: flex-end;">
+                                    <p>{msg.content} {msg.user}</p>
+                            </div> 
+                            {/if} -->
+                            {#if msg.isError}
+                                    <p style="color:red;">{msg.content}</p> 
+                            {:else if msg.isStatus}
+                                    <p style="color:gray;">*{msg.content}*</p> 
+                            {:else if !data.user.blockedUsers.find((cur) => cur == msg.sender.login)}
+                                    <img class="profilePicture" src={msg.sender.profilePicture}/> 
+                                    <p> {msg.sender.login} </p>
+                                    <p>: &nbsp</p>
+                                    <p> {msg.content} </p>
+                            {/if}
+                        </div>
+                    <!-- </div> -->
                 {/each}
             <!-- {/key} -->
         </div>
@@ -122,6 +123,43 @@
     </div>
 </div>
 <style lang="scss">
+
+    .messageContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-end;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .message {
+        display: flex;
+        flex-direction: row;
+        //width: 80%;
+        height: 30px;
+        align-items: center;
+        margin: 5px;
+        padding: 5px;
+        border-radius: 5px;
+        //background-color: #0097e3;
+        color: white;
+        //font-size: 1.2em;
+        //font-weight: bold;
+        p, h3{
+            margin: 0;
+            padding: 0;
+            color : black;
+            overflow-x: auto;
+            /* chat display */
+        }
+
+        p {
+            word-wrap: word-break;
+        }
+    }
+
     .vflex {
         display: flex;
         flex-direction: column;
