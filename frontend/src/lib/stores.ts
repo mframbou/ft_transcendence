@@ -7,11 +7,11 @@ export const chatRooms = writable([]);
 export let notifications = writable([]);
 
 let notifId = 0;
-export function addNotification(notif:any ,accept?: () => void, decline?: () => void)
+export function addNotification(notif: any, actions?: {text: string, action: () => void}[])
 {
 	notifId++;
 	const notifs = get(notifications);
-	notifs.push({id: notifId, text: notif.content, link: notif.link, accept, decline});
+	notifs.push({id: notifId, text: notif.content, link: notif.link, actions: actions});
 	notifications.set(notifs);
 	console.log('added notif', notif.title + "-----" + notif.content);
 }

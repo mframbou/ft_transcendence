@@ -166,7 +166,9 @@
 
 		$pongSocket.on('duelInvitation', (data) => {
 			console.log('duel invitation');
-			addNotification({content: `You have been invited to a duel by ${data.senderLogin}!`}, () => acceptDuelInvitation(data), () => console.log('declined duel invitation'));
+			const acceptButton = { text: 'Accept', action: () => acceptDuelInvitation(data) };
+			const declineButton = { text: 'Decline', action: () => {} };
+			addNotification({content: `You have been invited to a duel by ${data.senderLogin}!`}, [acceptButton, declineButton]);
 		});
 
 		handleWindowResize();
@@ -230,8 +232,8 @@
 			<div class="friend">
 				<img src={friend.profilePicture} alt={friend.username}/>
 				<h3 class="friend-username">{friend.username}</h3>
-				<div style="margin-left:auto" class="invite-icon" on:click={() => startDuel(friend.login)}/>
-				<div class="chat-icon" on:click={() => alert(`Chatting with ${friend.username}`)}/>
+				<div style="margin-left:auto" class="invite-icon icon" on:click={() => startDuel(friend.login)}/>
+				<div class="chat-icon icon" on:click={() => alert(`Chatting with ${friend.username}`)}/>
 			</div>
 		{/each}
 	</section>
@@ -376,6 +378,21 @@
 			aspect-ratio: 1 / 1;
 			object-fit: cover;
 			border-radius: 20%;
+		}
+
+		.icon
+		{
+			transition: background-color .2s ease-in-out;
+
+			&:hover
+			{
+				background-color: #4255FE;
+			}
+
+			&:active
+			{
+				background-color: #2E3B9E;
+			}
 		}
 
 		.invite-icon

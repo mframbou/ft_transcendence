@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { IJwtPayload, IUserRequest } from '../interfaces/interfaces';
 import { JwtTwoFactorAuthGuard } from '../auth/jwt-two-factor-auth.guard';
@@ -26,6 +26,12 @@ export class GameController {
 		const payload: IJwtPayload = req.jwtPayload;
 
 		return await this.gameService.getPlayerMatches(payload.login);
+	}
+
+	@Get('history/:login')
+	async getMatchesByLogin(@Param('login') login: string)
+	{
+		return await this.gameService.getPlayerMatches(login);
 	}
 
 }

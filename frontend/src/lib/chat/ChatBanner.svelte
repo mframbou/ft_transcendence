@@ -89,107 +89,79 @@
 
 <div class='wrapper'>
 
-    {#each room.participants as participant}
-        <img class="profilePicture" src={participant.user.profilePicture}/>
-    {/each}
-    <p>
-        name: &nbsp {room.name}
-    </p>
-    <p>
-        {room.participants.length} user
-    </p>
-    <p>
-        {room.is_protected ? '🔒' : ' 🔓'}
-    </p>
-    <p style="color:{room.is_private ? 'green' : 'white'};">{room.is_private ? 'private' : 'public'} </p>
-    <button on:click={pass}>join</button>
+    <div class="room-participants">
+        {#each room.participants as participant}
+            <img class="profile-picture" src={participant.user.profilePicture}/>
+        {/each}
+    </div>
+
+    <span class="room-name">{room.name}</span>
+<!--    <p>-->
+<!--        {room.participants.length} user-->
+<!--    </p>-->
+
+    {#if room.is_protected}
+        <span class="room-protected"/>
+    {/if}
+<!--    <p style="color:{room.is_private ? 'green' : 'white'};">{room.is_private ? 'private' : 'public'} </p>-->
+<!--    <button on:click={pass}>join</button>-->
 </div>
 
 <style lang="scss">
-    .hflex {
+
+    .wrapper
+    {
         display: flex;
         flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        height: clamp(2rem, 5vw, 3.5rem);
+        padding: 0.3rem;
+        border-radius: 0.3rem;
+        width: 100%;
+        gap: 0.3rem;
 
+        background: pink;
     }
 
-    .vflex {
+    .profile-picture
+    {
+        aspect-ratio: 1/1;
+        border-radius: 20%;
+        object-fit: cover;
+        height: 65%;
+    }
+
+    .room-participants
+    {
         display: flex;
-        flex-direction: column;
-
-        gap: 0.5rem;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        height: 100%;
+        gap: 0.3rem;
     }
-    
-    .wrapper
-	{
-		$bg-color: rgba(28, 19, 42, 0.9);
 
-		backdrop-filter: blur(5px);
+    .room-name
+    {
+        font-family: Montserrat;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
-        position: relative;
-		display: flex;
-		flex-direction: space-around;
-		margin: 1px;
-        width: 50%;
-        min-width: 500px;
-        
-		background-color: $bg-color;
-		gap: 10px;
-		border-radius: 10px;
-        padding: 1%;
+    .room-protected
+    {
+        margin-left: auto;
+        margin-right: 0.3rem;
+        height: 40%;
+        aspect-ratio: 1/1;
 
-        p {
-            margin: 0;
-            padding: 1%;
+        &:after
+        {
+            content: url("/images/lock-solid.svg");
         }
+    }
 
-        button {
-            position: absolute;
-            right: 10px;
-            margin: 0;
-            padding: 0;
-            width: 20%;
-            height: 50%;
-            background-color: rgb(88, 146, 0);
-            border-radius: 5px;
-            color: white;
-            font-size: 1.0em;
-
-            &:hover {
-                background-color: rgb(88, 146, 0, 0.8);
-            }
-
-            &:active {
-                background-color: rgb(88, 146, 0, 0.6);
-            }
-        }
-
-        .profilePicture {
-            size: inherit;
-            //width: 50px;
-
-            //height: 50px;
-            //border-radius: 50%;
-            //margin: 0;
-            //padding: 0;
-		    //aspect-ratio: 1;
-		    border-radius: 20%;
-		    object-fit: cover;
-            width: 5%;
-        }
-
-        .test {
-            color: black;
-            height: 1000%;
-        }
-
-        input {
-            color:black;
-        }
-
-        .🌈 {
-            background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-	    }
-	}
 </style>

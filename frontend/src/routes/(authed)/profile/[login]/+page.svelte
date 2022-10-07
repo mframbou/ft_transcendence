@@ -350,6 +350,8 @@
 
 	onMount(() =>
 	{
+		fetchMatchesHistory();
+
 		$statusSocket.on('userStatusChanged', (data) =>
 		{
 			console.log('userStatusChanged', data);
@@ -422,6 +424,16 @@
 
 	let moreMenuShown: boolean = false;
 	let blockingUser: boolean = false;
+
+	async function fetchMatchesHistory()
+	{
+		const res = await fetch(`/api/game/history/${targetUser.login}`);
+		if (res.ok)
+		{
+			matchHistory = await res.json();
+			console.log(matchHistory);
+		}
+	}
 
 	async function handleBlockButtonClick()
 	{
@@ -558,9 +570,9 @@
 						</div>
 					{:else}
 						{#each matchHistory as match}
-							<div class="match" class:match-victory={match.outcome === 'victory'} class:match-defeat={match.outcome === 'defeat'} class:match-draw={match.outcome === 'draw'}>
-								<h1 class="match-name"><strong>{targetUser.username}</strong><span class="user-separator">-</span>{match.oponnent}</h1>
-								<span class="match-score"><strong>{match.score.you}</strong><span class="score-separator">-</span>{match.score.opponent}</span>
+							<div class="match">
+								<h1 class="match-name"><strong>{match.winner.username}</strong><span class="user-separator">-</span>{match.loser.username}</h1>
+								<span class="match-score"><strong>{match.winnerScore}</strong><span class="score-separator">-</span>{match.loserScore}</span>
 							</div>
 						{/each}
 					{/if}

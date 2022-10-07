@@ -76,22 +76,15 @@
 					<NotificationPopup on:close={() => removeNotification(notification.id)} fixedPosition={false}>
 						<div class="notification-content">
 							<span class="notification-text">{notification.text}</span>
+							{#if notification.actions}
 							<div class="notification-buttons">
-								{#if notification.accept}
-									<Button --vertical-padding="10px" --horizontal-padding="15px" on:click={() => acceptNotif(notification.id)}>
-										<span class="button-content">
-											Accept
-										</span>
+								{#each notification.actions as action}
+									<Button --vertical-padding="10px" --horizontal-padding="20px" on:click={() => {action.action(); removeNotification(notification.id)}}>
+										<span>{action.text}</span>
 									</Button>
-								{/if}
-								{#if notification.decline}
-									<Button --vertical-padding="10px" --horizontal-padding="15px" on:click={() => declineNotif(notification.id)}>
-										<span class="button-content">
-											Decline
-										</span>
-									</Button>
-								{/if}
+								{/each}
 							</div>
+							{/if}
 						</div>
 					</NotificationPopup>
 			</div>
@@ -135,15 +128,15 @@
 
 	.notification
 	{
-		//transition: all 2s ease-in-out;
 		width: 100%;
 
+		//transition: transform 0.5s ease-out;
+		//
+		//&:hover
+		//{
+		//	transform: scale(1.05);
+		//}
 	}
 
-	.notification:hover
-	{
-		transform: scale(1.05);
-		
-	}
 
 </style>
