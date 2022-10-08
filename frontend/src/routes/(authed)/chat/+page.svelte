@@ -36,6 +36,8 @@
 
     async function joinProfileRoom() {
         console.log("try to join profile room");
+        const login1 = $user.login;
+        const login2 = $user.login;
 
         // need to add error + security check
         const response = await fetch('/api/chat/joinProfileChat', {
@@ -44,8 +46,8 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                login1: $user.login,
-                login2: $user.login // of course login2 is the other user
+                login1: login1,
+                login2: login2 // of course login2 is the other user
             })
         });
 
@@ -55,7 +57,7 @@
             let json = await response.json();
             console.log("error : ", json.message);
         } else {
-            goto('/chat/' + '*' + ($user.login < 'dsamain' ? $user.login + '-' + 'dsamain' : 'dsamain' + '-' + $user.login));
+            goto('/chat/' + '*' + (login1 < login2 ? login1 + '-' + login2 : login2 + '-' + login1));
         }
     }
 

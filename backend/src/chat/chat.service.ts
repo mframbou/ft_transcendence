@@ -170,7 +170,7 @@ export class ChatService {
 
     }
 
-    async sendError(server: any, client: any, content: string) {
+    sendError(server: any, client: any, content: string) {
         server.to(client.id).emit('commandError', content);
     }
 
@@ -462,7 +462,7 @@ export class ChatService {
                 },
                 include: { sender: true }
             });
-            this.sendTo(server, room, 'receiveMessage', message, client, true);
+            await this.sendTo(server, room, 'receiveMessage', message, client, true);
         }
         catch (e) {
             console.log("handleMessage error: " + e);
@@ -620,7 +620,7 @@ export class ChatService {
             return ;
         }
         
-        this.sendStatus(server, client, participant, room, "New password set");
+        await this.sendStatus(server, client, participant, room, "New password set");
         
         this.sendError(server, client, "/!\\ Users already in room can still access it without the password\nto force them to enter the password, remove them");
 
@@ -655,7 +655,7 @@ export class ChatService {
             return;
         }
 
-        this.sendStatus(server, client, participant, room, participant.user.login + " invited " + args[0] + " in the room");
+        await this.sendStatus(server, client, participant, room, participant.user.login + " invited " + args[0] + " in the room");
 
         //this.notificationGateway.notify(participant.user.login, 'chat', 'Invitation', 'you have been invited to join ' + room.name , client.transcendenceUser.login, 'chat/room/' + room.name);
         this.notify({ service: 'chat', 
@@ -695,13 +695,13 @@ export class ChatService {
         }
 
         // find clientId of target and send him kick
-        this.sendTo(server, room, 'kick', '', client, false, target.login)
+        await this.sendTo(server, room, 'kick', '', client, false, target.login)
 
         // remove target client id from room
         this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
 
         // send command log to all participants
-        this.sendStatus(server, client, participant, room, participant.user.login + " kicked " + args[0]);
+        await this.sendStatus(server, client, participant, room, participant.user.login + " kicked " + args[0]);
 
         this.notify({ service: 'chat',
                       title: 'Kicked',
@@ -743,9 +743,9 @@ export class ChatService {
             return ;
         }
 
-        this.sendStatus(server, client, participant, room, participant.user.login + " unbanned " + args[0]);
+        await this.sendStatus(server, client, participant, room, participant.user.login + " unbanned " + args[0]);
 
-        this.notify({ service: 'chat',
+        await this.notify({ service: 'chat',
                       title: 'unban',
                       content: 'you have been unbaned from ' + room.name + ' by ' + participant.user.login,
                       link: '/chat/' + room.name,
@@ -811,9 +811,9 @@ export class ChatService {
 
         //this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
 
-        this.sendStatus(server, client, participant, room, participant.user.login + " muted " + args[0]);
+        await this.sendStatus(server, client, participant, room, participant.user.login + " muted " + args[0]);
 
-        this.notify({ service: 'chat',
+        await this.notify({ service: 'chat',
                       title: 'mute',
                       content: 'you have been muted from ' + room.name + ' by ' + participant.user.login,
                       link: '/chat/' + room.name,
@@ -879,13 +879,13 @@ export class ChatService {
             console.log("ban error: ", e);
         }
 
-        this.sendTo(server, room, 'kick', '', client, false, target.login);
+        await this.sendTo(server, room, 'kick', '', client, false, target.login);
 
         this.roomsClients = this.roomsClients.filter((cur) => cur.login !== target.login || cur.chatId !== room.id);
 
-        this.sendStatus(server, client, participant, room, participant.user.login + " banned " + args[0]);
+        await this.sendStatus(server, client, participant, room, participant.user.login + " banned " + args[0]);
 
-        this.notify({ service: 'chat',
+        await this.notify({ service: 'chat',
                       title: 'ban',
                       content: 'you have been baned from ' + room.name + ' by ' + participant.user.login,
                       link: '/chat/' + room.name,
@@ -927,9 +927,9 @@ export class ChatService {
             return ;
         }
 
-        this.sendStatus(server, client, participant, room, participant.user.login + " is now " + args[1]);
+        await this.sendStatus(server, client, participant, room, target.login + " is now " + args[1]);
 
-        this.notify({ service: 'chat',
+        await this.notify({ service: 'chat',
                       title: 'promote',
                       content: participant.user.login + " set you're new role in " + room.name + " to " + args[1],
                       link: '/chat/' + room.name,

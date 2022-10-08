@@ -63,13 +63,10 @@
 <div class="wrapper">
 	<div class="notification-list">
 		{#each $notifications.filter(n => !hiddenNotificationsIds.includes(n.id)) as notification (notification.id)}
-			<div class="notification" transition:slide animate:flip on:click={() => {  
+			<div class="notification" transition:slide animate:flip on:click={async () => {  
 				// on click go to notif.link if it exist, 
 				if (notification.link) { 
-					goto(notification.link);
-					// hot reload don't seem to work if u go from page/[x] to page/[y] so we reload the page
-					// timeout is here because if we don't wait the page will reload before we reach the new page
-					setTimeout(() => {location.reload()}, 100);
+					await goto(notification.link);
 				} 
 			}}>
 
