@@ -20,7 +20,7 @@
 
         // if already in room go to chat
         if (room.participants.find(p => p.user.login === $user.login)) {
-            goto('/chat/' + room.name);
+            await goto('/chat/' + room.name);
             return ;
         } 
 
@@ -87,7 +87,7 @@
     </Modal>
 {/if}
 
-<div class='wrapper'>
+<div class="wrapper" on:click={pass}>
 
     <div class="room-participants">
         {#each room.participants as participant}
@@ -121,6 +121,7 @@
         width: 100%;
         gap: 0.3rem;
 
+        cursor: pointer;
         background: pink;
     }
 
