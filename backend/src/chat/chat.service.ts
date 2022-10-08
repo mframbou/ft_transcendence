@@ -525,25 +525,40 @@ export class ChatService {
     }
 
     async remove(server: any, client: any, participant: any, room: any, args: any) {
-        let target = room.participants.find((cur) => cur.user.login == args[0]);
-        if (!target) {
+        try {
+            var target = await this.getUser(args[0]);
+            var target_participant = await this.getParticipant(target, room.id);
+        }
+        catch (e) {
+            this.sendError(server, client, "Unknown error");
+            console.log("remove error: " + e);
+            return;
+        }
+
+
+        if (!target_participant) {
             this.sendError(server, client, "remove: User is not in the room");
             return ;
         }
-        if (target.is_owner && !participant.is_owner) {
+        if (target_participant.is_owner && !participant.is_owner) {
             this.sendError(server, client, "remove: You can't remove the owner");
             return ;
         }
 
-        this.notify({ service: 'chat',
+        await this.notify({ service: 'chat',
                       title: 'Removed',
                       content: 'you have been removed from ' + room.name + ' by ' + participant.user.login,
                       link: undefined,
-                      senderLogin: client.transcendenceUser.login}, target.user.login);
+                      senderLogin: client.transcendenceUser.login}, target.login);
+
+        await this.sendTo(server, room, 'kick', '', client, false, target.login);
+        
+        await this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.login);
+
 
         try {
             await this.prisma.participant.delete({
-                where: { id: target.id }
+                where: { id: target_participant.id }
             });
         }
         catch (e) {
@@ -552,10 +567,6 @@ export class ChatService {
             return;
         }
         
-        this.sendTo(server, room, 'kick', '', client, false, target.login);
-        
-        this.sendStatus(server, client, participant, room, client.transcendenceUser.login + " removed " + target.user.login);
-
     }
 
     async leaveRoom(server: any, client: any, participant: any, room: any, args: any) {
