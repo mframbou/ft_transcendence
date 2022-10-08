@@ -716,7 +716,7 @@ export class ChatService {
         }
 
         // recreate banned list without target and re-assign it -> very slow but prisma cringe so it's better like this
-        const updated_banned = room.filter((cur) => cur != args[0]);
+        const updated_banned = room.banned.filter((cur) => cur != args[0]);
 
         try {
             await this.prisma.chatRoom.update({
