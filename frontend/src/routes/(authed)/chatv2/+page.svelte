@@ -1,6 +1,6 @@
 
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
+    import { afterUpdate, onDestroy, onMount, tick } from 'svelte';
     import { goto, prefetchRoutes } from '$app/navigation';
 
 	import Modal from '$lib/Modal.svelte';
@@ -12,74 +12,77 @@
     import ParticlesBackground from '$lib/ParticlesBackground.svelte';
     import { writable } from 'svelte/store';
     import { user } from '$lib/stores';
+    import { chatSocket } from '../../../lib/websocket-stores';
 
 
 
     // store loaded content
-	export let data;
+    export let data;
 
     let chatRooms: any[] = data.chatRooms;
+    let currentChatMsgs: any[] = [];
     let headSize = 30;
+    let currentChatRoom: any = null;
+    let message: string = '';
+    let messagesHistoryElement: HTMLDivElement;
 
     let config = false;
 
 
-    onMount(async () => {
-        getRooms();
-    });
+    async function fetchRoomMessage(roomName: string)
+    {
+        console.log(`Fetching room ${roomName}`);
+        const res = await fetch(`/api/chat/rooms?name=${encodeURIComponent(roomName)}`);
 
-    async function addRoom() {
-        getRooms();
-        goto('/chat/config');
-    }
-
-    async function joinProfileRoom() {
-        console.log("try to join profile room");
-
-        // need to add error + security check
-        const response = await fetch('/api/chat/joinProfileChat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                login1: $user.login,
-                login2: $user.login // of course login2 is the other user
-            })
-        });
-
-        console.log("response : ", response);
-
-        if (!response.ok) {
-            let json = await response.json();
-            console.log("error : ", json.message);
-        } else {
-            goto('/chat/' + '*' + ($user.login < 'dsamain' ? $user.login + '-' + 'dsamain' : 'dsamain' + '-' + $user.login));
+        if (res.ok)
+        {
+            const data = await res.json();
+            currentChatRoom = data;
+            currentChatMsgs = data.messages.sort((a, b) => a.timestamp - b.timestamp);
+            console.log(currentChatMsgs);
+        }
+        else
+        {
+            currentChatRoom = null;
+            console.log("error");
         }
     }
 
-    async function getRooms() {
-        let rooms;
-        chatRooms = await fetch('/api/chat/rooms').then(res => res.json())
-
-        console.log("rooms : " + JSON.stringify(chatRooms));
-
-        //for (let i = 0; i < rooms.length; i++) {
-            //console.log("rooms " + i + " " + rooms[i].participants[0].user.login);
-        //}
+    function handleKeyDown(event)
+    {
+        if (event.key === 'Enter')
+            sendMessage();
     }
 
-
-    async function clearAll() {
-        await fetch('/api/chat/clearAll');
-        getRooms();
+    function sendMessage()
+    {
+        if (!message)
+            return ;
+        console.log("sending message : ", message);
+        $chatSocket.emit("message", {chatId: currentChatRoom.id, userId: $user.id, content: message});
+        message = '';
     }
 
-    let unique = {}
-    async function feature() {
-        headSize = 1000;
-        unique = {}
+    async function joinRoom(roomName: string)
+    {
+        console.log(`Joining room ${roomName}`);
+        await fetchRoomMessage(roomName);
+        $chatSocket.emit('enter', {chatId: currentChatRoom.id});
     }
+
+    onMount(async () => {
+        await getRooms();
+
+        $chatSocket.on("receiveMessage", async (data) => {
+            console.log("message received : ", data);
+            console.log("sender : ", data.sender);
+            currentChatMsgs.push(data);
+            currentChatMsgs = currentChatMsgs.sort((a, b) => a.timestamp - b.timestamp); // in case of lag
+            await tick(); // https://svelte.dev/tutorial/tick to wait for updates
+            messagesHistoryElement.scroll({top: messagesHistoryElement.scrollHeight, behavior: 'smooth'});
+        });
+    });
+
 
 </script>
 
@@ -89,11 +92,9 @@
 </Modal>
 {/if}
 
-{#key unique}
 <div class='background'>
     <ParticlesBackground properties={{minVelocity: 0.4, maxVelocity: .7, lineColor: '#0097e3', initialCount: 50, maxPoints: 100, maxPointSize: headSize, keyEvent: true}} />
 </div>
-{/key}
 
 
 <div class="wrapper">
@@ -105,11 +106,39 @@
         </div>
         {#each chatRooms as room}
             <div class="chatroom">
-                <ChatBanner room={room} />
+                <ChatBanner on:click={() => joinRoom(room.name)} room={room} />
             </div>
         {/each}
     </div>
     <div class="current-chat">
+        {#if currentChatRoom}
+        <div class="chatroom-header">
+            <h1 class="chatroom-name">{currentChatRoom.name}</h1>
+            <div class="chatroom-actions">
+                <Button on:click={() => config = true}>Config</Button>
+            </div>
+        </div>
+        <div class="messages-history" bind:this={messagesHistoryElement}>
+            {#each currentChatMsgs as msg}
+                <div class="message">
+                    {#if msg.isError}
+                        <p style="color:red;">{msg.content}</p>
+                    {:else if msg.isStatus}
+                        <p style="color:gray;">*{msg.content}*</p>
+                    {:else}
+                        <img class="profile-picture" src={msg.sender.profilePicture}/>
+                        <p> {msg.sender.login} </p>
+                        <p>: &nbsp</p>
+                        <p> {msg.content} </p>
+                    {/if}
+                </div>
+            {/each}
+        </div>
+        <div class="chat-input">
+            <input on:keydown={handleKeyDown} bind:value={message} class="message-input" type="text" placeholder="Type your message here" />
+            <button class="send-button" on:click={sendMessage}>Send</button>
+        </div>
+        {/if}
     </div>
 </div>
 
@@ -129,7 +158,7 @@
 <!--</div>-->
 
 
-<style>
+<style lang="scss">
 
     .wrapper
     {
@@ -181,7 +210,65 @@
     {
         flex: 3;
         background-color: blue;
-        overflow-y: scroll;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 0.5rem;
+
+        .messages-history
+        {
+            overflow-y: auto;
+
+            .message
+            {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                background: #2E3B9E;
+                padding: 0.5rem;
+
+                .profile-picture
+                {
+                    border-radius: 20%;
+                    object-fit: cover;
+                    aspect-ratio: 1/1;
+                    width: 1rem;
+                }
+            }
+        }
+
+
+        .chat-input
+        {
+            display: flex;
+            flex-direction: row;
+            margin-top: auto;
+
+            .send-button
+            {
+                background-color: #2E3B9E;
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.5rem;
+                margin: 0.5rem;
+                cursor: pointer;
+            }
+
+            .message-input
+            {
+                flex: 1;
+                height: 2rem;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.5rem;
+                margin: 0.5rem;
+                background: #2E3B9E;
+                color: white;
+            }
+        }
     }
 
 	.background
@@ -195,4 +282,7 @@
 		height: 100%;
 		width: 100%;
 	}
+
+
+
 </style>

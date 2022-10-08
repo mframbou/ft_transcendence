@@ -148,7 +148,7 @@ export class ChatService {
     async sendTo(server: any, room: any, event: string, content: any, client: any, notify: boolean = false, targetLogin?: any) {
         console.log("sendTo roomsclients : ", this.roomsClients);
         for (let cur of this.roomsClients) {
-            if (room.id == cur.chatId && (targetLogin == undefined || targetLogin == cur.login)) {
+            if (room.id === cur.chatId && (targetLogin === undefined || targetLogin === cur.login)) {
                 server.to(cur.clientId).emit(event, content);
             }
         }
@@ -462,7 +462,6 @@ export class ChatService {
                 },
                 include: { sender: true }
             });
-            console.log("message created: " + JSON.stringify(message));
             this.sendTo(server, room, 'receiveMessage', message, client, true);
         }
         catch (e) {

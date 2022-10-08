@@ -87,7 +87,7 @@
     </Modal>
 {/if}
 
-<div class="wrapper" on:click={pass}>
+<div class="wrapper" on:click>
 
     <div class="room-participants">
         {#each room.participants as participant}
