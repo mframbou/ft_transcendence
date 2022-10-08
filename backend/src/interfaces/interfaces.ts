@@ -48,6 +48,8 @@ export interface IPublicUser
 export interface ISelfUser extends IPublicUser
 {
 	twoFactorEnabled: boolean;
+	blockedUsers: IBlockedUser[];
+	blockingUsers: IBlockedUser[];
 }
 
 export interface IBasicUserInfo

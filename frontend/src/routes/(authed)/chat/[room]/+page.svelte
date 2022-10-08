@@ -94,23 +94,32 @@
             <!-- {#key msgs} -->
                 {#each msgs as msg, i}
                     <!-- <div class="messageContainer" style="justify-content: flex-end;"> -->
-                        <div class="message">
-                        <!-- {#if msg.user === data.user.login} -->
-                            <!-- <div class='hflex' style="justify-content: flex-end;">
-                                    <p>{msg.content} {msg.user}</p>
-                            </div> 
-                            {/if} -->
-                            {#if msg.isError}
-                                    <p style="color:red;">{msg.content}</p> 
-                            {:else if msg.isStatus}
-                                    <p style="color:gray;">*{msg.content}*</p> 
-                            {:else if !data.user.blockedUsers.find((cur) => cur == msg.sender.login)}
-                                    <img class="profilePicture" src={msg.sender.profilePicture}/> 
-                                    <p> {msg.sender.login} </p>
-                                    <p>: &nbsp</p>
-                                    <p> {msg.content} </p>
-                            {/if}
-                        </div>
+                  {#if msg.isError || msg.isStatus}
+                    <div class="message">
+                      <p class:error-message={msg.isError} class:status-message={msg.isStatus}>
+                        {msg.content}
+                      </p>
+                    </div>
+                  {:else if !data.user.blockingUsers.find((cur) => cur.blockedLogin === msg.sender?.login)}
+                    <div class="message">
+                      <img class="profilePicture" src={msg.sender.profilePicture}/>
+                      <p> {msg.sender.login} </p>
+                      <p>: &nbsp</p>
+                      <p> {msg.content} </p>
+                    </div>
+                  {/if}
+<!--                        <div class="message">-->
+<!--                            {#if msg.isError}-->
+<!--                                    <p style="color:red;">{msg.content}</p> -->
+<!--                            {:else if msg.isStatus}-->
+<!--                                    <p style="color:gray;">*{msg.content}*</p> -->
+<!--                            {:else if !data.user.blockingUsers.find((cur) => cur.blockedLogin === msg.sender.login)}-->
+<!--                                    <img class="profilePicture" src={msg.sender.profilePicture}/> -->
+<!--                                    <p> {msg.sender.login} </p>-->
+<!--                                    <p>: &nbsp</p>-->
+<!--                                    <p> {msg.content} </p>-->
+<!--                            {/if}-->
+<!--                        </div>-->
                     <!-- </div> -->
                 {/each}
             <!-- {/key} -->
@@ -132,6 +141,26 @@
         width: 100%;
         margin: 0;
         padding: 0;
+    }
+
+    .error-message
+    {
+      color: red !important;
+    }
+
+    .status-message
+    {
+      color: gray !important;
+
+      &:before
+      {
+        content: "*";
+      }
+
+      &:after
+      {
+        content: "*";
+      }
     }
 
     .message {

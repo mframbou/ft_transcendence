@@ -16,6 +16,7 @@ async function loadData(fetch: any, room: string)
     console.log("out.room: ", out.room);
 
     out.user = await fetch(`/api/users/me`).then(res => res.json());
+    console.log(`USER USER USER USER: ${JSON.stringify(out.user)}`);
     if (!out.user) {
         throw error(404, 'User not found');
     }

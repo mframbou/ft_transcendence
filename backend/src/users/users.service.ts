@@ -90,6 +90,7 @@ export class UsersService
 					twoFactorEnabled: true,
 					status: true,
 					blockedUsers: true,
+					blockingUsers: true,
 				}
 			});
 		}
@@ -175,6 +176,10 @@ export class UsersService
 			return await this.prismaService.user.update({
 				where: {
 					login: login,
+				},
+				include: {
+					blockedUsers: true,
+					blockingUsers: true,
 				},
 				data: data,
 			});
