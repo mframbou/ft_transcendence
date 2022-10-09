@@ -504,6 +504,7 @@
 
 		return () => {
 			pause();
+			stopListeningToUpdateEvents();
 		}
 	});
 

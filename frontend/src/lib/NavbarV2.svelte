@@ -285,7 +285,7 @@
 </script>
 
 <div class="wrapper" class:absolute={!relativePos} class:relative={relativePos}>
-	<a href={navigation.length > 0 ? navigation[0] : '/'} class="logo">
+	<a href={navigation.length > 0 ? ('/' + navigation[0]) : '/'} class="logo">
 		<img src="/images/bellopongo-white.png">
 	</a>
 	<div class="navigation" bind:this={navDiv}>

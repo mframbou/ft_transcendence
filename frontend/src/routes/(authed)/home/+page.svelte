@@ -175,6 +175,11 @@
 		});
 
 		handleWindowResize();
+
+		return () => {
+			$pongSocket.off('matchFound');
+			$statusSocket.off('userStatusChanged');
+		};
 	})
 
 	function startDuel(login: string)
