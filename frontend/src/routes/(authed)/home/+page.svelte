@@ -2,6 +2,7 @@
 	import ParticlesBackground from "$lib/ParticlesBackground.svelte";
 	import Pong from "$lib/Pong.svelte";
 	import { fetchUser, friends, user, addNotification } from '$lib/stores';
+	import { page } from '$app/stores';
 	import Button from "$lib/Button.svelte";
 	import {
 		pongSocket,
@@ -11,6 +12,7 @@
 	import { error } from '@sveltejs/kit';
 	import { slide, fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 
 	let onlineFriends = [];
 	let currentMode : 'SINGLEPLAYER' | 'MULTIPLAYER' | 'SPECTATOR' = 'SINGLEPLAYER';
@@ -133,17 +135,25 @@
 		}
 	}
 
-	function acceptDuelInvitation(data: any)
+
+	// runs onMount and whenever we navigate (so it also works if we accept notif on home page)
+	afterNavigate(async () => {
+		// in reality duelId is the sender id
+		const duelId = $page.url.searchParams.get('duel-id');
+
+		if (duelId)
+		{
+			acceptDuelInvitation(duelId);
+		}
+	});
+
+	function acceptDuelInvitation(duelId: string)
 	{
-		console.log('accepted duel invitation from', data.senderLogin, data.senderId);
 		listenForMatch();
-		$pongSocket.emit('acceptDuel', {senderId: data.senderId});
+		$pongSocket.emit('acceptDuel', {senderId: duelId});
 	}
 
 	onMount(() => {
-		//
-		// if (data.duelId)
-		// 	startDuel(data.duelId);
 
 		$statusSocket.on('userStatusChanged', (data) =>
 		{
@@ -162,13 +172,6 @@
 					}
 				}
 			}
-		});
-
-		$pongSocket.on('duelInvitation', (data) => {
-			console.log('duel invitation');
-			const acceptButton = { text: 'Accept', action: () => acceptDuelInvitation(data) };
-			const declineButton = { text: 'Decline', action: () => {} };
-			addNotification({content: `You have been invited to a duel by ${data.senderLogin}!`}, [acceptButton, declineButton]);
 		});
 
 		handleWindowResize();

@@ -76,7 +76,7 @@
 							{#if notification.actions}
 							<div class="notification-buttons">
 								{#each notification.actions as action}
-									<Button --vertical-padding="10px" --horizontal-padding="20px" on:click={() => {action.action(); removeNotification(notification.id)}}>
+									<Button --vertical-padding="10px" --horizontal-padding="20px" on:click={async () => {action.action(); removeNotification(notification.id)}}>
 										<span>{action.text}</span>
 									</Button>
 								{/each}

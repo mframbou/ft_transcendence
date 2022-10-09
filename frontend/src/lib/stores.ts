@@ -7,7 +7,7 @@ export const chatRooms = writable([]);
 export let notifications = writable([]);
 
 let notifId = 0;
-export function addNotification(notif: any, actions?: {text: string, action: () => void}[])
+export function addNotification(notif: any, actions?: {text: string, action: () => Promise<void>}[])
 {
 	notifId++;
 	const notifs = get(notifications);

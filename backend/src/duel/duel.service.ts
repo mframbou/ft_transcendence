@@ -62,8 +62,12 @@ export class DuelService
 
 		for (const receiver of receivers)
 		{
+			const senderUser = await this.usersService.getPublicUser(duel.sender.login);
+			if (!senderUser)
+				continue;
+
 			console.log(`Sending duel to ${receiver.login}:${receiver.clientId}`);
-			server.to(receiver.clientId).emit('duelInvitation', { senderId: duel.sender.clientId, senderLogin: duel.sender.login });
+			server.to(receiver.clientId).emit('duelInvitation', { senderId: duel.sender.clientId, sender: senderUser });
 		}
 	}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
     import '$lib/assets/global.scss';
     import NavbarV2 from '$lib/NavbarV2.svelte';
-    import { statusSocket, statusSocketConnected } from "$lib/websocket-stores";
+		import { pongSocket, statusSocket, statusSocketConnected } from '$lib/websocket-stores';
     import { notificationSocket, notificationSocketConnected } from "$lib/websocket-stores";
 		import { addNotification, notifications } from '$lib/stores';
 		import NotificationPopup from '$lib/NotificationPopup.svelte';
@@ -9,8 +9,9 @@
     import { goto } from '$app/navigation';
 		import NotificationPopupList from "../../lib/NotificationPopupList.svelte";
 
-    const unsubscribeStatus = statusSocket.subscribe(() => {});
-    const unsubscribeNotification = notificationSocket.subscribe(() => {});
+	const unsubscribeStatus = statusSocket.subscribe(() => {});
+	const unsubscribeNotification = notificationSocket.subscribe(() => {});
+	const unsubscribePong = pongSocket.subscribe(() => {});
 
 	const MAX_NOTIF_LENGHT = 250;
 	let unique: any = {};
@@ -32,9 +33,21 @@
 		unique = {};
 	});
 
+	$pongSocket.on('duelInvitation', (data) => {
+		console.log('duel invitation');
+		const acceptButton = { text: 'Accept', action: async () => {
+			await goto(`/home?duel-id=${data.senderId}`);
+				console.log('accepted duel invitation from', data.sender.username, '(' + data.sender.login + '), redirecting to home page');
+		} };
+		const declineButton = { text: 'Decline', action: () => {} };
+		addNotification({content: `You have been invited to a duel by ${data.sender.username}!`}, [acceptButton, declineButton]);
+	});
+
+
 	onDestroy(() => {
 		unsubscribeStatus();
 		unsubscribeNotification();
+		unsubscribePong();
 	});
 
 </script>
