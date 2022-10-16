@@ -684,12 +684,11 @@ export class ChatService {
             this.sendError(server, client, "you can't invite yourself bro");
             return;
         }
-        if (target.blockingUsers.find((cur) => cur == client.transcendenceUser.login)) {
+        if (participant.user.blockedUsers.find((cur) => cur.login == target.login)) {
             this.sendError(server, client, "you can't invite " + target.login + " because he blocked you ;)");
             return;
+
         }
-
-
         server.to(client.id).emit('duel', { login: target.login });
     }
     
