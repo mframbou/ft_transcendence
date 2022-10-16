@@ -159,6 +159,10 @@ export class ChatService {
                 // uncomment to notify only outside of the room
                 //if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
                     //continue;
+                if (participant.user.blockingUsers.find((cur) => cur == client.transcendenceUser.login))
+                    continue;
+                if (participant.user.login == client.transcendenceUser.login)
+                    continue;
                 this.notify({ service: 'chat', 
                               title: `${room.name}`, 
                               content: `${room.name}` + ": " +  client.transcendenceUser.login + ": " + content.content, 
@@ -540,7 +544,7 @@ export class ChatService {
             this.sendError(server, client, "remove: User is not in the room");
             return ;
         }
-        if (target_participant.is_owner && !participant.is_owner) {
+        if (target_participant.is_owner) {
             this.sendError(server, client, "remove: You can't remove the owner");
             return ;
         }
@@ -680,6 +684,11 @@ export class ChatService {
             this.sendError(server, client, "you can't invite yourself bro");
             return;
         }
+        if (target.blockingUsers.find((cur) => cur == client.transcendenceUser.login)) {
+            this.sendError(server, client, "you can't invite " + target.login + " because he blocked you ;)");
+            return;
+        }
+
 
         server.to(client.id).emit('duel', { login: target.login });
     }
@@ -780,7 +789,7 @@ export class ChatService {
         }
 
         // ! need to remove auto ban ok for owner !
-        if (target_participant.is_owner && !participant.is_owner) {
+        if (target_participant.is_owner) {
             this.sendError(server, client, "mute: You can't mute the owner");
             return;
         }
@@ -848,7 +857,7 @@ export class ChatService {
         }
 
         // ! need to remove auto ban ok for owner !
-        if (target_participant.is_owner && !participant.is_owner) {
+        if (target_participant.is_owner) {
             this.sendError(server, client, "ban: You can't ban the owner");
             return;
         }
@@ -1078,7 +1087,7 @@ export class ChatService {
                         }
                     });
                 }
-
+                room.hash = undefined;
                 return room;
             }
             catch (e) {
@@ -1097,6 +1106,7 @@ export class ChatService {
                     messages: false,
                 }
             });
+            rooms.forEach((cur) => {cur.hash = undefined});
 
             // return room only if it is public or user is in it
             return rooms.filter((cur) => !cur.is_private || cur.participants.find((cur) => cur.user.login == login));

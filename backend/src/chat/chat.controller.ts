@@ -62,9 +62,9 @@ import { get } from 'http';
     }
 
     // dbg
-    @Get('clearAll')
-    async clearAll(@Req() req: IUserRequest): Promise<any> {
-        return await this.chatService.clearAll();
-    }
+    //@Get('clearAll')
+    //async clearAll(@Req() req: IUserRequest): Promise<any> {
+        //return await this.chatService.clearAll();
+    //}
   
   }

@@ -174,7 +174,7 @@
             margin: 0;
             padding: 0;
             color : black;
-            overflow-x: auto;
+            //overflow-x: auto;
             /* chat display */
         }
 
@@ -233,7 +233,7 @@
 		border-radius: 10px;
 
         height: 500px;
-        width: 1200px;
+        width: max(80%, 500px);
         //width: 80%;
 
 

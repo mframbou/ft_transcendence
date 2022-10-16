@@ -109,9 +109,9 @@
     <!-- config panel -->
     <div class="config">
         <Button on:click= {() => {config = true;}}>new chatroom</Button>
-        <Button on:click={clearAll}>clear</Button>
-        <Button on:click={feature}>useful feature</Button>
-        <Button on:click={joinProfileRoom}>chat with yourself :)</Button>
+        <!-- <Button on:click={clearAll}>clear</Button> -->
+        <!-- <Button on:click={feature}>useful feature</Button> -->
+        <!-- <Button on:click={joinProfileRoom}>chat with yourself :)</Button> -->
     </div>
 
     <!-- chatRooms list -->
