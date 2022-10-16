@@ -128,8 +128,6 @@
 
         input {
             background-color: rgb(88, 146, 0);
-            height: 100%;
-            width: 100%;
 
             color: black;
         }

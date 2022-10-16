@@ -21,6 +21,7 @@ import * as bcrypt from 'bcrypt';
 import { objectEnumValues } from '@prisma/client/runtime';
 import { RpcException } from '@nestjs/microservices';
 import { NOTFOUND } from 'dns';
+import { BlacklistService } from '../blacklist/blacklist.service';
 
 @Injectable()
 export class ChatService {
@@ -28,7 +29,8 @@ export class ChatService {
         private readonly prisma: PrismaService, 
         private readonly usersService: UsersService,
         private notificationService: NotificationService,
-        private notificationGateway: NotificationGateway
+        private notificationGateway: NotificationGateway,
+        private blacklistService: BlacklistService,
     ) {}
 
 //     export interface ICommand
@@ -157,11 +159,11 @@ export class ChatService {
         if (notify) {
             for (let participant of room.participants) {
                 // uncomment to notify only outside of the room
-                //if (this.roomsClients.find((cur) => (cur.login == participant.user.login && cur.chatId == participant.chatId)))
-                    //continue;
-                if (participant.user.blockingUsers.find((cur) => cur == client.transcendenceUser.login))
+                if (this.roomsClients.find((cur) => (cur.login === participant.user.login && cur.chatId === participant.chatId)))
                     continue;
-                if (participant.user.login == client.transcendenceUser.login)
+                if (await this.blacklistService.isUserBlocked(participant.user.login, client.transcendenceUser.login))
+                    continue;
+                if (participant.user.login === client.transcendenceUser.login)
                     continue;
                 this.notify({ service: 'chat', 
                               title: `${room.name}`, 
@@ -666,7 +668,7 @@ export class ChatService {
                       title: 'Invitation',
                       content: 'you have been invited to join ' + room.name,
                       link: '/chat/' + room.name,
-                      senderLogin: client.transcendenceUser.login}, participant.user.login);
+                      senderLogin: client.transcendenceUser.login}, user.login);
 
     }
 
@@ -684,10 +686,10 @@ export class ChatService {
             this.sendError(server, client, "you can't invite yourself bro");
             return;
         }
-        if (participant.user.blockedUsers.find((cur) => cur.login == target.login)) {
+        if (await this.blacklistService.isUserBlocked(target.login, participant.user.login))
+        {
             this.sendError(server, client, "you can't invite " + target.login + " because he blocked you ;)");
             return;
-
         }
         server.to(client.id).emit('duel', { login: target.login });
     }
@@ -1090,6 +1092,7 @@ export class ChatService {
                 return room;
             }
             catch (e) {
+                errorDispatcher(e);
                 console.log("get rooms error: " + e);
             }
         }
