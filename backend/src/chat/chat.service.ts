@@ -530,7 +530,7 @@ export class ChatService {
             var target_participant = await this.getParticipant(target, room.id);
         }
         catch (e) {
-            this.sendError(server, client, "Unknown error");
+            this.sendError(server, client, "remove: user not found");
             console.log("remove error: " + e);
             return;
         }
@@ -676,7 +676,12 @@ export class ChatService {
             return;
         }
 
-        // duel here :)
+        if (target.login == participant.user.login) {
+            this.sendError(server, client, "you can't invite yourself bro");
+            return;
+        }
+
+        server.to(client.id).emit('duel', { login: target.login });
     }
     
     async kick(server: any, client: any, participant: any, room: any, args: any) {
@@ -748,7 +753,7 @@ export class ChatService {
         await this.notify({ service: 'chat',
                       title: 'unban',
                       content: 'you have been unbaned from ' + room.name + ' by ' + participant.user.login,
-                      link: '/chat/' + room.name,
+                      link: undefined,
                       senderLogin: client.transcendenceUser.login}, target.login);
     }
 
@@ -888,7 +893,7 @@ export class ChatService {
         await this.notify({ service: 'chat',
                       title: 'ban',
                       content: 'you have been baned from ' + room.name + ' by ' + participant.user.login,
-                      link: '/chat/' + room.name,
+                      link: undefined,
                       senderLogin: client.transcendenceUser.login}, target.login);
     }
 

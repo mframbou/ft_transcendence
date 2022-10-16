@@ -140,11 +140,18 @@
 	afterNavigate(async () => {
 		// in reality duelId is the sender id
 		const duelId = $page.url.searchParams.get('duel-id');
+		const start_duel = $page.url.searchParams.get('start_duel');
 
 		if (duelId)
 		{
 			acceptDuelInvitation(duelId);
 		}
+		if (start_duel)
+		{
+			startDuel(start_duel);
+		}
+
+
 	});
 
 	function acceptDuelInvitation(duelId: string)
