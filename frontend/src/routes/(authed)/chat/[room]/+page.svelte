@@ -24,6 +24,8 @@
         console.log("Mount");
         //console.log("user onMount: " + JSON.stringify($user));
         $chatSocket.emit('enter', {chatId: data.room.id});
+
+
     });
 
     afterUpdate(() => {
