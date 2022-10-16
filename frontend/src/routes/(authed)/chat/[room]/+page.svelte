@@ -4,7 +4,7 @@
     import Button from '$lib/Button.svelte';
     import ParticlesBackground from '$lib/ParticlesBackground.svelte';
     import { user } from '$lib/stores';
-    import { chatSocket } from '$lib/websocket-stores';
+    import { chatSocket, pongSocket} from '$lib/websocket-stores';
     import { onMount } from 'svelte';
     import { onDestroy } from 'svelte/internal';
     import { flip } from 'svelte/animate';
@@ -24,6 +24,8 @@
         console.log("Mount");
         //console.log("user onMount: " + JSON.stringify($user));
         $chatSocket.emit('enter', {chatId: data.room.id});
+
+
     });
 
     afterUpdate(() => {
@@ -65,6 +67,10 @@
         goto('/chat');
     });
 
+    $chatSocket.on("duel", (data) => {
+        goto ('/home?start_duel=' + data.login);
+    });
+
     // future insane feature
     $chatSocket.on("wizz", (data) => {
         console.log("wizz");
@@ -103,24 +109,12 @@
                   {:else if !data.user.blockingUsers.find((cur) => cur.blockedLogin === msg.sender?.login)}
                     <div class="message">
                       <img class="profilePicture" src={msg.sender.profilePicture}/>
-                      <p> {msg.sender.login} </p>
+                      <p> {msg.sender.username} </p>
+                      <p class="login" on:click={async () => {await goto(`/profile/${msg.sender.login}`);}}> &nbsp ({msg.sender.login}) </p>
                       <p>: &nbsp</p>
                       <p> {msg.content} </p>
                     </div>
                   {/if}
-<!--                        <div class="message">-->
-<!--                            {#if msg.isError}-->
-<!--                                    <p style="color:red;">{msg.content}</p> -->
-<!--                            {:else if msg.isStatus}-->
-<!--                                    <p style="color:gray;">*{msg.content}*</p> -->
-<!--                            {:else if !data.user.blockingUsers.find((cur) => cur.blockedLogin === msg.sender.login)}-->
-<!--                                    <img class="profilePicture" src={msg.sender.profilePicture}/> -->
-<!--                                    <p> {msg.sender.login} </p>-->
-<!--                                    <p>: &nbsp</p>-->
-<!--                                    <p> {msg.content} </p>-->
-<!--                            {/if}-->
-<!--                        </div>-->
-                    <!-- </div> -->
                 {/each}
             <!-- {/key} -->
         </div>
@@ -225,24 +219,24 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        max-height: 300px;
         padding: 10px 10px;
         align-items: center;
-        width: 80%;
         //background-color: orange;
 		$section-bg-color: rgba(28, 19, 42, 0.9);
 
 		backdrop-filter: blur(5px);
-		max-width: 1920px;
-		min-height: 9em;
-		min-width: 600px;
 		//max-height: fit-content;
-        max-height: 60vh;
 		margin: 20px;
 		padding: 15px;
 		gap: 20px;
 		background-color: $section-bg-color;
 		border-radius: 10px;
+
+        height: 500px;
+        width: 1200px;
+        //width: 80%;
+
+
 
 		// it seems that backdrop filter moves section to the foreground
 		backdrop-filter: blur(5px);
@@ -256,6 +250,7 @@
 
     .chat {
         width: 80%;
+        height: 80%;
         //background-color: blue;
         justify-content: center;
         text-align: center;
@@ -358,6 +353,15 @@
 		height: 100%;
 		width: 100%;
 	}
+
+    .login {
+        &:hover {
+            color: blue;
+            cursor: pointer;
+        }
+
+    }
+
 
 </style>
 

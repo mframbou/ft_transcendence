@@ -2,6 +2,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { goto, prefetchRoutes } from '$app/navigation';
+    import { page } from '$app/stores';
 
 	import Modal from '$lib/Modal.svelte';
     import ChatConfig from '$lib/chat/chatConfig.svelte';
@@ -26,7 +27,13 @@
 
 
     onMount(async () => {
-        getRooms();
+        await getRooms();
+
+		const mp = $page.url.searchParams.get('mp');
+
+        if (mp) {
+            await joinProfileRoom(mp);
+        }
     });
 
     async function addRoom() {
@@ -34,10 +41,10 @@
         goto('/chat/config');
     }
 
-    async function joinProfileRoom() {
+    async function joinProfileRoom(login: string) {
         console.log("try to join profile room");
         const login1 = $user.login;
-        const login2 = $user.login;
+        const login2 = login;
 
         // need to add error + security check
         const response = await fetch('/api/chat/joinProfileChat', {

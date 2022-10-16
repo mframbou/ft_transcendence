@@ -126,9 +126,6 @@
 
         align-items: flex-end;
 
-        height: 30px;
-        width: 50%;
-
         input {
             background-color: rgb(88, 146, 0);
             height: 100%;

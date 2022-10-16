@@ -513,7 +513,7 @@
 									<span class="banner-button">Remove friend</span>
 								</Button>
 
-								<Button border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={() => alert('message')}>
+								<Button border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={async () => {await goto(`/chat?mp=${targetUser.login}`)}}>
 									<span class="banner-button">Message</span>
 								</Button>
 
