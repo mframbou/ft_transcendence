@@ -177,6 +177,7 @@
 		handleWindowResize();
 
 		return () => {
+			$pongSocket.emit('leaveMatch');
 			$pongSocket.off('matchFound');
 			$statusSocket.off('userStatusChanged');
 		};

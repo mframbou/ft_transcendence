@@ -70,6 +70,16 @@ export class GameGateway implements OnGatewayDisconnect, OnGatewayConnection
   }
 
   @UseGuards(WsAuthGuard)
+  @SubscribeMessage('leaveMatch')
+  async handleDisconnectMessage(client: IWsClient, payload: any)
+  {
+    const user = client.transcendenceUser;
+
+    this.gameService.handlePlayerDisconnect(user.id);
+    this.gameService.handleSpectatorDisconnect(user.id);
+  }
+
+  @UseGuards(WsAuthGuard)
   @SubscribeMessage('startMatchmaking')
   async handleOnGameReady(client: IWsClient, payload: any)
   {

@@ -529,6 +529,7 @@
 		console.log('multiplayer mode');
 		initGameObjects(PLAYER1_COLOR, PLAYER2_COLOR, NET_COLOR, BALL_COLOR);
 
+		$pongSocket.off('gameStart');
 		if (!isRunning())
 			resume();
 	}
@@ -537,6 +538,7 @@
 		console.log('spectator mode');
 		initGameObjects(PLAYER1_COLOR, PLAYER2_COLOR, NET_COLOR, BALL_COLOR);
 		startSpectatingGame();
+		$pongSocket.off('gameStart');
 
 		if (!isRunning())
 			resume();

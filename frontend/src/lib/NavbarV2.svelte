@@ -260,21 +260,25 @@
 
 	function changeCurrent(newCurrent: string)
 	{
-		if (newCurrent === null || !navigation.includes(newCurrent))
+		if (newCurrent === null)
+		{
+			navPoint.style.display = 'none';
+			return;
+		}
+
+		let target = navItems.find((item) => newCurrent.startsWith(item.name));
+		if (!target)
 		{
 			navPoint.style.display = 'none';
 			return;
 		}
 
 		navPoint.style.display = 'block';
-
 		current = newCurrent;
-
-		let navElement = navItems.find((item) => item.name === current).elt;
 
 		// make position relative to the nav element
 		// use percentage instead of fixed px to make it responsive without adding resize listener
-		let percentage = navElement.offsetLeft / navDiv.offsetWidth + navElement.offsetWidth / navDiv.offsetWidth / 2;
+		let percentage = target.elt.offsetLeft / navDiv.offsetWidth + target.elt.offsetWidth / navDiv.offsetWidth / 2;
 		navPoint.style.left = `calc(${percentage * 100}% - ${navPointRadius}px)`;
 	}
 
