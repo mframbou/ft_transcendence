@@ -48,11 +48,11 @@
 
 			// cehck if 'imoutaab' present in images
 			const ismaImage = images.find((image) => image.src.includes('imoutaab'));
-			if (ismaImage && Math.random() < 0.05) {
+			if (ismaImage && Math.random() < 0.010) {
 				// if yes, replace it with the current image
 				this.img = ismaImage;
-				this.width *= 4;
-				this.height *= .8;
+				this.width *= 50;
+				this.height *= 50;
 			} else {
 				// if no, pick a random image
 				if (ismaImage)
