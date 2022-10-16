@@ -296,7 +296,7 @@
 
 		{#each navItems as nav}
 			<a
-				 class:current={nav.name === current}
+				 class:current={current.startsWith(nav.name)}
 				 class="nav-item"
 				 bind:this={nav.elt}
 				 href={`/${nav.name}`}

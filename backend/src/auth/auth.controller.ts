@@ -71,14 +71,17 @@ export class AuthController
 		const userData = await this.authService.getUserData(response.access_token);
 		let user = await this.usersService.getUser(userData.login);
 		let message: string;
+		let firstLogin: boolean;
 
 		if (!user)
 		{
+			firstLogin = true;
 			user = await this.usersService.addUser(userData);
 			message = `Successfully added user ${user.login} to the database`;
 		}
 		else
 		{
+			firstLogin = false;
 			message = `User ${user.login} already exists in the database`;
 		}
 
@@ -88,10 +91,10 @@ export class AuthController
 
 		console.log('Created cookie for user ' + user.login);
 
-		if (user)
-			return res.redirect('/home');
+		if (firstLogin)
+			return res.redirect('/settings');
 
-		return res.redirect('/settings');
+		return res.redirect('/home');
 	}
 
 	@Get('/logout')

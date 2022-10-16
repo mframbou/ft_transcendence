@@ -507,13 +507,17 @@
 									</Button>
 								{/if}
 
+								<Button disabled={isUserBlocked} border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={async () => {await goto(`/chat?mp=${targetUser.login}`)}}>
+									<span class="banner-button">Message</span>
+								</Button>
+
 							{:else}
 								<!-- Friend -->
 								<Button disabled={friendLoading} on:click={removeFriend}>
 									<span class="banner-button">Remove friend</span>
 								</Button>
 
-								<Button border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={async () => {await goto(`/chat?mp=${targetUser.login}`)}}>
+								<Button disabled={isUserBlocked} border={false} --background="linear-gradient(to right bottom, rgba(255, 255, 255, .25), rgba(255, 255, 255, .20))" on:click={async () => {await goto(`/chat?mp=${targetUser.login}`)}}>
 									<span class="banner-button">Message</span>
 								</Button>
 
