@@ -206,7 +206,7 @@ export class ChatService {
         let chatName = (login1 < login2) ? '*' + login1 + '-' + login2 : '*' + login2 + '-' + login1;
         try {
             var user1 = await this.getUser(login1);
-            var user2 = await this.getUser(login1);
+            var user2 = await this.getUser(login2);
         }
         catch(e) {
             throw new HttpException("Can't get user", 403);
