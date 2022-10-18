@@ -20,6 +20,7 @@
 	let matchmakingTime: number = 0;
 	let matchmakingTimeInterval: number = null;
 	let opponentPlayer = null;
+	let computerDifficulty: number = 0.5; // hard = 1, medium = 0.5, easy = 0.25
 
 	export let data;
 
@@ -229,7 +230,15 @@
 				<span in:fade>Singleplayer</span>
 			{/if}
 		</div>
-		<Pong ballAspect={pongBallAspect} preserveRatio={pongKeepAspectRatio} bind:width={pongWidth} bind:currentMode on:game-end={handleGameFinished}/>
+		<Pong computerDifficulty={computerDifficulty} ballAspect={pongBallAspect} preserveRatio={pongKeepAspectRatio} bind:width={pongWidth} bind:currentMode on:game-end={handleGameFinished}/>
+
+		{#if currentMode === 'SINGLEPLAYER'}
+			<div class="ia-difficulty">
+				<Button on:click={() => computerDifficulty = 0.25} disabled={computerDifficulty === 0.25}>Easy</Button>
+				<Button on:click={() => computerDifficulty = 0.5} disabled={computerDifficulty === 0.5}>Medium</Button>
+				<Button on:click={() => computerDifficulty = 1} disabled={computerDifficulty === 1}>Hard</Button>
+			</div>
+		{/if}
 
 		<div class="matchmaking-button">
 			<Button disabled={currentMode === 'MULTIPLAYER' || !$pongSocketConnected || matchmaking} on:click={setReady}>
@@ -356,7 +365,14 @@
 
 		.matchmaking-button
 		{
-			margin-top: 1.5rem;
+		}
+
+		.ia-difficulty
+		{
+			margin: 1.5rem 0 1rem 0;
+			display: flex;
+			flex-direction: row;
+			gap: 0.5rem;
 		}
 	}
 

@@ -93,6 +93,7 @@
 	export let width: number = 600;
 	export let height: number = 400;
 	export let preserveRatio: boolean = true;
+	export let computerDifficulty: number = 1; // hard = 1, medium = 0.5, easy = 0.25
 
 	const dispatch = createEventDispatcher();
 
@@ -643,7 +644,7 @@
 	function generateRandomPaddleOffset()
 	{
 		// since offset is more than half of paddle height, sometimes computer will not be able to reach the ball (because computer wants to center its target pos to paddle)
-		return (Math.random() - 0.5) * (player2.paddle.height / 1);
+		return (Math.random() - 0.5) * (player2.paddle.height / computerDifficulty);
 	}
 
 	/////////////////////
